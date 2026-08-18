@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  localstack:
+    container_name: localstack
+    image: localstack/localstack:latest
+    ports:
+      - "127.0.0.1:4566:4566"            # LocalStack Edge Proxy
+      - "127.0.0.1:4510-4559:4510-4559"  # External services port range
+    environment:
+      - DEBUG=1
+      - PERSISTENCE=1                     # Enables data persistence
+    volumes:
+      - "./localstack:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock" # Required for AWS Lambda execution
+    networks:
+      - siege_network
+
+networks:
+  siege_network:
+    driver: bridge

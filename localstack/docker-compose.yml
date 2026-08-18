@@ -1,18 +1,21 @@
-version: '3.8'
-
 services:
   localstack:
-    container_name: localstack
-    image: localstack/localstack:latest
+    container_name: sandbox_siege_localstack
+    image: localstack/localstack:3.8.1
     ports:
-      - "127.0.0.1:4566:4566"            # LocalStack Edge Proxy
-      - "127.0.0.1:4510-4559:4510-4559"  # External services port range
+      - "4566:4566"            # LocalStack Gateway & Edge Proxy
+      - "127.0.0.1:4510-4559:4510-4559"  # External service ports
     environment:
+      - LOCALSTACK_ACKNOWLEDGE_ACCOUNT_REQUIREMENT=1
       - DEBUG=1
-      - PERSISTENCE=1                     # Enables data persistence
+      - PERSISTENCE=1
+      - AWS_DEFAULT_REGION=us-east-1
+      - SERVICES=s3,dynamodb,sqs,sns,iam,lambda
+      - DOCKER_HOST=unix:///var/run/docker.sock
     volumes:
-      - "./localstack:/var/lib/localstack"
-      - "/var/run/docker.sock:/var/run/docker.sock" # Required for AWS Lambda execution
+      - "./data:/var/lib/localstack"
+      - "./init-scripts:/etc/localstack/init/ready.d"
+      - "/var/run/docker.sock:/var/run/docker.sock"
     networks:
       - siege_network
 

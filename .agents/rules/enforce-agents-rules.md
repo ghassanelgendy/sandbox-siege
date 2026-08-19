@@ -23,7 +23,7 @@ You must strictly adhere to the guidelines, conventions, constraints, and contra
 
 4. **Definition of Done:**
    * Verify changes using automated tests (`make test`) and run live scenarios or replay (`siege run` / `siege replay`).
-   * A change is complete only when code runs, docs are synchronized, decisions are added to the Decision Log (PRD ง15), and commit message names the updated docs.
+   * A change is complete only when code runs, docs are synchronized, decisions are added to the Decision Log (PRD ยง15), and commit message names the updated docs.
 
 5. **Active Git Auto-Commit Hook:**
    * A lifecycle hook is configured in [`.agents/hooks.json`](file:///home/batman/sandbox-siege/.agents/hooks.json) to automatically run `git add -A` and `git commit` after *every* tool invocation step during development.

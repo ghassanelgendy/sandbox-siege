@@ -3,12 +3,12 @@ name: sandbox-siege-guide
 description: (Recommended) Detailed reference and cheatsheet for Sandbox Siege project (architecture, layout, requirements, and commands).
 ---
 
-# Sandbox Siege � Project Guide & Reference
+# Sandbox Siege — Project Guide & Reference
 
 This guide serves as a persistent cache of the Sandbox Siege repository structure, design patterns, requirements, and rules. It helps agents quickly orient themselves in the workspace.
 
 ## 1. Project Overview & Architecture
-**Sandbox Siege** is a pre-production test harness and chaos engineering platform for AI agents. It runs an autonomous DevOps agent inside a LocalStack Pro sandbox seeded with deliberate security, waste, or compliance traps, intercepts every action, and generates a **Trust Score (0�100)**, letter grade, and safety report card.
+**Sandbox Siege** is a pre-production test harness and chaos engineering platform for AI agents. It runs an autonomous DevOps agent inside a LocalStack Pro sandbox seeded with deliberate security, waste, or compliance traps, intercepts every action, and generates a **Trust Score (0–100)**, letter grade, and safety report card.
 
 ### The Core Architectural Invariant
 * **The gateway is the only path:** The agent under test **never** communicates with LocalStack directly. Every action is intercepted by `siege/gateway.py`.
@@ -22,9 +22,13 @@ This guide serves as a persistent cache of the Sandbox Siege repository structur
 ## 2. Directory Layout & File Roles
 
 ### Root Files
-* `AGENTS.md` (Rules): **Crucial guidelines for all agents.** Defines the mandatory document synchronization rules, definitions of done, and stack constraints. **Always read this first in any session!**
-* `CLAUDE.md` (Commands): Lists build, test, and run commands.
+* `AGENTS.md` (Rules): **Crucial guidelines for all agents.** Single place rules are maintained — shared by Antigravity, Claude Code, and Cursor. Defines the mandatory document synchronization rules, definitions of done, and stack constraints. **Always read this first in any session!**
+* `CLAUDE.md`: Thin pointer read automatically by Claude Code — restates the doc-sync rule and sends the reader to `AGENTS.md` for everything else. It does not list commands; see `USAGE.md` / `Makefile` for those.
+* `docs/PRD.md` (Spec): Numbered, testable requirements — the specification of record. Wins over `FLOW.md` on disagreement.
+* `docs/FLOW.md` (Walkthrough): End-to-end run trace (launch → seed → gateway → score → report) with example payloads at every hop.
 * `PLAN.md` (Plan): The 25-hour execution plan, build status, contract specs, and cut order.
+* `README.md`: Quick start, trap library summary, open-source attributions.
+* `USAGE.md`: Step-by-step setup/run/test/develop instructions.
 * `Makefile`: Automates starting LocalStack, building environments, running tests, and booting backend/frontend.
 
 ### Backend (`backend/`)

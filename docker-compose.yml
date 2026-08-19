@@ -6,15 +6,17 @@ services:
     container_name: siege-localstack
     image: localstack/localstack:latest
     ports:
-      - "127.0.0.1:4566:4566"
+      - "4566:4566"
     environment:
       - LOCALSTACK_AUTH_TOKEN=${LOCALSTACK_AUTH_TOKEN}
       - ENFORCE_IAM=1
-      - SERVICES=s3,dynamodb,rds,ec2,logs,secretsmanager,ssm,iam,sts
+      - SERVICES=s3,dynamodb,sqs,sns,rds,ec2,logs,secretsmanager,ssm,iam,sts
       - PERSISTENCE=0
       - DEBUG=${DEBUG:-0}
+      - EXTRA_CORS_ALLOWED_ORIGINS=*
     volumes:
       - "./.localstack-data:/var/lib/localstack"
+      - "./localstack/init-scripts:/etc/localstack/init/ready.d"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
       interval: 5s

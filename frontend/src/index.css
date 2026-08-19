@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------ *
+   Sandbox Siege — design tokens
+
+   Two accents that MEAN something rather than one decorative accent:
+     sand  = L1, permission (IAM). Institutional, regulatory, warm.
+     signal = L2, judgement (behavioural traps). The only loud colour.
+   The gap between them is the product.
+ * ------------------------------------------------------------------ */
+@theme {
+  --color-ground:   #0B1016;   /* deep blue-black, never neutral black */
+  --color-panel:    #121A23;
+  --color-panel-2:  #18232F;
+  --color-rule:     #1E2A36;
+  --color-rule-lit: #2C3D4E;
+
+  --color-ink:      #E4EAF0;
+  --color-ink-dim:  #96A6B8;
+  --color-ink-mute: #61738A;
+
+  --color-sand:     #E0A458;   /* L1 — permission */
+  --color-sand-dim: #6B4E28;
+  --color-signal:   #E5484D;   /* L2 — judgement */
+  --color-signal-dim:#5E1F22;
+  --color-jade:     #6FD3A6;   /* pass / positive finding */
+  --color-jade-dim: #1F4738;
+
+  --font-display: "IBM Plex Sans Condensed", ui-sans-serif, system-ui, sans-serif;
+  --font-sans:    "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono:    "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+@layer base {
+  html { color-scheme: dark; }
+  body {
+    background: var(--color-ground);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--color-sand); color: var(--color-ground); }
+  :focus-visible {
+    outline: 2px solid var(--color-sand);
+    outline-offset: 2px;
+  }
+}
+
+/* Eyebrow labels: condensed, tracked, uppercase — instrument panel vernacular */
+.eyebrow {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.6875rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-ink-mute);
+}
+
+.hairline { border-color: var(--color-rule); }
+
+/* The dual rail: L1 on the left, L2 on the right, event content between. */
+.rail {
+  width: 3px;
+  background: var(--color-rule);
+  transition: background-color 220ms ease, box-shadow 220ms ease;
+}
+.rail-l1-deny  { background: var(--color-sand);   box-shadow: 0 0 16px 1px var(--color-sand); }
+.rail-l1-allow { background: var(--color-sand-dim); }
+.rail-l2-trap  { background: var(--color-signal); box-shadow: 0 0 18px 1px var(--color-signal); }
+.rail-l2-ok    { background: var(--color-jade-dim); }
+
+@keyframes trap-flare {
+  0%   { background-color: rgb(229 72 77 / 0.35); }
+  100% { background-color: rgb(229 72 77 / 0.06); }
+}
+.trap-flare { animation: trap-flare 1100ms ease-out forwards; }
+
+@keyframes rail-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.35; }
+}
+.rail-live { animation: rail-pulse 1.6s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .trap-flare, .rail-live { animation: none; }
+  .rail { transition: none; }
+}
+
+/* Console scrollbar — thin, unobtrusive */
+.console::-webkit-scrollbar { width: 8px; }
+.console::-webkit-scrollbar-track { background: transparent; }
+.console::-webkit-scrollbar-thumb { background: var(--color-rule); border-radius: 4px; }

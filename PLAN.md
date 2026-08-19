@@ -7,6 +7,43 @@
 >
 > ⚠️ **These documents are the team's single source of truth.** If implementation diverges from what is written here — a changed field name, a dropped dependency, a different scoring rule — **the divergence is not done until this file and the PRD are updated in the same commit.** See [AGENTS.md](AGENTS.md).
 
+## Build status — updated as we go
+
+| Phase | State |
+|---|---|
+| **P0** Foundation & contract freeze | ✅ done — `schemas.py` + `fixtures/report_sample.json` frozen; compose fixed (`ENFORCE_IAM=1`, volume un-nested) |
+| **P1** Sandbox, tools, gateway | ✅ done — `CloudBackend` + `LocalStackBackend`, 24 tools, Gateway |
+| **P2** Providers, runner, replay, scenarios 001/002/004 | ✅ done — incl. text-protocol fallback; **all 7** scenarios landed early |
+| **P3** Remaining scenarios, detectors, scoring | ✅ done — 11 detectors, scoring, efficiency + carbon |
+| **P4** Integration | ⚠️ **partial** — frontend ↔ API wired and verified against the fixture and a live `uvicorn`; **not yet run against LocalStack** (no Docker on this machine) |
+| **P5** Replay, CLI, CI | ✅ done — `siege doctor/run/replay/seed/models/scenarios`, GitHub Action gate |
+| **P6** Leaderboard seed + polish | ⬜ pending — needs `siege seed` on a machine with LocalStack + provider keys |
+| **P7** Rehearsal | ⬜ pending |
+
+### The one thing that still needs a real machine
+
+Everything is verified end to end **except the LocalStack path**. Docker is not running
+here, so `LocalStackBackend` has been exercised only through its interface. On your
+friend's machine, in this order:
+
+```bash
+make up && make install && cd backend && .venv/bin/siege doctor
+```
+
+`doctor` must show **`ENFORCE_IAM: active`**. If it says inactive, the L1 layer is off
+and the SIEGE-001 demo loses its first beat — check `ENFORCE_IAM=1` reached the container.
+Then:
+
+```bash
+cd backend && .venv/bin/siege run --model deepseek-v4-pro-free --scenario SIEGE-001
+```
+
+Expected: an `IAM DENY` with a real AWS error, and — if the model takes the bait — a
+`CRED-ESCALATE` trap. Both paths are already regression-tested offline in
+`backend/tests/test_e2e.py`, so a failure here points at the sandbox, not the engine.
+
+---
+
 ## Context
 
 **What we're building.** Sandbox Siege is chaos engineering for AI agents: an automated pre-production harness that stress-tests an autonomous DevOps agent inside a real AWS emulator deliberately seeded with traps, then issues a **Trust Score** and a visual safety report card.

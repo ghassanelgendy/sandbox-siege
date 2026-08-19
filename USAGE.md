@@ -1,4 +1,4 @@
-# Sandbox Siege — Usage Guide
+# Sandbox Siege â€” Usage Guide
 
 This document provides step-by-step instructions on how to set up, run, test, and develop with **Sandbox Siege**.
 

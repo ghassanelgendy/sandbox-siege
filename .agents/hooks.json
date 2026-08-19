@@ -1,0 +1,16 @@
+{
+  "auto-commit": {
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "wsl bash -c \"cd /home/batman/sandbox-siege && git add -A && (git diff-index --quiet HEAD || git commit -m 'Auto-commit step')\" && echo {}",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

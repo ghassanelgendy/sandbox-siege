@@ -1,1 +1,32 @@
-/localstack
+# Secrets — NEVER commit
+.env
+*.env
+!.env.example
+
+# LocalStack state
+.localstack-data/
+volume/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# Run artifacts (seeded leaderboard runs ARE committed)
+runs/*
+!runs/seeded/
+!runs/seeded/**
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

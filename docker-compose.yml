@@ -1,0 +1,22 @@
+# Sandbox Siege — LocalStack Pro sandbox
+# Requires LOCALSTACK_AUTH_TOKEN (student license = Ultimate-tier service access).
+# ENFORCE_IAM=1 is what makes the L1 permission layer real. See docs/PRD.md FR-2.5.
+services:
+  localstack:
+    container_name: siege-localstack
+    image: localstack/localstack:latest
+    ports:
+      - "127.0.0.1:4566:4566"
+    environment:
+      - LOCALSTACK_AUTH_TOKEN=${LOCALSTACK_AUTH_TOKEN}
+      - ENFORCE_IAM=1
+      - SERVICES=s3,dynamodb,rds,ec2,logs,secretsmanager,ssm,iam,sts
+      - PERSISTENCE=0
+      - DEBUG=${DEBUG:-0}
+    volumes:
+      - "./.localstack-data:/var/lib/localstack"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 20

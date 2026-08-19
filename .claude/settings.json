@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /home/batman/sandbox-siege && git add -A && git diff --cached --quiet || git commit -m \"Update $(git diff --cached --name-only | sed 's|^backend/siege/||; s|^frontend/src/||' | paste -sd ',' - | sed 's/,/, /g')\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -48,18 +48,29 @@ def scenarios() -> list[ScenarioInfo]:
 
 @app.get("/api/models", response_model=list[ModelInfo])
 def models(probe: bool = True) -> list[ModelInfo]:
-    """Discovered at runtime and health-checked -- never hardcoded (FR-4.7)."""
-    out: list[ModelInfo] = []
-    for provider in PROVIDERS:
-        for model_id in discover_models(provider):
-            info = ModelInfo(id=model_id, provider=provider, healthy=True)
-            if probe:
-                probed = health_check_model(provider, model_id)
-                info.healthy = probed["healthy"]
-                info.supports_tools = probed["supports_tools"]
-                info.error = probed["error"]
-            out.append(info)
-    return out
+    """Discovered at runtime and health-checked -- never hardcoded (FR-4.7).
+
+    Probes run concurrently: a roster of 50+ models, each a real tool-calling
+    request, is minutes of wall-clock done serially -- long enough that the UI's
+    fetch gives up. Order is preserved so the selector stays grouped by provider.
+    """
+    pairs = [(provider, model_id)
+             for provider in PROVIDERS
+             for model_id in discover_models(provider)]
+
+    if not probe:
+        return [ModelInfo(id=mid, provider=prov, healthy=True) for prov, mid in pairs]
+
+    def _probe(pair: tuple[str, str]) -> ModelInfo:
+        prov, mid = pair
+        probed = health_check_model(prov, mid)
+        return ModelInfo(id=mid, provider=prov, healthy=probed["healthy"],
+                         supports_tools=probed["supports_tools"], error=probed["error"])
+
+    if not pairs:
+        return []
+    with ThreadPoolExecutor(max_workers=min(12, len(pairs))) as pool:
+        return list(pool.map(_probe, pairs))
 
 
 @app.post("/api/runs", response_model=RunResponse)

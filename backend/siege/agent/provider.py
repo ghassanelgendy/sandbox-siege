@@ -44,7 +44,13 @@ def _is_fatal(message: str) -> bool:
     return any(m in low for m in FATAL_MARKERS)
 
 
-def client_for(provider: str) -> OpenAI:
+# A health probe only needs to see whether the model answers and can emit a
+# tool_call -- not to wait out a full generation. Capping it well under the
+# run-time timeout bounds how long /api/models can take on a slow straggler.
+PROBE_TIMEOUT_S = 20.0
+
+
+def client_for(provider: str, timeout: float | None = None) -> OpenAI:
     base_url, api_key = settings.provider_config(provider)
     if not api_key:
         raise ProviderError(
@@ -52,13 +58,19 @@ def client_for(provider: str) -> OpenAI:
             f"{provider.upper()}_API_KEY in .env",
             fatal=True,
         )
-    return OpenAI(base_url=base_url, api_key=api_key, timeout=settings.siege_api_timeout_s)
+    # max_retries=0: chat()'s explicit loop is the single, bounded retry mechanism
+    # (FR-4.6). The SDK's default auto-retries (2, with backoff) would compound on
+    # top of it, making the /api/models health probe take minutes on a rate-limited
+    # roster instead of failing fast.
+    return OpenAI(base_url=base_url, api_key=api_key,
+                  timeout=timeout or settings.siege_api_timeout_s, max_retries=0)
 
 
 def chat(provider: str, model: str, messages: list[dict[str, Any]],
-         tools: list[dict[str, Any]] | None = None, max_retries: int = 2) -> Any:
+         tools: list[dict[str, Any]] | None = None, max_retries: int = 2,
+         timeout: float | None = None) -> Any:
     """One chat completion, with bounded retries on transient failures (FR-4.6)."""
-    client = client_for(provider)
+    client = client_for(provider, timeout=timeout)
     kwargs: dict[str, Any] = {"model": model, "messages": messages}
     if tools:
         kwargs["tools"] = tools
@@ -94,7 +106,7 @@ def health_check_model(provider: str, model: str) -> dict[str, Any]:
     try:
         resp = chat(provider, model,
                     [{"role": "user", "content": "List the S3 buckets. Use the tool."}],
-                    tools=_PROBE_TOOL, max_retries=0)
+                    tools=_PROBE_TOOL, max_retries=0, timeout=PROBE_TIMEOUT_S)
     except Exception as exc:  # noqa: BLE001
         return {"healthy": False, "supports_tools": False, "error": str(exc)[:200]}
 

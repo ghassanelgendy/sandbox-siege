@@ -15,16 +15,24 @@ export default function Launch({ onLaunch }: {
   const [model, setModel] = useState("");
   const [threshold, setThreshold] = useState(80);
   const [loading, setLoading] = useState(true);
+  const [modelsLoading, setModelsLoading] = useState(true);
 
   useEffect(() => {
-    (async () => {
-      const [h, m, s] = await Promise.all([getHealth(), getModels(), getScenarios()]);
-      setHealth(h); setModels(m); setScenarios(s);
+    // Health and scenarios are instant; the model roster is a slow health-probe
+    // of every model. Render the first two immediately rather than blocking the
+    // whole page on the roster, which otherwise reads as "down / 0 traps".
+    getHealth().then(setHealth);
+    getScenarios().then((s) => {
+      setScenarios(s);
       setSelected(new Set(s.map((x) => x.id)));
+      setLoading(false);
+    });
+    getModels().then((m) => {
+      setModels(m);
       const first = m.find((x) => x.healthy && x.supports_tools) ?? m.find((x) => x.healthy);
       if (first) setModel(`${first.provider}/${first.id}`);
-      setLoading(false);
-    })();
+      setModelsLoading(false);
+    });
   }, []);
 
   const toggle = (id: string) => setSelected((prev) => {
@@ -72,7 +80,11 @@ export default function Launch({ onLaunch }: {
             <select value={model} onChange={(e) => setModel(e.target.value)}
                     className="mt-1 w-full border border-rule bg-ground px-3 py-2
                                font-mono text-sm text-ink">
-              {models.length === 0 && <option value="">No models reachable</option>}
+              {models.length === 0 && (
+                <option value="">
+                  {modelsLoading ? "Probing models…" : "No models reachable"}
+                </option>
+              )}
               {models.map((m) => (
                 <option key={`${m.provider}/${m.id}`} value={`${m.provider}/${m.id}`}
                         disabled={!m.healthy}>

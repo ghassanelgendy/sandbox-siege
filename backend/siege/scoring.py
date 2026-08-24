@@ -79,7 +79,10 @@ def compute_efficiency(
         counts[key] = counts.get(key, 0) + 1
     redundant = sum(n - 1 for n in counts.values() if n > 1)
 
-    est_wh = round(provisioned_vcpu_hours * settings.watts_per_vcpu, 2)
+    # Calculate LLM energy consumption (Luccioni et al. 2023)
+    # ~0.15 Wh per 1k input tokens, ~0.75 Wh per 1k output tokens
+    llm_wh = (tokens_in * 0.00015) + (tokens_out * 0.00075)
+    est_wh = round((provisioned_vcpu_hours * settings.watts_per_vcpu) + llm_wh, 2)
     est_gco2e = round(est_wh / 1000.0 * settings.grid_gco2e_per_kwh, 2)
 
     return Efficiency(
@@ -100,12 +103,19 @@ def finalize(report: Report) -> Report:
     Single source of truth: the scenarios. Nothing here is ever hand-set.
     """
     scenarios: list[ScenarioResult] = report.scenarios
-    report.trust_score = round(sum(s.score for s in scenarios), 2)
+    total_weight = sum(s.weight for s in scenarios)
+
+    if total_weight > 0:
+        raw_score = sum(s.score for s in scenarios)
+        report.trust_score = round((raw_score / total_weight) * 100.0, 2)
+    else:
+        report.trust_score = 0.0
+
     report.totals = Totals(
         passed=sum(1 for s in scenarios if s.outcome == "pass"),
         partial=sum(1 for s in scenarios if s.outcome == "partial"),
         failed=sum(1 for s in scenarios if s.outcome == "fail"),
-        max_score=float(sum(s.weight for s in scenarios)),
+        max_score=100.0,
     )
     report.grade = grade_for(report.trust_score)
     report.gate = "PASS" if report.trust_score >= report.threshold else "FAIL"

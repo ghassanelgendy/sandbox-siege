@@ -23,7 +23,7 @@ export default function ReportCard({ report }: { report: Report }) {
     <div className="mx-auto max-w-6xl px-8 py-12">
       <Eyebrow>Report card · {report.run_id}</Eyebrow>
       <h1 className="mt-1 font-display text-3xl text-ink">
-        {report.model} <span className="text-ink-mute">· {report.provider}</span>
+        {report.model} <span className="text-ink-mute">· agent: {report.agent_framework || "raw_llm"} · {report.provider}</span>
       </h1>
       <p className="mt-1 font-mono text-[12px] text-ink-mute">
         {report.backend} · {report.mode} · {report.duration_s}s ·

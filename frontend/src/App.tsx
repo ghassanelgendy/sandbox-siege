@@ -22,7 +22,7 @@ export default function App() {
   const [demo, setDemo] = useState(false);
   const [report, setReport] = useState<Report | null>(null);
 
-  const launch = async (o: { model: string; provider: string; scenarioIds: string[];
+  const launch = async (o: { model: string; provider: string; agentFramework: string; scenarioIds: string[];
                              threshold: number; demo: boolean }) => {
     setDemo(o.demo);
     setReport(null);
@@ -30,8 +30,8 @@ export default function App() {
       setRunId(null);
     } else {
       const res = await startRun({
-        model: o.model, provider: o.provider, scenario_ids: o.scenarioIds,
-        mode: "live", threshold: o.threshold,
+        model: o.model, provider: o.provider, agent_framework: o.agentFramework,
+        scenario_ids: o.scenarioIds, mode: "live", threshold: o.threshold,
       });
       // no backend? fall through to the recorded stream rather than a dead screen
       setRunId(res?.run_id ?? null);

@@ -39,6 +39,7 @@ export default function Console({ runId, demo, onFinished, report, onViewReport 
     setPinned(el.scrollHeight - el.scrollTop - el.clientHeight < 80);
   };
 
+  const runStarted = events.find((e) => e.type === EV.RUN_STARTED);
   const traps = events.filter((e) => e.type === EV.TRAP_TRIGGERED);
   const denies = events.filter((e) => e.type === EV.IAM_VERDICT && e.data.decision === "DENY");
   const current = [...events].reverse().find((e) => e.type === EV.SCENARIO_STARTED);
@@ -98,6 +99,11 @@ export default function Console({ runId, demo, onFinished, report, onViewReport 
             <span className="font-display text-sm tracking-wide text-ink">
               {live ? "Siege in progress" : "Siege complete"}
             </span>
+            {runStarted?.data.model && (
+              <Chip tone="sand">
+                {runStarted.data.model} · {runStarted.data.agent_framework || "raw_llm"}
+              </Chip>
+            )}
             {demo && <Chip tone="mute">replay</Chip>}
           </div>
           <div className="flex items-center gap-5 font-mono text-[11px] text-ink-mute">

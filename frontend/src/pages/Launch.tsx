@@ -1,27 +1,29 @@
 import { useEffect, useState } from "react";
-import { Play, ShieldAlert } from "lucide-react";
-import { getHealth, getModels, getScenarios } from "../api";
+import { Play, ShieldAlert, Compass } from "lucide-react";
+import { getHealth, getModels, getScenarios, getAgents, AgentFramework } from "../api";
 import { Chip, Empty, Eyebrow, Panel } from "../components/Bits";
+import AgentNavigator from "../components/AgentNavigator";
 import type { HealthResponse, ModelInfo, ScenarioInfo } from "../types";
 
 export default function Launch({ onLaunch }: {
-  onLaunch: (opts: { model: string; provider: string; scenarioIds: string[];
+  onLaunch: (opts: { model: string; provider: string; agentFramework: string; scenarioIds: string[];
                      threshold: number; demo: boolean }) => void;
 }) {
   const [health, setHealth] = useState<HealthResponse | null>(null);
   const [models, setModels] = useState<ModelInfo[]>([]);
   const [scenarios, setScenarios] = useState<ScenarioInfo[]>([]);
+  const [agentsList, setAgentsList] = useState<AgentFramework[]>([]);
+  const [agentNavOpen, setAgentNavOpen] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [model, setModel] = useState("");
+  const [agentFramework, setAgentFramework] = useState("raw_llm");
   const [threshold, setThreshold] = useState(80);
   const [loading, setLoading] = useState(true);
   const [modelsLoading, setModelsLoading] = useState(true);
 
   useEffect(() => {
-    // Health and scenarios are instant; the model roster is a slow health-probe
-    // of every model. Render the first two immediately rather than blocking the
-    // whole page on the roster, which otherwise reads as "down / 0 traps".
     getHealth().then(setHealth);
+    getAgents().then(setAgentsList);
     getScenarios().then((s) => {
       setScenarios(s);
       setSelected(new Set(s.map((x) => x.id)));
@@ -45,6 +47,7 @@ export default function Launch({ onLaunch }: {
     const [provider, ...rest] = model.split("/");
     onLaunch({
       model: rest.join("/"), provider: provider || "bynara",
+      agentFramework,
       scenarioIds: [...selected], threshold, demo,
     });
   };
@@ -75,24 +78,50 @@ export default function Launch({ onLaunch }: {
               </Chip>
             </div>
           </div>
-          <div className="flex-1 min-w-[240px]">
-            <Eyebrow>Agent under test</Eyebrow>
-            <select value={model} onChange={(e) => setModel(e.target.value)}
-                    className="mt-1 w-full border border-rule bg-ground px-3 py-2
-                               font-mono text-sm text-ink">
-              {models.length === 0 && (
-                <option value="">
-                  {modelsLoading ? "Probing models…" : "No models reachable"}
-                </option>
-              )}
-              {models.map((m) => (
-                <option key={`${m.provider}/${m.id}`} value={`${m.provider}/${m.id}`}
-                        disabled={!m.healthy}>
-                  {m.id} · {m.provider}
-                  {!m.healthy ? " — unavailable" : m.supports_tools ? "" : " — text protocol"}
-                </option>
-              ))}
-            </select>
+          <div className="flex-[2] min-w-[320px] flex gap-4">
+            <div className="flex-1">
+              <Eyebrow>Agent model</Eyebrow>
+              <select value={model} onChange={(e) => setModel(e.target.value)}
+                      className="mt-1 w-full border border-rule bg-ground px-3 py-2
+                                 font-mono text-sm text-ink">
+                {models.length === 0 && (
+                  <option value="">
+                    {modelsLoading ? "Probing models…" : "No models reachable"}
+                  </option>
+                )}
+                {models.map((m) => (
+                  <option key={`${m.provider}/${m.id}`} value={`${m.provider}/${m.id}`}
+                          disabled={!m.healthy}>
+                    {m.id} · {m.provider}
+                    {!m.healthy ? " — unavailable" : m.supports_tools ? "" : " — text protocol"}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center justify-between">
+                <Eyebrow>Agent framework</Eyebrow>
+                <button
+                  type="button"
+                  onClick={() => setAgentNavOpen(true)}
+                  className="inline-flex items-center gap-1 font-mono text-[10px] text-sand hover:underline"
+                >
+                  <Compass size={11} /> Agent Navigator
+                </button>
+              </div>
+              <select value={agentFramework} onChange={(e) => setAgentFramework(e.target.value)}
+                      className="mt-1 w-full border border-rule bg-ground px-3 py-2
+                                 font-mono text-sm text-ink">
+                <option value="raw_llm">Raw LLM (internal loop)</option>
+                <option value="swe_agent">SWE-agent (Princeton)</option>
+                <option value="crewai">CrewAI (Multi-Agent)</option>
+                <option value="autogpt">AutoGPT (Autonomous)</option>
+                <option value="opscode">OpsCode (DevOps Agent)</option>
+                <option value="opensre">OpenSRE (Incident SRE)</option>
+                <option value="k8sgpt">K8sGPT (Kubernetes SRE)</option>
+                <option value="insecure">Insecure Bot (Showcase Target)</option>
+              </select>
+            </div>
           </div>
           <div>
             <Eyebrow>Gate threshold</Eyebrow>
@@ -161,6 +190,13 @@ export default function Launch({ onLaunch }: {
           Demo replay streams a recorded run — no network, no sandbox.
         </p>
       </div>
+
+      <AgentNavigator
+        agents={agentsList}
+        isOpen={agentNavOpen}
+        onClose={() => setAgentNavOpen(false)}
+        onSelectAgent={(id) => setAgentFramework(id)}
+      />
     </div>
   );
 }

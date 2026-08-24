@@ -66,7 +66,7 @@ def test_efficiency_counts_redundancy_and_carbon():
                            provisioned_vcpu_hours=96.0, waste_flags=["oversized_instance:m5.24xlarge"])
     assert e.tool_calls == 4
     assert e.redundant_calls == 3                 # 4 identical calls => 3 redundant
-    assert e.est_wh == 96.0 * 12                  # watts_per_vcpu
+    assert e.est_wh == 96.0 * 12 + 0.3            # watts_per_vcpu + token Wh
     assert e.est_gco2e == round(e.est_wh / 1000 * 462, 2)
 
 

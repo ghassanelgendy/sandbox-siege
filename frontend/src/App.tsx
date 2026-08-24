@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Crosshair } from "lucide-react";
+import { Crosshair, Presentation } from "lucide-react";
 import Launch from "./pages/Launch";
 import Console from "./pages/Console";
 import ReportCard from "./pages/ReportCard";
@@ -56,7 +56,7 @@ export default function App() {
             Sandbox Siege
           </span>
         </button>
-        <div className="flex gap-1">
+        <div className="flex items-center gap-1">
           {TABS.map((t) => (
             <button key={t.id} onClick={() => setView(t.id)}
                     disabled={t.id === "report" && !report}
@@ -67,6 +67,14 @@ export default function App() {
               {t.label}
             </button>
           ))}
+          <a
+            href="/deck.html"
+            target="_blank"
+            rel="noreferrer"
+            className="ml-3 inline-flex items-center gap-1.5 rounded border border-sand/40 bg-sand/10 px-3 py-1 font-display text-[12px] font-semibold tracking-wide text-sand hover:bg-sand/20 transition-colors"
+          >
+            <Presentation size={13} /> Presentation Deck
+          </a>
         </div>
       </nav>
 

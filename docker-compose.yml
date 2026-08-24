@@ -1,12 +1,10 @@
-# Sandbox Siege — LocalStack Pro sandbox
-# Requires LOCALSTACK_AUTH_TOKEN (student license = Ultimate-tier service access).
-# ENFORCE_IAM=1 is what makes the L1 permission layer real. See docs/PRD.md FR-2.5.
+# Sandbox Siege — Full Containerized Stack with Cloudflare Tunnel & Custom Ports
 services:
   localstack:
     container_name: siege-localstack
     image: localstack/localstack:latest
     ports:
-      - "4566:4566"
+      - "14566:4566"
     environment:
       - LOCALSTACK_AUTH_TOKEN=${LOCALSTACK_AUTH_TOKEN}
       - ENFORCE_IAM=1
@@ -15,6 +13,7 @@ services:
       - DEBUG=${DEBUG:-0}
       - EXTRA_CORS_ALLOWED_ORIGINS=*
     volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
       - "./.localstack-data:/var/lib/localstack"
       - "./localstack/init-scripts:/etc/localstack/init/ready.d"
     healthcheck:
@@ -22,3 +21,37 @@ services:
       interval: 5s
       timeout: 5s
       retries: 20
+
+  siege-backend:
+    container_name: siege-backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "18000:18000"
+    environment:
+      - LOCALSTACK_HOST=localstack
+      - AWS_ENDPOINT_URL=http://localstack:4566
+      - BYNARA_API_KEY=${BYNARA_API_KEY}
+      - DAHL_API_KEY=${DAHL_API_KEY}
+    depends_on:
+      localstack:
+        condition: service_healthy
+
+  siege-frontend:
+    container_name: siege-frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "25173:80"
+    depends_on:
+      - siege-backend
+
+  cloudflared:
+    container_name: siege-cloudflared
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - siege-frontend

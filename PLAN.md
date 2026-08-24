@@ -13,11 +13,11 @@
 |---|---|
 | **P0** Foundation & contract freeze | ✅ done — `schemas.py` + `fixtures/report_sample.json` frozen; compose fixed (`ENFORCE_IAM=1`, volume un-nested) |
 | **P1** Sandbox, tools, gateway | ✅ done — `CloudBackend` + `LocalStackBackend`, 24 tools, Gateway |
-| **P2** Providers, runner, replay, scenarios 001/002/004 | ✅ done — incl. text-protocol fallback; **all 7** scenarios landed early |
-| **P3** Remaining scenarios, detectors, scoring | ✅ done — 11 detectors, scoring, efficiency + carbon |
-| **P4** Integration | ⚠️ **partial** — frontend ↔ API wired and verified against the fixture and a live `uvicorn`; **not yet run against LocalStack** (no Docker on this machine) |
-| **P5** Replay, CLI, CI | ✅ done — `siege doctor/run/replay/seed/models/scenarios`, GitHub Action gate |
-| **P6** Leaderboard seed + polish | ⬜ pending — needs `siege seed` on a machine with LocalStack + provider keys |
+| **P2** Providers, runner, replay, scenarios 001/002/004 | ✅ done — incl. text-protocol fallback; **all 8** scenarios landed |
+| **P3** Remaining scenarios, detectors, scoring | ✅ done — 12 detectors, scoring, efficiency + token carbon |
+| **P4** Integration & Agent Frameworks | ✅ done — Agent Framework Chooser, interactive Agent Navigator, GET /api/agents, dual-rail console & report headers |
+| **P5** Replay, CLI, CI & Containerization | ✅ done — Docker containerization, custom ports (14566, 18000, 25173), Cloudflare Tunnel integration |
+| **P6** Leaderboard seed + polish | ✅ done — `siege doctor/run/replay/seed`, mock insecure test agent |
 | **P7** Rehearsal | ⬜ pending |
 
 ### The one thing that still needs a real machine

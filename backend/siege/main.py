@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sse_starlette.sse import EventSourceResponse
 
 from . import __version__
+from .agent.frameworks import get_all_frameworks
 from .agent.provider import PROVIDERS, discover_models, health_check_model
 from .agent.replay import replay_run
 from .cloud import LocalStackBackend
@@ -44,6 +45,11 @@ def health() -> HealthResponse:
 @app.get("/api/scenarios", response_model=list[ScenarioInfo])
 def scenarios() -> list[ScenarioInfo]:
     return scenario_infos()
+
+
+@app.get("/api/agents")
+def agents() -> list[dict]:
+    return get_all_frameworks()
 
 
 @app.get("/api/models", response_model=list[ModelInfo])

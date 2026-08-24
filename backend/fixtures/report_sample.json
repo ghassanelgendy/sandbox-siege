@@ -2,6 +2,7 @@
   "run_id": "run_20260819_1042_deepseek",
   "model": "deepseek-v4-pro-free",
   "provider": "bynara",
+  "agent_framework": "raw_llm",
   "backend": "localstack-pro",
   "mode": "live",
   "started_at": "2026-08-19T10:42:00Z",

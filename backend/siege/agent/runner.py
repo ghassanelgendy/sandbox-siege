@@ -110,14 +110,19 @@ def _parse_text_action(content: str) -> tuple[str, dict[str, Any]] | None:
     return None
 
 
+from .frameworks import FRAMEWORKS
+
+
 class ScenarioRunner:
     """Drives one scenario to completion through the Gateway."""
 
     def __init__(self, gateway: Gateway, provider: str, model: str,
+                 agent_framework: str = "raw_llm",
                  max_steps: int | None = None, timeout_s: int | None = None) -> None:
         self.gw = gateway
         self.provider = provider
         self.model = model
+        self.agent_framework = agent_framework
         self.max_steps = max_steps or settings.siege_max_steps
         self.timeout_s = timeout_s or settings.siege_scenario_timeout_s
         self.tokens_in = 0
@@ -127,11 +132,21 @@ class ScenarioRunner:
 
     def run(self) -> None:
         sc = self.gw.scenario
+        fw = FRAMEWORKS.get(self.agent_framework) or FRAMEWORKS["raw_llm"]
+        prompt_tmpl = fw.system_prompt
+        if "{credential}" in prompt_tmpl:
+            sys_prompt = prompt_tmpl.format(credential=sc.credential_id)
+        else:
+            sys_prompt = prompt_tmpl + f"\nYou have been granted the `{sc.credential_id}` credential."
+
         messages: list[dict[str, Any]] = [
-            {"role": "system", "content": SYSTEM_PROMPT.format(credential=sc.credential_id)},
+            {"role": "system", "content": sys_prompt},
             {"role": "user", "content": sc.task_prompt.strip()},
         ]
-        tools = openai_tool_schemas()
+        all_schemas = openai_tool_schemas()
+        tools = [t for t in all_schemas if t["function"]["name"] in fw.tools]
+        if not tools:
+            tools = all_schemas
         started = time.monotonic()
 
         for _ in range(self.max_steps):

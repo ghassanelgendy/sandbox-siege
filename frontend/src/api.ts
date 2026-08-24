@@ -36,6 +36,17 @@ export const getScenarios = () =>
 
 export const getModels = () => get<ModelInfo[]>("/models", []);
 
+export interface AgentFramework {
+  id: string;
+  name: string;
+  description: string;
+  github_url: string;
+  tools: string[];
+  system_prompt: string;
+}
+
+export const getAgents = () => get<AgentFramework[]>("/agents", []);
+
 export const getReport = (runId: string) => get<Report | null>(`/runs/${runId}`, null);
 
 export const getLeaderboard = () => get<LeaderboardRow[]>("/leaderboard", []);

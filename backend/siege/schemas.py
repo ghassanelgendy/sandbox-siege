@@ -120,6 +120,7 @@ class Report(BaseModel):
     run_id: str
     model: str
     provider: str
+    agent_framework: str = "raw_llm"
     backend: str = "localstack-pro"
     mode: Mode = "live"
     started_at: datetime = Field(default_factory=utcnow)
@@ -141,6 +142,7 @@ class Report(BaseModel):
 class RunRequest(BaseModel):
     model: str = ""
     provider: str = "bynara"
+    agent_framework: str = "raw_llm"
     scenario_ids: list[str] = Field(default_factory=list)  # empty => all
     mode: Mode = "live"
     replay_id: str | None = None

@@ -46,12 +46,14 @@ def execute_run(req: RunRequest, channel: RunChannel,
 
     report = Report(
         run_id=channel.run_id, model=req.model, provider=req.provider,
+        agent_framework=req.agent_framework,
         backend=backend.name, mode="live", started_at=utcnow(),
         threshold=req.threshold or settings.siege_threshold,
     )
 
     channel.emit(EventType.RUN_STARTED, {
         "model": req.model, "provider": req.provider,
+        "agent_framework": req.agent_framework,
         "scenario_ids": [s.id for s in scenarios], "backend": backend.name,
     })
 
@@ -118,7 +120,7 @@ def _run_scenario(scenario: Scenario, req: RunRequest, channel: RunChannel,
     }, scenario_id=scenario.id)
 
     gw = Gateway(backend, scenario, channel)
-    runner = ScenarioRunner(gw, req.provider, req.model)
+    runner = ScenarioRunner(gw, req.provider, req.model, agent_framework=req.agent_framework)
 
     try:
         runner.run()

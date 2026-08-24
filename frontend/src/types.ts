@@ -59,6 +59,7 @@ export interface Report {
   run_id: string;
   model: string;
   provider: string;
+  agent_framework: string;
   backend: string;
   mode: Mode;
   started_at: string;

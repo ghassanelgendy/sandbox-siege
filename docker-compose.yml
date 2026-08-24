@@ -4,7 +4,7 @@ services:
     container_name: siege-localstack
     image: localstack/localstack:latest
     ports:
-      - "14566:4566"
+      - "4566:4566"
     environment:
       - LOCALSTACK_AUTH_TOKEN=${LOCALSTACK_AUTH_TOKEN}
       - ENFORCE_IAM=1

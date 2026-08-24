@@ -152,15 +152,15 @@ export default function Launch({ onLaunch }: {
       ) : scenarios.length === 0 ? (
         <div className="mt-3"><Empty title="No scenarios loaded" hint="Check backend/siege/scenarios/" /></div>
       ) : (
-        <div className="mt-3 space-y-2">
+        <div className="mt-3 divide-y divide-rule border border-rule">
           {scenarios.map((s) => {
             const on = selected.has(s.id);
             return (
               <button key={s.id} onClick={() => toggle(s.id)}
-                      className={`card-3d flex w-full items-start gap-4 p-4 text-left border border-rule transition-colors
-                                  ${on ? "bg-panel border-sand/40" : "bg-transparent opacity-45"}`}>
-                <span className={`mt-1 h-3.5 w-3.5 shrink-0 border transition-all duration-200
-                                  ${on ? "border-sand bg-sand shadow-[0_0_8px_rgba(224,164,88,0.5)]" : "border-rule-lit"}`} />
+                      className={`flex w-full items-start gap-4 p-4 text-left transition-colors
+                                  ${on ? "bg-panel" : "bg-transparent opacity-45"}`}>
+                <span className={`mt-1 h-3 w-3 shrink-0 border
+                                  ${on ? "border-sand bg-sand" : "border-rule-lit"}`} />
                 <span className="min-w-0 flex-1">
                   <span className="flex items-baseline gap-2">
                     <span className="font-mono text-[11px] text-ink-mute">{s.id}</span>
@@ -181,15 +181,14 @@ export default function Launch({ onLaunch }: {
 
       <div className="mt-8 flex flex-wrap items-center gap-3">
         <button onClick={() => launch(false)} disabled={!model || selected.size === 0}
-                className="btn-click-3d card-3d inline-flex items-center gap-2 border border-sand bg-sand
+                className="inline-flex items-center gap-2 border border-sand bg-sand
                            px-6 py-3 font-display font-semibold tracking-wide text-ground
-                           hover:bg-sand/90 hover:shadow-[0_0_20px_rgba(224,164,88,0.4)]
                            disabled:cursor-not-allowed disabled:opacity-40">
           <Play size={16} /> Launch siege
         </button>
         <button onClick={() => launch(true)}
-                className="btn-click-3d card-3d inline-flex items-center gap-2 border border-rule-lit px-5 py-3
-                           font-display tracking-wide text-ink-dim hover:text-ink hover:border-sand/40">
+                className="inline-flex items-center gap-2 border border-rule-lit px-5 py-3
+                           font-display tracking-wide text-ink-dim hover:text-ink">
           <ShieldAlert size={16} /> Demo replay
         </button>
         <p className="text-sm text-ink-mute">

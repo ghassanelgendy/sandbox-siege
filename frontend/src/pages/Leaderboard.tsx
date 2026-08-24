@@ -33,7 +33,7 @@ export default function Leaderboard() {
                  hint="Populate the board with: siege seed" />
         </div>
       ) : (
-        <div className="card-3d mt-10 overflow-x-auto border border-rule">
+        <div className="mt-10 overflow-x-auto border border-rule">
           <table className="w-full border-collapse text-left">
             <thead>
               <tr className="border-b border-rule bg-panel">

@@ -5,8 +5,10 @@ from __future__ import annotations
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 
+import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from sse_starlette.sse import EventSourceResponse
 
 from . import __version__
@@ -47,6 +49,22 @@ def scenarios() -> list[ScenarioInfo]:
     return scenario_infos()
 
 
+@app.get("/deck.html")
+@app.get("/deck")
+def deck() -> FileResponse:
+    pkg_deck = os.path.join(os.path.dirname(__file__), "deck.html")
+    if os.path.exists(pkg_deck):
+        return FileResponse(pkg_deck, media_type="text/html")
+    base = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    deck_path = os.path.join(base, "presentation", "siege-deck.html")
+    if os.path.exists(deck_path):
+        return FileResponse(deck_path, media_type="text/html")
+    pub_path = os.path.join(base, "frontend", "public", "deck.html")
+    if os.path.exists(pub_path):
+        return FileResponse(pub_path, media_type="text/html")
+    raise HTTPException(status_code=404, detail="Deck presentation file not found")
+
+
 @app.get("/api/agents")
 def agents() -> list[dict]:
     return get_all_frameworks()
@@ -76,7 +94,9 @@ def models(probe: bool = True) -> list[ModelInfo]:
     if not pairs:
         return []
     with ThreadPoolExecutor(max_workers=min(12, len(pairs))) as pool:
-        return list(pool.map(_probe, pairs))
+        res = list(pool.map(_probe, pairs))
+    res.sort(key=lambda m: (not m.healthy, not m.supports_tools))
+    return res
 
 
 @app.post("/api/runs", response_model=RunResponse)

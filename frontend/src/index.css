@@ -90,3 +90,37 @@
 .console::-webkit-scrollbar { width: 8px; }
 .console::-webkit-scrollbar-track { background: transparent; }
 .console::-webkit-scrollbar-thumb { background: var(--color-rule); border-radius: 4px; }
+
+/* 3D Perspective & Card Elevation Utilities */
+.perspective-3d {
+  perspective: 1200px;
+  transform-style: preserve-3d;
+}
+
+.card-3d {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.card-3d:hover {
+  transform: perspective(1000px) rotateX(3deg) rotateY(-3deg) translateZ(8px);
+  box-shadow: -6px 12px 24px -6px rgba(0, 0, 0, 0.4), 0 0 16px rgba(224, 164, 88, 0.12);
+  border-color: var(--color-rule-lit);
+}
+
+.card-3d:active {
+  transform: perspective(1000px) rotateX(-2deg) rotateY(2deg) translateZ(-4px) scale(0.98);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes click-pop-3d {
+  0% { transform: perspective(800px) scale(1) translateZ(0); }
+  50% { transform: perspective(800px) scale(0.96) translateZ(-15px) rotateX(-4deg); }
+  100% { transform: perspective(800px) scale(1) translateZ(0); }
+}
+
+.btn-click-3d:active {
+  animation: click-pop-3d 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+

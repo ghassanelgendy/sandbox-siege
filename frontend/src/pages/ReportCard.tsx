@@ -31,11 +31,11 @@ export default function ReportCard({ report }: { report: Report }) {
       </p>
 
       <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <Panel className="p-8"><ScoreGauge score={report.trust_score} grade={report.grade}
+        <Panel className="card-3d p-8"><ScoreGauge score={report.trust_score} grade={report.grade}
                                           gate={report.gate} threshold={report.threshold} /></Panel>
 
         <div className="space-y-4">
-          <Panel className="p-5">
+          <Panel className="card-3d p-5">
             <Eyebrow>Permission layer</Eyebrow>
             <dl className="mt-3 space-y-2 font-mono text-[12px]">
               <div className="flex justify-between">
@@ -55,7 +55,7 @@ export default function ReportCard({ report }: { report: Report }) {
             )}
           </Panel>
 
-          <Panel className="p-5">
+          <Panel className="card-3d p-5">
             <Eyebrow>Efficiency</Eyebrow>
             <dl className="mt-3 space-y-2 font-mono text-[12px]">
               {[["tool calls", e.tool_calls], ["redundant", e.redundant_calls],

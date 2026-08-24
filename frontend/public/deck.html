@@ -57,34 +57,29 @@ html,body{margin:0;padding:0;height:100%;background:var(--ground);color:var(--in
 .dots button:hover{transform:scale(1.3)}
 .dots button.active{background:var(--sand);border-color:var(--sand);width:8px;height:16px;}
 
-/* ---------- slides & 3D stage ---------- */
-main{height:100dvh;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;perspective:1200px;perspective-origin:50% 50%;transform-style:preserve-3d;}
+/* ---------- slides & smart 3D presentation engine ---------- */
+main{height:100dvh;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;perspective:1400px;perspective-origin:50% 50%;transform-style:preserve-3d;}
 main::-webkit-scrollbar{display:none}
 .slide{min-height:100dvh;scroll-snap-align:start;scroll-snap-stop:always;
   display:flex;flex-direction:column;justify-content:center;
-  padding:104px clamp(28px,7vw,120px) 72px;position:relative;perspective:1200px;transform-style:preserve-3d;cursor:pointer;}
+  padding:104px clamp(28px,7vw,120px) 72px;position:relative;perspective:1400px;transform-style:preserve-3d;cursor:pointer;}
 .slide-inner{max-width:1180px;width:100%;margin:0 auto;
-  opacity:0;transform:perspective(1000px) rotateX(16deg) rotateY(-8deg) translateZ(-160px) translateY(35px) scale(0.92);
-  transition:opacity .6s cubic-bezier(0.16,1,0.3,1),transform .6s cubic-bezier(0.16,1,0.3,1);transform-style:preserve-3d;will-change:transform,opacity;}
-.slide.in-view .slide-inner{opacity:1;transform:perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px) translateY(0) scale(1);}
-.slide.tilt-up .slide-inner{transform:perspective(1000px) rotateX(-16deg) rotateY(8deg) translateZ(-160px) translateY(-35px) scale(0.92);}
-.card, .progrid > div, .stacklist li, .chip, .roadcol, .stat, .badge {
-  transform-style:preserve-3d;transition:transform 0.25s cubic-bezier(0.16,1,0.3,1),box-shadow 0.25s ease,border-color 0.25s ease;
+  opacity:0;transform:perspective(1400px) rotateX(24deg) rotateY(-10deg) translateZ(-280px) translateY(50px) scale(0.85);
+  transition:opacity .65s cubic-bezier(0.16,1,0.3,1),transform .65s cubic-bezier(0.16,1,0.3,1);transform-style:preserve-3d;will-change:transform,opacity;}
+.slide.in-view .slide-inner{opacity:1;transform:perspective(1400px) rotateX(0deg) rotateY(0deg) translateZ(0px) translateY(0) scale(1);}
+.slide.tilt-up .slide-inner{transform:perspective(1400px) rotateX(-24deg) rotateY(10deg) translateZ(-280px) translateY(-50px) scale(0.85);}
+
+/* Cascading 3D Spatial Elevation for Slideshow Elements */
+.slide-inner .eyebrow { transform: translateZ(30px); transition: transform 0.65s cubic-bezier(0.16,1,0.3,1) 0.05s, opacity 0.65s ease 0.05s; }
+.slide-inner h1, .slide-inner h2 { transform: translateZ(60px); transition: transform 0.65s cubic-bezier(0.16,1,0.3,1) 0.12s, opacity 0.65s ease 0.12s; }
+.slide-inner .lede, .slide-inner p { transform: translateZ(45px); transition: transform 0.65s cubic-bezier(0.16,1,0.3,1) 0.18s, opacity 0.65s ease 0.18s; }
+.slide-inner .progrid, .slide-inner .stacklist, .slide-inner .card, .slide-inner .chip, .slide-inner .roadgrid, .slide-inner svg {
+  transform: translateZ(85px);
+  transition: transform 0.7s cubic-bezier(0.16,1,0.3,1) 0.25s, opacity 0.7s ease 0.25s;
+  box-shadow: 0 20px 40px -15px rgba(0,0,0,0.6), 0 0 20px rgba(224,164,88,0.08);
 }
-.card:hover, .chip:hover, .roadcol:hover, .stacklist li:hover {
-  transform:perspective(800px) rotateX(4deg) rotateY(-4deg) translateZ(12px);
-  box-shadow:-8px 14px 28px -6px rgba(0,0,0,0.5),0 0 16px rgba(224,164,88,0.15);
-}
-.card:active, .chip:active, .roadcol:active, .stacklist li:active {
-  transform:perspective(800px) rotateX(-3deg) rotateY(3deg) translateZ(-5px) scale(0.98);
-}
-.nav-hud{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:10px;padding:6px 14px;background:color-mix(in srgb,var(--ground) 90%,transparent);border:1px solid var(--rule-lit);border-radius:20px;backdrop-filter:blur(8px);box-shadow:0 8px 24px rgba(0,0,0,0.4),0 0 12px rgba(224,164,88,0.1);font-family:var(--font-mono);font-size:0.72rem;color:var(--ink-dim);user-select:none;}
-.nav-hud button{background:var(--panel);border:1px solid var(--rule-lit);color:var(--sand);width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:bold;cursor:pointer;transition:all 0.2s cubic-bezier(0.16,1,0.3,1);transform-style:preserve-3d;}
-.nav-hud button:hover{background:var(--sand);color:var(--ground);border-color:var(--sand);transform:perspective(500px) translateZ(6px) scale(1.1);box-shadow:0 0 12px rgba(224,164,88,0.4);}
-.nav-hud button:active, .nav-hud button.active-key{transform:perspective(500px) translateZ(-4px) scale(0.92);background:var(--sand-dim);color:var(--ink);}
-.nav-hud .hint{letter-spacing:0.05em;font-size:0.68rem;color:var(--ink-mute);}
 @media (prefers-reduced-motion:reduce){
-  .slide-inner{transition:none;transform:none;opacity:1}
+  .slide-inner, .slide-inner * {transition:none!important;transform:none!important;opacity:1!important}
 }
 
 .eyebrow{font-family:var(--font-display);font-weight:600;font-size:.6875rem;
@@ -616,12 +611,6 @@ figcaption strong{color:var(--ink-dim)}
 
 </main>
 
-<div class="nav-hud">
-  <button id="hudPrev" title="Previous Slide (← / ↑)">◄</button>
-  <span class="hint">Use <b style="color:var(--sand)">[←] [→]</b> Arrow Keys or <b style="color:var(--sand)">CLICK</b> slide</span>
-  <button id="hudNext" title="Next Slide (→ / ↓)">►</button>
-</div>
-
 <script>
 (function(){
   var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
@@ -629,8 +618,6 @@ figcaption strong{color:var(--ink-dim)}
   var main = document.getElementById('main');
   var numEl = document.getElementById('slideNum');
   var labelEl = document.getElementById('slideLabel');
-  var hudPrev = document.getElementById('hudPrev');
-  var hudNext = document.getElementById('hudNext');
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var currentIndex = 0;
 
@@ -640,42 +627,13 @@ figcaption strong{color:var(--ink-dim)}
     b.addEventListener('click', function(e){ e.stopPropagation(); goTo(i); });
     dotsWrap.appendChild(b);
 
-    // Mouse 3D parallax tilt effect for elements inside slides
-    if (!reduced) {
-      s.addEventListener('mousemove', function(ev){
-        var rect = s.getBoundingClientRect();
-        var x = (ev.clientX - rect.left) / rect.width - 0.5;
-        var y = (ev.clientY - rect.top) / rect.height - 0.5;
-        var inner = s.querySelector('.slide-inner');
-        if (inner && s.classList.contains('in-view')) {
-          inner.style.transform = 'perspective(1000px) rotateX(' + (-y * 10) + 'deg) rotateY(' + (x * 12) + 'deg) translateZ(10px)';
-        }
-      });
-      s.addEventListener('mouseleave', function(){
-        var inner = s.querySelector('.slide-inner');
-        if (inner) {
-          inner.style.transform = '';
-        }
-      });
-    }
-
-    // Click anywhere on slide to advance with 3D depth animation
+    // Presentation clicker or tap anywhere on slide advances to next slide with 3D transition
     s.addEventListener('click', function(ev){
       var tag = (ev.target.tagName || '').toLowerCase();
       if (['a', 'button', 'input', 'select', 'textarea'].indexOf(tag) > -1) return;
-      if (ev.target.closest('.dots') || ev.target.closest('.nav-hud')) return;
-      var inner = s.querySelector('.slide-inner');
-      if (inner) {
-        inner.style.transform = 'perspective(1000px) scale(0.96) translateZ(-30px)';
-        setTimeout(function(){
-          if (currentIndex < slides.length - 1) {
-            goTo(currentIndex + 1);
-          } else {
-            inner.style.transform = '';
-          }
-        }, 150);
-      } else {
-        if (currentIndex < slides.length - 1) goTo(currentIndex + 1);
+      if (ev.target.closest('.dots')) return;
+      if (currentIndex < slides.length - 1) {
+        goTo(currentIndex + 1);
       }
     });
   });
@@ -684,6 +642,7 @@ figcaption strong{color:var(--ink-dim)}
 
   function goTo(i){
     i = Math.max(0, Math.min(slides.length - 1, i));
+    var prevIndex = currentIndex;
     currentIndex = i;
 
     slides.forEach(function(s, idx){
@@ -695,9 +654,6 @@ figcaption strong{color:var(--ink-dim)}
 
     slides[i].scrollIntoView({behavior: reduced ? 'auto' : 'smooth', block: 'start'});
   }
-
-  hudPrev.addEventListener('click', function(e){ e.stopPropagation(); goTo(currentIndex - 1); });
-  hudNext.addEventListener('click', function(e){ e.stopPropagation(); goTo(currentIndex + 1); });
 
   var io = new IntersectionObserver(function(entries){
     entries.forEach(function(e){
@@ -713,17 +669,14 @@ figcaption strong{color:var(--ink-dim)}
   }, {root: main, threshold: [0.5]});
   slides.forEach(function(s){ io.observe(s); s.classList.add('in-view'); });
 
+  // Full support for presentation clickers, remote controls, and keyboard arrows
   document.addEventListener('keydown', function(ev){
     if (['ArrowDown','ArrowRight','PageDown',' '].indexOf(ev.key) > -1){
       ev.preventDefault();
-      hudNext.classList.add('active-key');
-      setTimeout(function(){ hudNext.classList.remove('active-key'); }, 200);
       goTo(currentIndex + 1);
     }
     else if (['ArrowUp','ArrowLeft','PageUp'].indexOf(ev.key) > -1){
       ev.preventDefault();
-      hudPrev.classList.add('active-key');
-      setTimeout(function(){ hudPrev.classList.remove('active-key'); }, 200);
       goTo(currentIndex - 1);
     }
     else if (ev.key === 'Home'){ ev.preventDefault(); goTo(0); }

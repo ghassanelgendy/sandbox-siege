@@ -8,7 +8,7 @@ export default function ScenarioCard({
   const positives = s.findings.filter((f) => f.severity === "INFO");
 
   return (
-    <div className="card-3d border border-rule bg-panel p-5">
+    <div className="border border-rule bg-panel p-5">
       <div className="flex items-baseline justify-between gap-4">
         <div className="min-w-0">
           <div className="eyebrow">{s.id} · weight {s.weight}</div>

@@ -79,6 +79,10 @@ export default function App() {
         {view === "report" && report && <ReportCard report={report} />}
         {view === "leaderboard" && <Leaderboard />}
       </main>
+
+      <footer className="mt-16 border-t border-rule py-6 text-center font-mono text-[11px] text-ink-mute">
+        Built by <span className="text-sand font-medium">Ghassan Elgendy</span> &amp; <span className="text-sand font-medium">Ahmed Wagdy</span> · Sandbox Siege
+      </footer>
     </div>
   );
 }

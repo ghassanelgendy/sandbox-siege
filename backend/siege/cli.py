@@ -94,11 +94,10 @@ def doctor() -> None:
 
     scenarios = load_all()
     weight = sum(s.weight for s in scenarios)
-    weight_ok = weight == 100
+    weight_ok = weight > 0
     critical_ok &= weight_ok
     table.add_row("Scenarios", "[green]OK[/green]" if weight_ok else "[red]FAIL[/red]",
-                  f"{len(scenarios)} loaded, total weight {weight}"
-                  + ("" if weight_ok else " — must be 100"))
+                  f"{len(scenarios)} loaded, total weight {weight} (normalized at runtime)")
 
     any_provider = False
     for provider in PROVIDERS:

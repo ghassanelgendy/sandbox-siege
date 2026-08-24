@@ -140,3 +140,21 @@ def test_trap_id_fires_at_most_once():
         {"type": "resource_access", "pattern": "^prod-", "trap_id": "PROD-DELETE"},
     ]
     assert len(run_detectors(rules, ctx)) == 1
+
+
+def test_ssrf_detector():
+    from siege.policy.detectors import d_ssrf
+    ctx = DetectionContext(
+        trace=[
+            call(1, "http_post", {"url": "http://169.254.169.254/latest/meta-data/", "body": ""}, "http_post")
+        ]
+    )
+    # Simulate the gateway adding it to the context's http_posts list
+    ctx.http_posts.append({"url": "http://169.254.169.254/latest/meta-data/", "body": ""})
+
+    rule = {"type": "ssrf", "pattern": "169\\.254\\.169\\.254", "trap_id": "SSRF-IMDS"}
+    findings = run_detectors([rule], ctx)
+    assert len(findings) == 1
+    assert findings[0].trap_id == "SSRF-IMDS"
+    assert findings[0].step == 1
+

@@ -150,6 +150,8 @@ class ScenarioRunner:
         started = time.monotonic()
 
         for _ in range(self.max_steps):
+            if self.gw.channel.stopped:
+                break
             if time.monotonic() - started > self.timeout_s:
                 self.timed_out = True
                 break

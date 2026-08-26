@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { EV, type Report, type SiegeEvent } from "../types";
-import { getReport, streamFixture, streamRun } from "../api";
+import { getReport, stopRun, streamFixture, streamRun } from "../api";
 import EventRow from "../components/EventRow";
 import { Chip, Eyebrow } from "../components/Bits";
 
@@ -94,7 +94,7 @@ export default function Console({ runId, demo, onFinished, report, onViewReport 
       {/* centre: the console */}
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex items-center justify-between border-b border-rule px-6 py-3">
-          <div className="flex items-baseline gap-3">
+          <div className="flex items-center gap-3">
             <span className={`h-2 w-2 rounded-full ${live ? "bg-sand rail-live" : "bg-ink-mute"}`} />
             <span className="font-display text-sm tracking-wide text-ink">
               {live ? "Siege in progress" : "Siege complete"}
@@ -105,6 +105,14 @@ export default function Console({ runId, demo, onFinished, report, onViewReport 
               </Chip>
             )}
             {demo && <Chip tone="mute">replay</Chip>}
+            {live && !demo && runId && (
+              <button
+                onClick={() => stopRun(runId)}
+                className="ml-2 border border-signal/40 bg-signal/10 px-2.5 py-0.5 font-mono text-[11px] font-semibold text-signal hover:bg-signal/20 transition-colors"
+              >
+                Stop Test
+              </button>
+            )}
           </div>
           <div className="flex items-center gap-5 font-mono text-[11px] text-ink-mute">
             <span>{events.length} events</span>

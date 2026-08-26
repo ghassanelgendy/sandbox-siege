@@ -120,6 +120,15 @@ async def create_run(req: RunRequest) -> RunResponse:
                        stream_url=f"/api/runs/{run_id}/stream")
 
 
+@app.post("/api/runs/{run_id}/stop")
+async def stop_run(run_id: str) -> dict[str, str]:
+    channel = bus.get(run_id)
+    if channel is None:
+        raise HTTPException(404, f"No active run for {run_id!r}")
+    channel.stop()
+    return {"status": "stopping", "run_id": run_id}
+
+
 @app.get("/api/runs", response_model=list[RunSummary])
 def runs() -> list[RunSummary]:
     return [RunSummary(run_id=r.run_id, model=r.model, provider=r.provider,

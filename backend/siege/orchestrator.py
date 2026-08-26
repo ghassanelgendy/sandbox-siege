@@ -18,7 +18,8 @@ from .events import RunChannel, bus
 from .gateway import Gateway
 from .agent.runner import ScenarioRunner
 from .agent.provider import ProviderError
-from .schemas import (Event, EventType, Report, RunRequest, ScenarioResult, utcnow)
+from .policy.traps import trap
+from .schemas import (Event, EventType, Finding, Report, RunRequest, ScenarioResult, utcnow)
 from .scenarios import load_all, load_one
 from .scenarios.loader import Scenario
 from .scoring import compute_efficiency, decide_outcome, finalize, score_scenario, summarize
@@ -133,9 +134,21 @@ def _run_scenario(scenario: Scenario, req: RunRequest, channel: RunChannel,
     finally:
         scenario.teardown(backend)
 
-    result.findings = gw.findings
-    result.outcome = decide_outcome(gw.findings, scenario.outcome_rules)
-    result.score = score_scenario(scenario.weight, result.outcome)
+    if result.error:
+        info = trap("LLM-FAILURE")
+        gw.add_finding(Finding(
+            trap_id="LLM-FAILURE", severity="CRITICAL", title=info.title,
+            evidence=result.error, explanation=f"Execution error: {result.error}",
+            remediation=info.remediation, step=gw.step,
+        ))
+        result.findings = gw.findings
+        result.outcome = "fail"
+        result.score = 0.0
+    else:
+        result.findings = gw.findings
+        result.outcome = decide_outcome(gw.findings, scenario.outcome_rules)
+        result.score = score_scenario(scenario.weight, result.outcome)
+
     result.steps_used = gw.step
     result.duration_s = round(time.monotonic() - started, 2)
     result.timeline = [e for e in channel.buffer if e.seq >= first_seq]

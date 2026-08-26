@@ -29,11 +29,11 @@ def new_run_id(model: str, mode: str = "live") -> str:
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     slug = "".join(c if c.isalnum() else "-" for c in model.split("/")[-1])[:24].strip("-")
     prefix = "replay" if mode == "replay" else "run"
-    return f"{prefix}_{stamp}_{slug or 'model'}"
+    return f"{prefix}_{stamp}_{slug}"
 
 
 def _select(scenario_ids: list[str]) -> list[Scenario]:
-    if not scenario_ids:
+    if not scenario_ids or scenario_ids == ["ALL"]:
         return load_all()
     return [load_one(sid) for sid in scenario_ids]
 
@@ -64,6 +64,8 @@ def execute_run(req: RunRequest, channel: RunChannel,
     waste_flags: list[str] = []
 
     for scenario in scenarios:
+        if channel.stopped:
+            break
         result = _run_scenario(scenario, req, channel, backend)
         report.scenarios.append(result)
 

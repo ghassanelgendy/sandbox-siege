@@ -28,6 +28,7 @@ class RunChannel:
         self.buffer: list[Event] = []
         self.subscribers: set[asyncio.Queue[Event | None]] = set()
         self.closed = False
+        self.stopped = False
         self._seq = 0
         self._path: Path | None = None
         if persist:
@@ -35,6 +36,10 @@ class RunChannel:
             d.mkdir(parents=True, exist_ok=True)
             self._path = d / "events.jsonl"
             self._path.write_text("", encoding="utf-8")
+
+    def stop(self) -> None:
+        self.stopped = True
+        self.emit("run.error", {"message": "Run stopped by user"})
 
     def next_seq(self) -> int:
         self._seq += 1

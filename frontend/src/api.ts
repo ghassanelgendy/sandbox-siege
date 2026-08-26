@@ -65,6 +65,15 @@ export async function startRun(body: Record<string, unknown>): Promise<RunRespon
   }
 }
 
+export async function stopRun(runId: string): Promise<boolean> {
+  try {
+    const r = await fetch(`${BASE}/runs/${runId}/stop`, { method: "POST" });
+    return r.ok;
+  } catch {
+    return false;
+  }
+}
+
 /** Live SSE stream. Returns a disposer. */
 export function streamRun(
   runId: string,

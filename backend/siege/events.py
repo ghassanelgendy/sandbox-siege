@@ -78,6 +78,7 @@ class RunChannel:
         for q in list(self.subscribers):
             q.put_nowait(None)
         self.subscribers.clear()
+        bus.drop(self.run_id)
 
 
 class EventBus:

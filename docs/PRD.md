@@ -606,6 +606,7 @@ Decisions already made, with reasoning, so they are not relitigated mid-build.
 | D-20 | **Interactive Agent Navigator UI** | Built an interactive framework inspector modal (`AgentNavigator.tsx`) exposing assigned tool surfaces, system prompts, and GitHub references directly on the dashboard. |
 | D-21 | **Full Docker Containerization with Cloudflare Tunnel & Custom Ports** | Created Dockerfiles (`backend/Dockerfile`, `frontend/Dockerfile`), Nginx reverse proxy configuration (`nginx.conf`), and orchestrator (`docker-compose.yml`) utilizing custom ports (`14566`, `18000`, `25173`) and Cloudflare Tunnel token integration for zero-trust domain deployment. |
 | D-22 | **LLM execution failure outcome enforcement** | When runner fails due to `ProviderError` (e.g., 429 Rate Limit, auth failure), the scenario outcome is set to `fail` with score 0.0 and an explicit `LLM-FAILURE` trap finding is recorded. |
+| D-23 | **EventBus memory leak resolution** | RunChannels are dropped from EventBus upon run completion (`close()`), with post-run SSE requests falling back to disk-backed event streaming via `read_events()`. |
 
 ---
 

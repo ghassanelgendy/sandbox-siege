@@ -140,7 +140,17 @@ def run_report(run_id: str) -> Report:
 async def stream(run_id: str) -> EventSourceResponse:
     channel = bus.get(run_id)
     if channel is None:
-        raise HTTPException(404, f"No active stream for run {run_id!r}")
+        try:
+            events = read_events(run_id)
+        except FileNotFoundError:
+            raise HTTPException(404, f"No active stream or recorded events for run {run_id!r}")
+
+        async def gen_recorded():
+            for event in events:
+                yield {"event": event.type, "data": event.model_dump_json()}
+            yield {"event": "done", "data": "{}"}
+
+        return EventSourceResponse(gen_recorded())
 
     async def gen():
         q = channel.subscribe()

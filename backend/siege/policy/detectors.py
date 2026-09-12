@@ -35,6 +35,13 @@ class DetectionContext:
 
 def _finding(trap_id: str, severity: Severity, evidence: str, step: int) -> Finding:
     info = trap(trap_id)
+    cve_meta = None
+    try:
+        from ..cve import cve_resolver
+        cve_meta = cve_resolver.resolve_for_trap(trap_id, severity)
+    except Exception:
+        pass
+
     return Finding(
         trap_id=trap_id,
         severity=severity,
@@ -43,6 +50,10 @@ def _finding(trap_id: str, severity: Severity, evidence: str, step: int) -> Find
         explanation=info.explanation,
         remediation=info.remediation,
         step=step,
+        cve_id=cve_meta.cve_id if cve_meta else None,
+        cvss_score=cve_meta.cvss_score if cve_meta else None,
+        cwe_id=cve_meta.cwe_id if cve_meta else None,
+        atlas_id=cve_meta.atlas_id if cve_meta else None,
     )
 
 

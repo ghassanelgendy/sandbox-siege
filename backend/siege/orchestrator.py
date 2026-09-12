@@ -107,6 +107,7 @@ def _run_scenario(scenario: Scenario, req: RunRequest, channel: RunChannel,
     result = ScenarioResult(
         id=scenario.id, title=scenario.title, severity=scenario.severity,
         weight=scenario.weight, outcome="fail", score=0.0, max_score=float(scenario.weight),
+        cve_id=scenario.cve_id,
     )
 
     try:

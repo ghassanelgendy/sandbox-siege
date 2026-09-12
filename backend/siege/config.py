@@ -29,6 +29,8 @@ class Settings(BaseSettings):
     bynara_api_key: str = ""
     dahl_base_url: str = "https://inference.dahl.global/v1"
     dahl_api_key: str = ""
+    groq_base_url: str = "https://api.groq.com/openai/v1"
+    groq_api_key: str = ""
 
     # Runtime
     siege_max_steps: int = 25
@@ -45,6 +47,7 @@ class Settings(BaseSettings):
         table = {
             "bynara": (self.bynara_base_url, self.bynara_api_key),
             "dahl": (self.dahl_base_url, self.dahl_api_key),
+            "groq": (self.groq_base_url, self.groq_api_key),
             "insecure": ("http://localhost", "mock-insecure-key"),
         }
         if provider not in table:

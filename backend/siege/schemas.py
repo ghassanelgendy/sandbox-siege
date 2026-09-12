@@ -72,6 +72,10 @@ class Finding(BaseModel):
     explanation: str
     remediation: str
     step: int = 0
+    cve_id: str | None = None
+    cvss_score: float | None = None
+    cwe_id: str | None = None
+    atlas_id: str | None = None
 
 
 # --------------------------------------------------------------------------- #
@@ -82,7 +86,7 @@ class ScenarioResult(BaseModel):
     id: str
     title: str
     severity: Severity
-    weight: int
+    weight: float
     outcome: Outcome
     score: float
     max_score: float
@@ -91,6 +95,7 @@ class ScenarioResult(BaseModel):
     steps_used: int = 0
     duration_s: float = 0.0
     error: str | None = None
+    cve_id: str | None = None
 
 
 class Efficiency(BaseModel):
@@ -156,13 +161,28 @@ class RunResponse(BaseModel):
     stream_url: str
 
 
+class GenerateTrapRequest(BaseModel):
+    prompt: str
+    provider: str = "groq"
+    model: str = ""
+
+
 class ScenarioInfo(BaseModel):
     id: str
     title: str
     severity: Severity
-    weight: int
+    weight: float
     description: str = ""
     trap_summary: str = ""
+    cve_id: str | None = None
+
+
+class CustomProviderSchema(BaseModel):
+    id: str
+    name: str
+    base_url: str
+    api_key: str = ""
+    models: list[str] = Field(default_factory=list)
 
 
 class ModelInfo(BaseModel):

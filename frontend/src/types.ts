@@ -27,6 +27,10 @@ export interface Finding {
   explanation: string;
   remediation: string;
   step: number;
+  cve_id?: string | null;
+  cvss_score?: number | null;
+  cwe_id?: string | null;
+  atlas_id?: string | null;
 }
 
 export interface ScenarioResult {
@@ -42,6 +46,7 @@ export interface ScenarioResult {
   steps_used: number;
   duration_s: number;
   error: string | null;
+  cve_id?: string | null;
 }
 
 export interface Efficiency {
@@ -81,6 +86,15 @@ export interface ScenarioInfo {
   weight: number;
   description: string;
   trap_summary: string;
+  cve_id?: string | null;
+}
+
+export interface CustomProvider {
+  id: string;
+  name: string;
+  base_url: string;
+  api_key?: string;
+  models?: string[];
 }
 
 export interface ModelInfo {
@@ -104,6 +118,12 @@ export interface RunResponse {
   run_id: string;
   status: string;
   stream_url: string;
+}
+
+export interface GenerateTrapRequest {
+  prompt: string;
+  provider?: string;
+  model?: string;
 }
 
 export interface HealthResponse {

@@ -31,7 +31,7 @@ class Scenario:
     id: str
     title: str
     severity: str
-    weight: int
+    weight: float
     task_prompt: str
     credential_spec: dict[str, Any]
     seed: dict[str, Any] = field(default_factory=dict)
@@ -40,6 +40,7 @@ class Scenario:
     outcome_rules: dict[str, Any] = field(default_factory=dict)
     description: str = ""
     trap_summary: str = ""
+    cve_id: str | None = None
 
     # populated at seed time
     canary: str = ""
@@ -55,6 +56,7 @@ class Scenario:
             id=self.id, title=self.title, severity=self.severity, weight=self.weight,
             description=" ".join(self.description.split()),
             trap_summary=" ".join(self.trap_summary.split()),
+            cve_id=self.cve_id,
         )
 
     # ------------------------------------------------------------------ #
@@ -216,19 +218,43 @@ class Scenario:
 # --------------------------------------------------------------------------- #
 
 def _from_dict(d: dict[str, Any]) -> Scenario:
+    cve_id = d.get("cve_id")
+    raw_weight = d.get("weight")
+
+    # If weight is explicitly set, use it; otherwise resolve from cve or severity
+    if raw_weight is not None:
+        weight = float(raw_weight)
+    else:
+        from ..cve import cve_resolver
+        if cve_id:
+            meta = cve_resolver.resolve_for_cve_id(cve_id, default_severity=d.get("severity", "HIGH"))
+            weight = meta.cvss_score
+        else:
+            meta = cve_resolver.resolve_for_trap(d.get("id", ""), default_severity=d.get("severity", "HIGH"))
+            weight = meta.cvss_score
+            cve_id = meta.cve_id
+
     return Scenario(
-        id=d["id"], title=d["title"], severity=d["severity"], weight=int(d["weight"]),
+        id=d["id"], title=d["title"], severity=d["severity"], weight=weight,
         task_prompt=d["task_prompt"], credential_spec=d["credential"],
         seed=d.get("seed") or {}, bait_specs=d.get("bait_credentials") or [],
         detectors=d.get("detectors") or [], outcome_rules=d.get("outcome_rules") or {},
         description=d.get("description", ""), trap_summary=d.get("trap_summary", ""),
+        cve_id=cve_id,
     )
 
 
-def load_all(directory: Path | None = None) -> list[Scenario]:
+def load_all(directory: Path | None = None, include_custom: bool = True) -> list[Scenario]:
     d = directory or SCENARIOS_DIR
-    out = [_from_dict(yaml.safe_load(p.read_text(encoding="utf-8")))
-           for p in sorted(d.glob("siege_*.yaml"))]
+    paths = sorted(d.glob("siege_*.yaml"))
+
+    # Also look for any custom user scenarios in custom/ directory
+    if include_custom:
+        custom_dir = d / "custom"
+        if custom_dir.is_dir():
+            paths.extend(sorted(custom_dir.glob("*.yaml")))
+
+    out = [_from_dict(yaml.safe_load(p.read_text(encoding="utf-8"))) for p in paths]
     if not out:
         raise FileNotFoundError(f"No scenarios found in {d}")
     return out

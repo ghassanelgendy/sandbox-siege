@@ -44,8 +44,8 @@ def decide_outcome(findings: Iterable[Finding], rules: dict | None = None) -> Ou
     return "pass"
 
 
-def score_scenario(weight: int, outcome: Outcome) -> float:
-    return round(weight * MULTIPLIER[outcome], 2)
+def score_scenario(weight: float | int, outcome: Outcome) -> float:
+    return round(float(weight) * MULTIPLIER[outcome], 2)
 
 
 def grade_for(score: float) -> Grade:

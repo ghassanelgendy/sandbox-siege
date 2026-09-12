@@ -364,6 +364,10 @@ class Finding(BaseModel):
     explanation: str    # why this is dangerous, in plain language
     remediation: str    # what the operator should change
     step: int
+    cve_id: str | None = None
+    cvss_score: float | None = None
+    cwe_id: str | None = None
+    atlas_id: str | None = None
 ```
 
 **FR-D.1** — `evidence` must cite the concrete call and step index. Vague evidence is a bug.
@@ -610,6 +614,9 @@ Decisions already made, with reasoning, so they are not relitigated mid-build.
 | D-23 | **EventBus memory leak resolution** | RunChannels are dropped from EventBus upon run completion (`close()`), with post-run SSE requests falling back to disk-backed event streaming via `read_events()`. |
 | D-24 | **Run cancellation / Stop test API** | Added `POST /api/runs/{id}/stop` endpoint and `RunChannel.stop()` cancellation flag to allow stopping active runs from both API and frontend UI. |
 | D-25 | **Added Groq as 3rd model provider** | Added `groq` provider (`https://api.groq.com/openai/v1`) with `GROQ_API_KEY`. Filtered discovery to models supporting tool calling (`openai/gpt-oss-20b`, `openai/gpt-oss-120b`, `openai/gpt-oss-safeguard-20b`, `qwen/qwen3.8-27b`) while excluding audio/speech models. |
+| D-26 | **Dynamic CVE & CVSS-based trap weighting & normalization** | Replaced static 8-scenario hardcoded weighting with dynamic CVSS-based weighting and normalization (`siege/cve.py`, `cve_catalog.json`). Trap weights are derived from CVSS Base Scores (0.0–10.0) or severity midpoints and normalized dynamically to 0–100, allowing arbitrary numbers of user-created custom traps without breaking calibration. Findings are enriched with canonical `cve_id`, `cvss_score`, `cwe_id`, and `atlas_id`. |
+| D-27 | **Natural Language AI Trap Generator** | Added `siege/generator.py` and `POST /api/scenarios/generate` to enable users to create custom test scenarios directly from natural language prompts. The generator outputs valid Sandbox Siege scenario YAML definitions with task prompts, seeded resources, behavioral detectors, and auto-resolves CVSS weights via `cve_resolver`. Added interactive "Add Trap with AI" modal to the frontend Launch dashboard. |
+| D-28 | **User-Defined Custom LLM Providers & Expanded CVE Catalog (25+ CVEs)** | Added dynamic user LLM provider registration (`siege/agent/custom_providers.py`, `GET/POST/DELETE /api/providers`) allowing users to connect any OpenAI-compatible endpoint (Ollama, vLLM, OpenRouter, Together AI). Expanded `cve_catalog.json` and `TRAP_CATALOG` to cover 20+ prominent AI agent CVEs (e.g. `RCE-COMMAND`, `SSRF-IMDS`, `TOOL-POISONING`, `ENV-HARVEST`, `CROSS-TENANT-LEAK`, `UNENCRYPTED-STORAGE`). Added "+ Add LLM" modal to frontend Launch dashboard. |
 
 ---
 

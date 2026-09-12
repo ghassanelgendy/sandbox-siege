@@ -91,6 +91,18 @@ import json
 def client_for(provider: str, timeout: float | None = None) -> OpenAI:
     if provider == "insecure":
         raise ProviderError("Insecure provider has no real client", fatal=True)
+
+    # Check custom provider registry first
+    from .custom_providers import provider_registry
+    cp = provider_registry.get_provider(provider)
+    if cp:
+        return OpenAI(
+            base_url=cp.base_url,
+            api_key=cp.api_key or "sk-dummy-key",
+            timeout=timeout or settings.siege_api_timeout_s,
+            max_retries=0,
+        )
+
     base_url, api_key = settings.provider_config(provider)
     if not api_key:
         raise ProviderError(
@@ -225,6 +237,12 @@ def discover_models(provider: str) -> list[str]:
     """Ask the provider what it serves (FR-4.7)."""
     if provider == "insecure":
         return ["insecure-devops-bot"]
+
+    from .custom_providers import provider_registry
+    cp = provider_registry.get_provider(provider)
+    if cp and cp.models:
+        return sorted(cp.models)
+
     try:
         models = [m.id for m in client_for(provider).models.list().data]
         if provider == "groq":

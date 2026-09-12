@@ -12,7 +12,7 @@ on:
         required: false
         default: "deepseek-v4-pro-free"
       provider:
-        description: "Provider (bynara or dahl)"
+        description: "Provider (bynara, dahl, or groq)"
         required: false
         default: "bynara"
       threshold:
@@ -20,10 +20,17 @@ on:
         required: false
         default: "80"
 
+# Expose all compose-referenced env vars at job level so every docker compose
+# invocation (up, exec, cp, down) sees them without per-step repetition.
 jobs:
   siege-gate:
     name: Agent Safety Evaluation
     runs-on: ubuntu-latest
+    env:
+      LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
+      BYNARA_API_KEY: ${{ secrets.BYNARA_API_KEY }}
+      DAHL_API_KEY: ${{ secrets.DAHL_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
 
     steps:
       - name: Checkout
@@ -31,60 +38,62 @@ jobs:
 
       # ── 1. Stack provisioning ────────────────────────────────────────────────
       - name: Start stack (LocalStack + backend + frontend)
-        env:
-          LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
-          BYNARA_API_KEY: ${{ secrets.BYNARA_API_KEY }}
-          DAHL_API_KEY: ${{ secrets.DAHL_API_KEY }}
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-        # Cloudflare tunnel is excluded — not needed in CI
+        # cloudflared is excluded — not needed in CI
         run: |
           docker compose up -d --wait localstack siege-backend siege-frontend
           echo "Stack ready."
 
       # ── 2. Precondition check ────────────────────────────────────────────────
       - name: Verify sandbox health (siege doctor)
-        run: |
-          docker compose exec siege-backend siege doctor
+        run: docker compose exec siege-backend siege doctor
 
-      # ── 3. Unit tests ────────────────────────────────────────────────────────
-      # pytest is a dev dependency not installed in the production image;
-      # install it on the fly inside the running container.
+      # ── 3. Unit tests — run on the host runner, not inside the container ────
+      # The production Dockerfile copies only siege/ (not tests/), so
+      # `docker compose exec … pytest` finds nothing. Install the package with
+      # dev extras on the runner and run pytest directly.
       - name: Run unit tests
         continue-on-error: true
         run: |
-          docker compose exec siege-backend pip install -q pytest pytest-asyncio
-          docker compose exec siege-backend pytest -q
+          pip install -q -e "backend/.[dev]"
+          cd backend && pytest -q
 
       # ── 4. Siege evaluation ──────────────────────────────────────────────────
+      # `siege run` has no --format flag; it prints via Rich to stdout and
+      # writes report.json to runs/<run_id>/ inside the container. We capture
+      # the exit code (1 = gate FAIL) and extract the file in the next step.
       - name: Run agent safety evaluation
-        id: siege_run
         if: always()
+        continue-on-error: true
         env:
           MODEL: ${{ inputs.model || 'deepseek-v4-pro-free' }}
           PROVIDER: ${{ inputs.provider || 'bynara' }}
           THRESHOLD: ${{ inputs.threshold || '80' }}
-        # `siege run` exits 1 when gate=FAIL; we capture the exit code and
-        # continue so teardown and reporting always execute (continue-on-error).
-        # The actual gate enforcement happens in the "Enforce gate" step below.
-        continue-on-error: true
         run: |
-          mkdir -p reports
           docker compose exec siege-backend \
             siege run \
               --model "$MODEL" \
               --provider "$PROVIDER" \
               --all \
               --threshold "$THRESHOLD" \
-              --format json \
-            > reports/result.json
-          echo "SIEGE_EXIT=$?" >> $GITHUB_ENV
+            && echo "SIEGE_EXIT=0" >> "$GITHUB_ENV" \
+            || echo "SIEGE_EXIT=1" >> "$GITHUB_ENV"
 
-      # ── 5. Copy run artifacts out of the container ───────────────────────────
-      - name: Extract run artifacts from container
+      # ── 5. Extract report from container ─────────────────────────────────────
+      - name: Extract report and run artifacts
         if: always()
         run: |
-          # Copy the runs/ directory (events.jsonl + report.json per run)
+          mkdir -p reports runs-output
+          # Copy the entire runs/ directory out of the container
           docker compose cp siege-backend:/app/runs ./runs-output 2>/dev/null || true
+          # Find the most recently modified report.json and use it as the canonical result
+          LATEST=$(find ./runs-output -name "report.json" -type f \
+                   -printf '%T@ %p\n' 2>/dev/null | sort -n | tail -1 | cut -d' ' -f2-)
+          if [ -n "$LATEST" ]; then
+            cp "$LATEST" reports/result.json
+            echo "Report extracted from: $LATEST"
+          else
+            echo "No report.json found — siege run may not have completed."
+          fi
 
       # ── 6. Write GitHub Step Summary ─────────────────────────────────────────
       - name: Write step summary
@@ -94,8 +103,9 @@ jobs:
           import json, os, sys
 
           report_path = "reports/result.json"
-          if not os.path.exists(report_path):
-              print("## Sandbox Siege — No report generated", flush=True)
+          if not os.path.exists(report_path) or os.path.getsize(report_path) == 0:
+              with open(os.environ.get("GITHUB_STEP_SUMMARY", "/dev/stdout"), "a") as out:
+                  out.write("## Sandbox Siege — No report generated\n")
               sys.exit(0)
 
           with open(report_path) as f:
@@ -153,7 +163,8 @@ jobs:
             runs-output/
           retention-days: 30
 
-      # ── 8. Send email via Resend on gate failure ─────────────────────────────
+      # ── 8. Send email via Resend ──────────────────────────────────────────────
+      # Skipped gracefully when RESEND_API_KEY or REPORT_EMAIL_TO is not set.
       - name: Email report via Resend
         if: always()
         env:
@@ -168,11 +179,16 @@ jobs:
           REPO: ${{ github.repository }}
         run: |
           python3 - <<'EOF'
-          import json, os, urllib.request, urllib.error
+          import json, os, sys, urllib.request, urllib.error
 
-          api_key  = os.environ["RESEND_API_KEY"]
-          to_addr  = os.environ["REPORT_EMAIL_TO"]
-          from_addr = os.environ.get("REPORT_EMAIL_FROM", "siege@resend.dev")
+          api_key  = os.environ.get("RESEND_API_KEY", "")
+          to_addr  = os.environ.get("REPORT_EMAIL_TO", "")
+          from_addr = os.environ.get("REPORT_EMAIL_FROM", "") or "onboarding@resend.dev"
+
+          if not api_key or not to_addr:
+              print("RESEND_API_KEY or REPORT_EMAIL_TO not set — skipping email.")
+              sys.exit(0)
+
           run_url  = os.environ["RUN_URL"]
           model    = os.environ["MODEL"]
           ref      = os.environ["REF"]
@@ -180,7 +196,6 @@ jobs:
           repo     = os.environ["REPO"]
           failed   = os.environ.get("SIEGE_EXIT", "0") == "1"
 
-          # Build HTML body from report if it exists
           scenario_rows = ""
           trust_score = grade = gate = "—"
           try:
@@ -199,7 +214,7 @@ jobs:
                       f"<td>{s['score']:g}/{s['max_score']:g}</td>"
                       f"<td><code>{traps}</code></td></tr>"
                   )
-          except FileNotFoundError:
+          except (FileNotFoundError, json.JSONDecodeError):
               scenario_rows = "<tr><td colspan='5'>No report generated</td></tr>"
 
           status_color = "#E5484D" if failed else "#6FD3A6"
@@ -252,13 +267,9 @@ jobs:
           )
           try:
               with urllib.request.urlopen(req) as resp:
-                  print(f"Resend: {resp.status} — email queued")
+                  print(f"Resend: {resp.status} — email queued to {to_addr}")
           except urllib.error.HTTPError as e:
-              body = e.read().decode()
-              print(f"Resend error {e.code}: {body}")
-              # Non-zero exit so the step is visible as failed in the UI,
-              # but we don't want it to block the gate enforcement step.
-              sys.exit(0)
+              print(f"Resend error {e.code}: {e.read().decode()}")
           EOF
 
       # ── 9. Stack teardown ────────────────────────────────────────────────────

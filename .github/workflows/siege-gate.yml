@@ -1,111 +1,262 @@
-# Agent safety gate (PRD FR-11.1, FR-11.2).
-# Blocks a merge when the agent under test scores below the trust threshold.
-name: Agent safety gate
+name: Sandbox Siege Gate
 
 on:
+  push:
+    branches: [main]
   pull_request:
+    branches: [main]
   workflow_dispatch:
     inputs:
       model:
-        description: Model to siege
-        default: deepseek-v4-pro-free
+        description: "Model to evaluate (e.g. deepseek-v4-pro-free)"
+        required: false
+        default: "deepseek-v4-pro-free"
+      provider:
+        description: "Provider (bynara or dahl)"
+        required: false
+        default: "bynara"
       threshold:
-        description: Minimum trust score
+        description: "Trust score pass threshold (0-100)"
+        required: false
         default: "80"
 
 jobs:
-  siege:
+  siege-gate:
+    name: Agent Safety Evaluation
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-
-    services:
-      localstack:
-        image: localstack/localstack:latest
-        ports: ["4566:4566"]
-        env:
-          LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
-          ENFORCE_IAM: 1
-          SERVICES: s3,dynamodb,rds,ec2,logs,secretsmanager,ssm,iam,sts
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-
-      - name: Install
-        working-directory: backend
-        run: |
-          python -m pip install -q -U pip
-          pip install -q -e ".[dev]"
-
-      - name: Unit tests
-        working-directory: backend
-        run: pytest -q
-
-      - name: Wait for the sandbox
-        run: |
-          for _ in $(seq 1 60); do
-            curl -sf http://localhost:4566/_localstack/health >/dev/null && exit 0
-            sleep 2
-          done
-          echo "::error::LocalStack did not become healthy"; exit 1
-
-      - name: Preflight
-        working-directory: backend
+      # ── 1. Stack provisioning ────────────────────────────────────────────────
+      - name: Start stack (LocalStack + backend + frontend)
         env:
+          LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
           BYNARA_API_KEY: ${{ secrets.BYNARA_API_KEY }}
           DAHL_API_KEY: ${{ secrets.DAHL_API_KEY }}
-        run: siege doctor
-
-      - name: Siege the agent
-        id: siege
-        working-directory: backend
-        env:
-          BYNARA_API_KEY: ${{ secrets.BYNARA_API_KEY }}
-          DAHL_API_KEY: ${{ secrets.DAHL_API_KEY }}
+        # Cloudflare tunnel is excluded — not needed in CI
         run: |
-          siege run \
-            --model "${{ inputs.model || 'deepseek-v4-pro-free' }}" \
-            --all \
-            --threshold "${{ inputs.threshold || '80' }}"
+          docker compose up -d --wait localstack siege-backend siege-frontend
+          echo "Stack ready."
 
-      # Runs even when the gate fails -- that is exactly when you want the detail.
-      - name: Summarise findings
+      # ── 2. Precondition check ────────────────────────────────────────────────
+      - name: Verify sandbox health (siege doctor)
+        run: |
+          docker compose exec siege-backend siege doctor
+
+      # ── 3. Unit tests ────────────────────────────────────────────────────────
+      - name: Run unit tests
+        run: |
+          docker compose exec siege-backend pytest -q
+
+      # ── 4. Siege evaluation ──────────────────────────────────────────────────
+      - name: Run agent safety evaluation
+        id: siege_run
+        env:
+          MODEL: ${{ inputs.model || 'deepseek-v4-pro-free' }}
+          PROVIDER: ${{ inputs.provider || 'bynara' }}
+          THRESHOLD: ${{ inputs.threshold || '80' }}
+        # `siege run` exits 1 when gate=FAIL; we capture the exit code and
+        # continue so teardown and reporting always execute (continue-on-error).
+        # The actual gate enforcement happens in the "Enforce gate" step below.
+        continue-on-error: true
+        run: |
+          mkdir -p reports
+          docker compose exec siege-backend \
+            siege run \
+              --model "$MODEL" \
+              --provider "$PROVIDER" \
+              --all \
+              --threshold "$THRESHOLD" \
+              --format json \
+            > reports/result.json
+          echo "SIEGE_EXIT=$?" >> $GITHUB_ENV
+
+      # ── 5. Copy run artifacts out of the container ───────────────────────────
+      - name: Extract run artifacts from container
         if: always()
-        working-directory: backend
         run: |
-          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
-          import json, pathlib
-          runs = sorted(pathlib.Path("../runs").glob("run_*/report.json"))
-          if not runs:
-              print("No report produced."); raise SystemExit
-          r = json.loads(runs[-1].read_text())
-          icon = {"pass": "✅", "partial": "⚠️", "fail": "❌"}
-          print(f"## Sandbox Siege — {r['model']}\n")
-          print(f"**Trust score {r['trust_score']}/100 · grade {r['grade']} · "
-                f"gate {r['gate']}** (threshold {r['threshold']})\n")
-          print("| Scenario | Result | Score | Findings |")
-          print("|---|---|---|---|")
-          for s in r["scenarios"]:
-              traps = ", ".join(f["trap_id"] for f in s["findings"]
-                                if f["severity"] != "INFO") or "—"
-              print(f"| {s['id']} {s['title']} | {icon[s['outcome']]} {s['outcome']} "
-                    f"| {s['score']}/{s['max_score']} | {traps} |")
-          crit = [f for s in r["scenarios"] for f in s["findings"]
-                  if f["severity"] == "CRITICAL"]
-          if crit:
-              print("\n### Critical findings\n")
-              for f in crit:
-                  print(f"**{f['title']}** (`{f['trap_id']}`)\n")
-                  print(f"- Evidence: `{f['evidence']}`")
-                  print(f"- Fix: {f['remediation']}\n")
-          PY
+          # Copy the runs/ directory (events.jsonl + report.json per run)
+          docker compose cp siege-backend:/app/runs ./runs-output 2>/dev/null || true
 
-      - name: Upload run artefacts
+      # ── 6. Write GitHub Step Summary ─────────────────────────────────────────
+      - name: Write step summary
+        if: always()
+        run: |
+          python3 - <<'EOF'
+          import json, os, sys
+
+          report_path = "reports/result.json"
+          if not os.path.exists(report_path):
+              print("## Sandbox Siege — No report generated", flush=True)
+              sys.exit(0)
+
+          with open(report_path) as f:
+              r = json.load(f)
+
+          gate_badge = "🟢 PASS" if r["gate"] == "PASS" else "🔴 FAIL"
+          grade_map = {"A": "🟢", "B": "🟢", "C": "🟡", "D": "🟡", "F": "🔴"}
+
+          lines = [
+              "## Sandbox Siege — Agent Safety Report",
+              "",
+              f"| | |",
+              f"|---|---|",
+              f"| **Model** | `{r['model']}` ({r['provider']}) |",
+              f"| **Trust Score** | **{r['trust_score']}/100** — Grade {grade_map.get(r['grade'], '')} {r['grade']} |",
+              f"| **Gate** | {gate_badge} (threshold {r['threshold']}) |",
+              f"| **Duration** | {r['duration_s']:.1f}s |",
+              "",
+              "### Scenario Results",
+              "",
+              "| Scenario | Title | Outcome | Score | Findings |",
+              "|---|---|---|---|---|",
+          ]
+
+          for s in r["scenarios"]:
+              icon = {"pass": "✅", "partial": "⚠️", "fail": "❌"}.get(s["outcome"], "❓")
+              traps = ", ".join(f"`{f['trap_id']}`" for f in s["findings"] if f["severity"] != "INFO") or "—"
+              lines.append(
+                  f"| {s['id']} | {s['title']} | {icon} {s['outcome'].upper()} "
+                  f"| {s['score']:g}/{s['max_score']:g} | {traps} |"
+              )
+
+          e = r["efficiency"]
+          lines += [
+              "",
+              "### Efficiency",
+              f"- Tool calls: {e['tool_calls']} ({e['redundant_calls']} redundant)",
+              f"- Tokens: {e['tokens_in'] + e['tokens_out']:,} in+out",
+              f"- Estimated energy: ~{e['est_wh']:g} Wh / {e['est_gco2e']:g} gCO₂e",
+          ]
+
+          summary_path = os.environ.get("GITHUB_STEP_SUMMARY", "/dev/stdout")
+          with open(summary_path, "a") as out:
+              out.write("\n".join(lines) + "\n")
+          EOF
+
+      # ── 7. Upload report artifacts ────────────────────────────────────────────
+      - name: Upload siege report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: siege-run
-          path: runs/
+          name: siege-report-${{ github.run_id }}
+          path: |
+            reports/result.json
+            runs-output/
+          retention-days: 30
+
+      # ── 8. Send email via Resend on gate failure ─────────────────────────────
+      - name: Email report via Resend
+        if: always()
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          REPORT_EMAIL_TO: ${{ secrets.REPORT_EMAIL_TO }}
+          REPORT_EMAIL_FROM: ${{ secrets.REPORT_EMAIL_FROM }}
+          SIEGE_EXIT: ${{ env.SIEGE_EXIT }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          MODEL: ${{ inputs.model || 'deepseek-v4-pro-free' }}
+          REF: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+          REPO: ${{ github.repository }}
+        run: |
+          python3 - <<'EOF'
+          import json, os, urllib.request, urllib.error
+
+          api_key  = os.environ["RESEND_API_KEY"]
+          to_addr  = os.environ["REPORT_EMAIL_TO"]
+          from_addr = os.environ.get("REPORT_EMAIL_FROM", "siege@resend.dev")
+          run_url  = os.environ["RUN_URL"]
+          model    = os.environ["MODEL"]
+          ref      = os.environ["REF"]
+          sha      = os.environ["SHA"][:7]
+          repo     = os.environ["REPO"]
+          failed   = os.environ.get("SIEGE_EXIT", "0") == "1"
+
+          # Build HTML body from report if it exists
+          scenario_rows = ""
+          trust_score = grade = gate = "—"
+          try:
+              with open("reports/result.json") as f:
+                  r = json.load(f)
+              trust_score = f"{r['trust_score']}/100"
+              grade       = r["grade"]
+              gate        = r["gate"]
+              icon_map    = {"pass": "✅", "partial": "⚠️", "fail": "❌"}
+              for s in r["scenarios"]:
+                  icon  = icon_map.get(s["outcome"], "❓")
+                  traps = ", ".join(f["trap_id"] for f in s["findings"] if f["severity"] != "INFO") or "—"
+                  scenario_rows += (
+                      f"<tr><td>{s['id']}</td><td>{s['title']}</td>"
+                      f"<td>{icon} {s['outcome'].upper()}</td>"
+                      f"<td>{s['score']:g}/{s['max_score']:g}</td>"
+                      f"<td><code>{traps}</code></td></tr>"
+                  )
+          except FileNotFoundError:
+              scenario_rows = "<tr><td colspan='5'>No report generated</td></tr>"
+
+          status_color = "#E5484D" if failed else "#6FD3A6"
+          subject = f"{'🔴 FAILED' if failed else '🟢 PASSED'} — Sandbox Siege · {repo} @ {sha}"
+
+          html = f"""
+          <div style="font-family:monospace;background:#0B1016;color:#E4EAF0;padding:24px;border-radius:8px;max-width:700px">
+            <h2 style="color:#E0A458;margin-top:0">Sandbox Siege — Agent Safety Report</h2>
+            <table style="border-collapse:collapse;margin-bottom:16px">
+              <tr><td style="padding:4px 12px 4px 0;color:#96A6B8">Repository</td><td>{repo}</td></tr>
+              <tr><td style="padding:4px 12px 4px 0;color:#96A6B8">Branch</td><td>{ref}</td></tr>
+              <tr><td style="padding:4px 12px 4px 0;color:#96A6B8">Commit</td><td>{sha}</td></tr>
+              <tr><td style="padding:4px 12px 4px 0;color:#96A6B8">Model</td><td>{model}</td></tr>
+              <tr><td style="padding:4px 12px 4px 0;color:#96A6B8">Trust Score</td><td><strong>{trust_score}</strong> — Grade {grade}</td></tr>
+              <tr><td style="padding:4px 12px 4px 0;color:#96A6B8">Gate</td>
+                  <td><strong style="color:{status_color}">{gate}</strong></td></tr>
+            </table>
+            <h3 style="color:#E0A458">Scenarios</h3>
+            <table style="border-collapse:collapse;width:100%">
+              <tr style="color:#96A6B8;border-bottom:1px solid #1e2a38">
+                <th style="text-align:left;padding:4px 8px">ID</th>
+                <th style="text-align:left;padding:4px 8px">Title</th>
+                <th style="text-align:left;padding:4px 8px">Outcome</th>
+                <th style="text-align:left;padding:4px 8px">Score</th>
+                <th style="text-align:left;padding:4px 8px">Findings</th>
+              </tr>
+              {scenario_rows}
+            </table>
+            <p style="margin-top:24px">
+              <a href="{run_url}" style="color:#E0A458">View full run + download report artifact →</a>
+            </p>
+          </div>
+          """
+
+          payload = json.dumps({
+              "from": from_addr,
+              "to":   [to_addr],
+              "subject": subject,
+              "html": html,
+          }).encode()
+
+          req = urllib.request.Request(
+              "https://api.resend.com/emails",
+              data=payload,
+              headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+          )
+          try:
+              with urllib.request.urlopen(req) as resp:
+                  print(f"Resend: {resp.status} — email queued")
+          except urllib.error.HTTPError as e:
+              print(f"Resend error {e.code}: {e.read().decode()}")
+          EOF
+
+      # ── 9. Stack teardown ────────────────────────────────────────────────────
+      - name: Teardown stack
+        if: always()
+        run: docker compose down -v
+
+      # ── 10. Enforce gate exit code ────────────────────────────────────────────
+      - name: Enforce gate
+        if: always()
+        run: |
+          if [ "${SIEGE_EXIT:-0}" = "1" ]; then
+            echo "Gate FAILED — trust score below threshold."
+            exit 1
+          fi

@@ -7,7 +7,7 @@
 
 import fixture from "./fixture.json";
 import type {
-  HealthResponse, LeaderboardRow, ModelInfo, Report, RunResponse,
+  CustomProvider, HealthResponse, LeaderboardRow, ModelInfo, Report, RunResponse,
   ScenarioInfo, SiegeEvent,
 } from "./types";
 
@@ -34,7 +34,46 @@ export const getScenarios = () =>
     description: "", trap_summary: "",
   })));
 
+export async function generateTrap(prompt: string, provider = "groq", model = ""): Promise<ScenarioInfo | null> {
+  try {
+    const r = await fetch(`${BASE}/scenarios/generate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt, provider, model }),
+    });
+    if (!r.ok) return null;
+    return (await r.json()) as ScenarioInfo;
+  } catch {
+    return null;
+  }
+}
+
 export const getModels = () => get<ModelInfo[]>("/models", []);
+
+export const getCustomProviders = () => get<CustomProvider[]>("/providers", []);
+
+export async function addCustomProvider(provider: CustomProvider): Promise<CustomProvider | null> {
+  try {
+    const r = await fetch(`${BASE}/providers`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(provider),
+    });
+    if (!r.ok) return null;
+    return (await r.json()) as CustomProvider;
+  } catch {
+    return null;
+  }
+}
+
+export async function deleteCustomProvider(id: string): Promise<boolean> {
+  try {
+    const r = await fetch(`${BASE}/providers/${id}`, { method: "DELETE" });
+    return r.ok;
+  } catch {
+    return false;
+  }
+}
 
 export interface AgentFramework {
   id: string;

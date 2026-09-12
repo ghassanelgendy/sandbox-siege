@@ -18,7 +18,7 @@ from .agent.replay import replay_run
 from .cloud import LocalStackBackend
 from .events import bus
 from .orchestrator import execute_run, list_reports, load_report, new_run_id
-from .schemas import (HealthResponse, LeaderboardRow, ModelInfo, Report, RunRequest,
+from .schemas import (CustomProviderSchema, GenerateTrapRequest, HealthResponse, LeaderboardRow, ModelInfo, Report, RunRequest,
                       RunResponse, RunSummary, ScenarioInfo)
 from .scenarios import scenario_infos
 
@@ -47,6 +47,19 @@ def health() -> HealthResponse:
 @app.get("/api/scenarios", response_model=list[ScenarioInfo])
 def scenarios() -> list[ScenarioInfo]:
     return scenario_infos()
+
+
+@app.post("/api/scenarios/generate", response_model=ScenarioInfo)
+def generate_trap(req: GenerateTrapRequest) -> ScenarioInfo:
+    from .generator import generate_scenario_from_prompt
+    try:
+        return generate_scenario_from_prompt(
+            prompt=req.prompt,
+            provider=req.provider,
+            model=req.model,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
 
 
 @app.get("/deck.html")
@@ -78,8 +91,11 @@ def models(probe: bool = True) -> list[ModelInfo]:
     request, is minutes of wall-clock done serially -- long enough that the UI's
     fetch gives up. Order is preserved so the selector stays grouped by provider.
     """
+    from .agent.custom_providers import provider_registry
+
+    all_providers = list(PROVIDERS) + [cp.id for cp in provider_registry.list_providers()]
     pairs = [(provider, model_id)
-             for provider in PROVIDERS
+             for provider in all_providers
              for model_id in discover_models(provider)]
 
     if not probe:
@@ -97,6 +113,37 @@ def models(probe: bool = True) -> list[ModelInfo]:
         res = list(pool.map(_probe, pairs))
     res.sort(key=lambda m: (not m.healthy, not m.supports_tools))
     return res
+
+
+@app.get("/api/providers")
+def get_providers() -> list[dict]:
+    from .agent.custom_providers import provider_registry
+    from dataclasses import asdict
+    return [asdict(p) for p in provider_registry.list_providers()]
+
+
+@app.post("/api/providers")
+def add_custom_provider(req: CustomProviderSchema) -> dict:
+    from .agent.custom_providers import CustomProvider, provider_registry
+    from dataclasses import asdict
+    cp = CustomProvider(
+        id=req.id,
+        name=req.name,
+        base_url=req.base_url,
+        api_key=req.api_key,
+        models=req.models,
+    )
+    saved = provider_registry.add_provider(cp)
+    return asdict(saved)
+
+
+@app.delete("/api/providers/{provider_id}")
+def delete_custom_provider(provider_id: str) -> dict:
+    from .agent.custom_providers import provider_registry
+    ok = provider_registry.delete_provider(provider_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Provider not found")
+    return {"ok": True, "id": provider_id}
 
 
 @app.post("/api/runs", response_model=RunResponse)

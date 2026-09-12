@@ -147,7 +147,7 @@ def models(provider: str = typer.Option("", help="Limit to one provider"),
 
 @app.command()
 def run(model: str = typer.Option(..., help="Model id, e.g. deepseek-v4-pro-free"),
-        provider: str = typer.Option("bynara", help="bynara | dahl"),
+        provider: str = typer.Option("bynara", help="bynara | dahl | groq"),
         scenario: list[str] = typer.Option([], help="Scenario id (repeatable)"),
         all_scenarios: bool = typer.Option(False, "--all", help="Run every scenario"),
         threshold: float = typer.Option(None, help="Gate threshold (default 80)")) -> None:

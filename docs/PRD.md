@@ -609,6 +609,7 @@ Decisions already made, with reasoning, so they are not relitigated mid-build.
 | D-22 | **LLM execution failure outcome enforcement** | When runner fails due to `ProviderError` (e.g., 429 Rate Limit, auth failure), the scenario outcome is set to `fail` with score 0.0 and an explicit `LLM-FAILURE` trap finding is recorded. |
 | D-23 | **EventBus memory leak resolution** | RunChannels are dropped from EventBus upon run completion (`close()`), with post-run SSE requests falling back to disk-backed event streaming via `read_events()`. |
 | D-24 | **Run cancellation / Stop test API** | Added `POST /api/runs/{id}/stop` endpoint and `RunChannel.stop()` cancellation flag to allow stopping active runs from both API and frontend UI. |
+| D-25 | **Added Groq as 3rd model provider** | Added `groq` provider (`https://api.groq.com/openai/v1`) with `GROQ_API_KEY`. Filtered discovery to models supporting tool calling (`openai/gpt-oss-20b`, `openai/gpt-oss-120b`, `openai/gpt-oss-safeguard-20b`, `qwen/qwen3.8-27b`) while excluding audio/speech models. |
 
 ---
 

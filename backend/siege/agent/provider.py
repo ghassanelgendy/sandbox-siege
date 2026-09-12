@@ -17,7 +17,7 @@ from openai import OpenAI
 
 from ..config import settings
 
-PROVIDERS = ("bynara", "dahl", "insecure")
+PROVIDERS = ("bynara", "dahl", "groq", "insecure")
 
 # Errors that must NOT be retried -- retrying a billing failure just wastes time.
 FATAL_MARKERS = ("payment_required", "insufficient credits", "invalid_api_key",
@@ -226,7 +226,18 @@ def discover_models(provider: str) -> list[str]:
     if provider == "insecure":
         return ["insecure-devops-bot"]
     try:
-        return sorted(m.id for m in client_for(provider).models.list().data)
+        models = [m.id for m in client_for(provider).models.list().data]
+        if provider == "groq":
+            # Filter out speech/audio models (whisper, orpheus) and models with known tool incompatibilities
+            supported = {
+                "openai/gpt-oss-20b",
+                "openai/gpt-oss-120b",
+                "openai/gpt-oss-safeguard-20b",
+                "qwen/qwen3.6-27b",
+                "qwen/qwen3.8-27b",
+            }
+            return sorted([m for m in models if m in supported])
+        return sorted(models)
     except Exception:
         return []
 

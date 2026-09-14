@@ -124,6 +124,7 @@ export interface GenerateTrapRequest {
   prompt: string;
   provider?: string;
   model?: string;
+  terraform_yaml?: string;
 }
 
 export interface HealthResponse {

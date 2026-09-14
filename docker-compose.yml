@@ -64,7 +64,7 @@ services:
     container_name: siege-cloudflared
     image: cloudflare/cloudflared:latest
     restart: unless-stopped
-    command: tunnel --no-autoupdate run ${CLOUDFLARE_TUNNEL_ID:-1589645d-cd7b-43da-83b3-a2934faabdc8}
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
     environment:
       - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
       - TUNNEL_ID=${CLOUDFLARE_TUNNEL_ID:-1589645d-cd7b-43da-83b3-a2934faabdc8}

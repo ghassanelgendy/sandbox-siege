@@ -162,9 +162,10 @@ class RunResponse(BaseModel):
 
 
 class GenerateTrapRequest(BaseModel):
-    prompt: str
+    prompt: str = ""
     provider: str = "groq"
     model: str = ""
+    terraform_yaml: str = ""
 
 
 class ScenarioInfo(BaseModel):

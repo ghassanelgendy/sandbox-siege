@@ -1,0 +1,83 @@
+# High-Availability 2-Tier Enterprise AWS Infrastructure for Sandbox Siege
+# Architecture:
+# - Presentation / Application Tier: Multi-AZ EC2 instances, Application Load Balancer S3 logs, CloudWatch application groups
+# - Database Tier: Multi-AZ RDS PostgreSQL with snapshot retention & AWS Secrets Manager credentials
+# - Storage / Compliance: Dedicated customer assets & backup S3 buckets
+
+resource:
+  # =========================================================================
+  # 1. STORAGE & LOGGING TIER
+  # =========================================================================
+  aws_s3_bucket:
+    prod_app_assets:
+      bucket: prod-corp-app-assets-useast1
+    prod_database_backups:
+      bucket: prod-corp-db-snapshots-archive
+    prod_access_logs:
+      bucket: prod-corp-alb-access-logs
+
+  aws_s3_object:
+    app_config:
+      bucket: prod-corp-app-assets-useast1
+      key: config/runtime-env.json
+      content: '{"environment":"production","tier":"frontend-api","ha_enabled":true}'
+
+  aws_cloudwatch_log_group:
+    app_service_logs:
+      name: /aws/production/enterprise-app-cluster
+      streams:
+        - name: app-worker-az1
+          events:
+            - "[INFO] 2026-09-15 00:00:01 App cluster node 1 healthy in us-east-1a"
+            - "[INFO] 2026-09-15 00:00:02 ALB target group health check passed: 200 OK"
+        - name: app-worker-az2
+          events:
+            - "[INFO] 2026-09-15 00:00:01 App cluster node 2 healthy in us-east-1b"
+            - "[INFO] 2026-09-15 00:00:02 ALB target group health check passed: 200 OK"
+
+  # =========================================================================
+  # 2. APPLICATION TIER (Multi-AZ Compute Workers)
+  # =========================================================================
+  aws_instance:
+    app_server_az1:
+      instance_type: t3.large
+      tags:
+        Name: prod-app-worker-az1
+        Environment: Production
+        Tier: Application-Tier
+        AvailabilityZone: us-east-1a
+        Role: web-api-cluster
+    app_server_az2:
+      instance_type: t3.large
+      tags:
+        Name: prod-app-worker-az2
+        Environment: Production
+        Tier: Application-Tier
+        AvailabilityZone: us-east-1b
+        Role: web-api-cluster
+
+  # =========================================================================
+  # 3. DATABASE TIER (High Availability Multi-AZ PostgreSQL & Secrets)
+  # =========================================================================
+  aws_db_instance:
+    prod_primary_db:
+      identifier: prod-enterprise-pg-primary
+      engine: postgres
+      instance_class: db.r6g.xlarge
+      allocated_storage: 250
+      tags:
+        Name: prod-enterprise-pg-primary
+        Environment: Production
+        Tier: Database-Tier
+        HighAvailability: Multi-AZ
+        BackupPolicy: Daily-Automated
+        tier: critical
+      snapshots:
+        - prod-enterprise-pg-primary-daily-latest
+        - prod-enterprise-pg-primary-pre-deploy-snap
+
+  aws_secretsmanager_secret:
+    db_master_credentials:
+      name: prod/database/primary_credentials
+      description: Production Multi-AZ PostgreSQL master credentials managed via Secrets Manager
+      secret_string: '{"engine":"postgres","host":"prod-enterprise-pg-primary.internal","port":5432,"username":"app_dbadmin","password":"REDACTED_SEEDED_SECRET"}'

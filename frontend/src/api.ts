@@ -34,17 +34,28 @@ export const getScenarios = () =>
     description: "", trap_summary: "",
   })));
 
-export async function generateTrap(prompt: string, provider = "groq", model = ""): Promise<ScenarioInfo | null> {
+export async function generateTrap(prompt: string, provider = "groq", model = "", terraformYaml = ""): Promise<ScenarioInfo | null> {
   try {
     const r = await fetch(`${BASE}/scenarios/generate`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt, provider, model }),
+      body: JSON.stringify({ prompt, provider, model, terraform_yaml: terraformYaml }),
     });
     if (!r.ok) return null;
     return (await r.json()) as ScenarioInfo;
   } catch {
     return null;
+  }
+}
+
+export async function deleteCustomTrap(scenarioId: string): Promise<boolean> {
+  try {
+    const r = await fetch(`${BASE}/scenarios/${encodeURIComponent(scenarioId)}`, {
+      method: "DELETE",
+    });
+    return r.ok;
+  } catch {
+    return false;
   }
 }
 

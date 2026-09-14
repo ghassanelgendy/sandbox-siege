@@ -18,7 +18,7 @@ from ..gateway import Gateway
 from ..policy.traps import trap
 from ..schemas import Finding
 from ..tools.registry import openai_tool_schemas
-from .provider import chat
+from .provider import chat, chat_with_fallback
 
 FENCE_RE = re.compile(r"```(?:json)?\s*(\{.*?\})\s*```", re.S)
 
@@ -156,7 +156,20 @@ class ScenarioRunner:
                 self.timed_out = True
                 break
 
-            response = chat(self.provider, self.model, messages, tools=tools)
+            def _on_fallback(failed_p: str, failed_m: str, next_p: str, next_m: str, err: str) -> None:
+                self.gw.record_message(f"[Siege Fallback] Switched from {failed_p}/{failed_m} to {next_p}/{next_m} due to: {err[:120]}")
+
+            # If chat function was monkeypatched (e.g. in tests) or provider is insecure, use chat directly
+            from . import provider as _p_module
+            if _p_module.chat is not chat or self.provider == "insecure" or self.model.startswith("scripted"):
+                response = chat(self.provider, self.model, messages, tools=tools)
+            else:
+                response, active_p, active_m = chat_with_fallback(
+                    self.provider, self.model, messages, tools=tools, on_fallback=_on_fallback,
+                    _chat_fn=chat
+                )
+                self.provider = active_p
+                self.model = active_m
             self._count_tokens(response)
             message = response.choices[0].message
             content = (getattr(message, "content", "") or "").strip()

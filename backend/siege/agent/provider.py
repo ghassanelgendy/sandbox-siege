@@ -242,6 +242,99 @@ def chat(provider: str, model: str, messages: list[dict[str, Any]],
     raise ProviderError(f"{provider}/{model} failed after {effective_retries + 1} attempts: {last}")
 
 
+def get_fallback_candidates(provider: str, model: str) -> list[tuple[str, str]]:
+    """Determine prioritized list of (provider, model) fallback pairs for resilient execution."""
+    if provider == "insecure":
+        return [(provider, model)]
+
+    candidates: list[tuple[str, str]] = [(provider, model)]
+
+    # Same-provider alternatives
+    if provider == "groq":
+        groq_alts = ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.8-27b", "qwen/qwen3.6-27b"]
+        for m in groq_alts:
+            if m != model and (provider, m) not in candidates:
+                candidates.append((provider, m))
+        # Cross-provider fallbacks if Groq limits are exhausted
+        if settings.dahl_api_key:
+            candidates.append(("dahl", "deepseek-ai/DeepSeek-V4-Flash-0731"))
+            candidates.append(("dahl", "MiniMaxAI/MiniMax-M2.7"))
+        if settings.bynara_api_key:
+            candidates.append(("bynara", "deepseek-v4-pro-free"))
+    elif provider == "dahl":
+        dahl_alts = ["deepseek-ai/DeepSeek-V4-Flash-0731", "MiniMaxAI/MiniMax-M2.7"]
+        for m in dahl_alts:
+            if m != model and (provider, m) not in candidates:
+                candidates.append((provider, m))
+        if settings.groq_api_key:
+            candidates.append(("groq", "openai/gpt-oss-120b"))
+            candidates.append(("groq", "openai/gpt-oss-20b"))
+    elif provider == "bynara":
+        bynara_alts = ["deepseek-v4-pro-free", "mistral-large"]
+        for m in bynara_alts:
+            if m != model and (provider, m) not in candidates:
+                candidates.append((provider, m))
+        if settings.groq_api_key:
+            candidates.append(("groq", "openai/gpt-oss-120b"))
+            candidates.append(("groq", "openai/gpt-oss-20b"))
+        if settings.dahl_api_key:
+            candidates.append(("dahl", "deepseek-ai/DeepSeek-V4-Flash-0731"))
+    else:
+        # Custom provider or unrecognized: fallback to groq / dahl if available
+        if settings.groq_api_key:
+            candidates.append(("groq", "openai/gpt-oss-120b"))
+        if settings.dahl_api_key:
+            candidates.append(("dahl", "deepseek-ai/DeepSeek-V4-Flash-0731"))
+
+    return candidates
+
+
+def chat_with_fallback(
+    provider: str,
+    model: str,
+    messages: list[dict[str, Any]],
+    tools: list[dict[str, Any]] | None = None,
+    timeout: float | None = None,
+    on_fallback: Any = None,
+    _chat_fn: Any = None,
+) -> tuple[Any, str, str]:
+    """Execute chat completion with cascading fallback across candidate models/providers.
+
+    Returns tuple of (response, active_provider, active_model).
+    Invokes on_fallback(failed_provider, failed_model, next_provider, next_model, reason)
+    when a fallback occurs.
+    """
+    candidates = get_fallback_candidates(provider, model)
+    errors: list[str] = []
+
+    effective_chat = _chat_fn or chat
+    for idx, (cand_provider, cand_model) in enumerate(candidates):
+        try:
+            resp = effective_chat(
+                provider=cand_provider,
+                model=cand_model,
+                messages=messages,
+                tools=tools,
+                timeout=timeout,
+            )
+            return resp, cand_provider, cand_model
+        except Exception as exc:
+            err_msg = str(exc)
+            errors.append(f"{cand_provider}/{cand_model}: {err_msg}")
+            if idx + 1 < len(candidates):
+                next_p, next_m = candidates[idx + 1]
+                if callable(on_fallback):
+                    try:
+                        on_fallback(cand_provider, cand_model, next_p, next_m, err_msg)
+                    except Exception:
+                        pass
+                continue
+            # If all candidates exhausted, raise combined error
+            break
+
+    raise ProviderError("All cascading model fallbacks failed:\n" + "\n".join(errors))
+
+
 def discover_models(provider: str) -> list[str]:
     """Ask the provider what it serves (FR-4.7)."""
     if provider == "insecure":

@@ -28,6 +28,7 @@ export default function Launch({ onLaunch }: {
     return Math.round(Math.max(70, Math.min(95, val)));
   })();
 
+  const [threshold, setThreshold] = useState(80);
   const [isAutoThreshold, setIsAutoThreshold] = useState(true);
 
   // Keep threshold synced when auto mode is enabled

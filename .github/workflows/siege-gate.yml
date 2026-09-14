@@ -200,56 +200,185 @@ jobs:
 
           scenario_rows = ""
           trust_score = grade = gate = "—"
+          threshold_val = "80"
+          totals_passed = totals_partial = totals_failed = 0
+          efficiency_stats = ""
+          
           try:
               with open("reports/result.json") as f:
                   r = json.load(f)
-              trust_score = f"{r.get('trust_score', 0)}/100"
+              trust_score = f"{r.get('trust_score', 0):g}"
               grade       = r.get("grade", "—")
               gate        = r.get("gate", "—")
-              icon_map    = {"pass": "✅", "partial": "⚠️", "fail": "❌"}
+              threshold_val = f"{r.get('threshold', 80):g}"
+              totals = r.get("totals", {})
+              totals_passed = totals.get("passed", 0)
+              totals_partial = totals.get("partial", 0)
+              totals_failed = totals.get("failed", 0)
+              
+              eff = r.get("efficiency", {})
+              t_calls = eff.get("tool_calls", 0)
+              t_tokens = eff.get("tokens_in", 0) + eff.get("tokens_out", 0)
+              t_co2 = eff.get("est_gco2e", 0)
+              efficiency_stats = f"{t_calls} tool calls · {t_tokens:,} tokens · ~{t_co2:g} gCO₂e"
+
               for s in r.get("scenarios", []):
-                  icon  = icon_map.get(s.get("outcome"), "❓")
-                  traps = ", ".join(f["trap_id"] for f in s.get("findings", []) if f.get("severity") != "INFO") or "—"
-                  scenario_rows += (
-                      f"<tr><td>{s.get('id')}</td><td>{s.get('title')}</td>"
-                      f"<td>{icon} {str(s.get('outcome', '')).upper()}</td>"
-                      f"<td>{s.get('score', 0):g}/{s.get('max_score', 0):g}</td>"
-                      f"<td><code>{traps}</code></td></tr>"
-                  )
+                  outcome = str(s.get("outcome", "fail")).lower()
+                  if outcome == "pass":
+                      badge = '<span style="background:#1F4738;color:#6FD3A6;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:0.05em">PASS</span>'
+                  elif outcome == "partial":
+                      badge = '<span style="background:#6B4E28;color:#E0A458;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:0.05em">WARN</span>'
+                  else:
+                      badge = '<span style="background:#5E1F22;color:#E5484D;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:0.05em">FAIL</span>'
+
+                  findings = s.get("findings", [])
+                  non_info = [f for f in findings if f.get("severity") != "INFO"]
+                  if non_info:
+                      traps = " ".join(f'<span style="background:#18232F;color:#E5484D;border:1px solid #5E1F22;padding:2px 6px;border-radius:3px;font-size:11px;font-family:monospace;margin-right:4px">{f["trap_id"]}</span>' for f in non_info)
+                  else:
+                      traps = '<span style="color:#61738A;font-size:12px">—</span>'
+
+                  scenario_rows += f"""
+                  <tr style="border-bottom:1px solid #1E2A36">
+                    <td style="padding:10px 8px;font-family:monospace;font-size:12px;color:#E0A458;font-weight:600">{s.get('id')}</td>
+                    <td style="padding:10px 8px;font-size:13px;color:#E4EAF0">{s.get('title')}</td>
+                    <td style="padding:10px 8px">{badge}</td>
+                    <td style="padding:10px 8px;font-family:monospace;font-size:13px;color:#96A6B8">{s.get('score', 0):g}<span style="color:#61738A">/{s.get('max_score', 0):g}</span></td>
+                    <td style="padding:10px 8px">{traps}</td>
+                  </tr>
+                  """
           except (FileNotFoundError, json.JSONDecodeError):
-              scenario_rows = "<tr><td colspan='5'>No report generated</td></tr>"
+              scenario_rows = "<tr><td colspan='5' style='padding:16px;text-align:center;color:#96A6B8'>No report generated</td></tr>"
 
-          status_color = "#E5484D" if failed else "#6FD3A6"
-          subject = f"{'🔴 FAILED' if failed else '🟢 PASSED'} — Sandbox Siege · {repo} @ {sha}"
+          is_pass = gate == "PASS"
+          accent_color = "#6FD3A6" if is_pass else "#E5484D"
+          gate_bg = "#1F4738" if is_pass else "#5E1F22"
+          gate_label = "GATE PASSED" if is_pass else "GATE FAILED"
+          subject = f"{'🟢' if is_pass else '🔴'} [{gate_label}] Sandbox Siege · {repo} @ {sha}"
 
-          html = f"""
-          <div style="font-family:monospace;background:#0B1016;color:#E4EAF0;padding:24px;border-radius:8px;max-width:700px">
-            <h2 style="color:#E0A458;margin-top:0">Sandbox Siege — Agent Safety Report</h2>
-            <table style="border-collapse:collapse;margin-bottom:16px">
-              <tr><td style="padding:4px 12px 4px 0;color:#96A6B8">Repository</td><td>{repo}</td></tr>
-              <tr><td style="padding:4px 12px 4px 0;color:#96A6B8">Branch</td><td>{ref}</td></tr>
-              <tr><td style="padding:4px 12px 4px 0;color:#96A6B8">Commit</td><td>{sha}</td></tr>
-              <tr><td style="padding:4px 12px 4px 0;color:#96A6B8">Model</td><td>{model}</td></tr>
-              <tr><td style="padding:4px 12px 4px 0;color:#96A6B8">Trust Score</td><td><strong>{trust_score}</strong> — Grade {grade}</td></tr>
-              <tr><td style="padding:4px 12px 4px 0;color:#96A6B8">Gate</td>
-                  <td><strong style="color:{status_color}">{gate}</strong></td></tr>
-            </table>
-            <h3 style="color:#E0A458">Scenarios</h3>
-            <table style="border-collapse:collapse;width:100%">
-              <tr style="color:#96A6B8;border-bottom:1px solid #1e2a38">
-                <th style="text-align:left;padding:4px 8px">ID</th>
-                <th style="text-align:left;padding:4px 8px">Title</th>
-                <th style="text-align:left;padding:4px 8px">Outcome</th>
-                <th style="text-align:left;padding:4px 8px">Score</th>
-                <th style="text-align:left;padding:4px 8px">Findings</th>
-              </tr>
-              {scenario_rows}
-            </table>
-            <p style="margin-top:24px">
-              <a href="{run_url}" style="color:#E0A458">View full run + download report artifact →</a>
-            </p>
-          </div>
-          """
+          html = f"""<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0;padding:0;background-color:#070A0E;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#E4EAF0">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#070A0E;padding:32px 12px">
+    <tr>
+      <td align="center">
+        <table width="680" cellpadding="0" cellspacing="0" style="max-width:680px;background:#0B1016;border:1px solid #1E2A36;border-radius:12px;overflow:hidden;box-shadow:0 12px 36px rgba(0,0,0,0.5)">
+          
+          <!-- Header Bar -->
+          <tr>
+            <td style="background:linear-gradient(90deg, #121A23 0%, #18232F 100%);padding:24px 28px;border-bottom:1px solid #1E2A36">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td>
+                    <div style="font-family:'Courier New',Courier,monospace;font-size:11px;font-weight:700;letter-spacing:0.18em;color:#E0A458;text-transform:uppercase;margin-bottom:4px">
+                      CHAOS ENGINEERING FOR AI AGENTS
+                    </div>
+                    <div style="font-size:22px;font-weight:800;color:#FFFFFF;letter-spacing:-0.02em">
+                      SANDBOX<span style="color:#E0A458">SIEGE</span>
+                    </div>
+                  </td>
+                  <td align="right" valign="middle">
+                    <span style="display:inline-block;padding:6px 14px;border-radius:6px;background:{gate_bg};color:{accent_color};font-size:12px;font-weight:800;letter-spacing:0.08em;font-family:monospace;border:1px solid {accent_color}40">
+                      {gate_label}
+                    </span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Key Metrics Dashboard Cards -->
+          <tr>
+            <td style="padding:24px 28px 12px">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td width="31%" style="background:#121A23;border:1px solid #1E2A36;border-radius:8px;padding:16px;text-align:center">
+                    <div style="font-size:10px;font-weight:700;color:#96A6B8;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px">TRUST SCORE</div>
+                    <div style="font-size:32px;font-weight:800;color:{accent_color};font-family:monospace;line-height:1">
+                      {trust_score}<span style="font-size:14px;color:#61738A">/100</span>
+                    </div>
+                    <div style="font-size:11px;color:#96A6B8;margin-top:6px">Grade <strong style="color:#FFFFFF">{grade}</strong> (Req: {threshold_val})</div>
+                  </td>
+                  <td width="3.5%"></td>
+                  <td width="31%" style="background:#121A23;border:1px solid #1E2A36;border-radius:8px;padding:16px;text-align:center">
+                    <div style="font-size:10px;font-weight:700;color:#96A6B8;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px">PASS RATE</div>
+                    <div style="font-size:26px;font-weight:800;color:#FFFFFF;font-family:monospace;line-height:1.2">
+                      <span style="color:#6FD3A6">{totals_passed}</span> / <span style="color:#E5484D">{totals_failed}</span>
+                    </div>
+                    <div style="font-size:11px;color:#96A6B8;margin-top:6px">{totals_passed} pass · {totals_partial} warn · {totals_failed} fail</div>
+                  </td>
+                  <td width="3.5%"></td>
+                  <td width="31%" style="background:#121A23;border:1px solid #1E2A36;border-radius:8px;padding:16px;text-align:center">
+                    <div style="font-size:10px;font-weight:700;color:#96A6B8;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px">TARGET MODEL</div>
+                    <div style="font-size:13px;font-weight:700;color:#E0A458;font-family:monospace;line-height:1.3;word-break:break-all">
+                      {model}
+                    </div>
+                    <div style="font-size:11px;color:#96A6B8;margin-top:6px">LocalStack Pro sandbox</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Run Metadata Info -->
+          <tr>
+            <td style="padding:12px 28px 20px">
+              <table width="100%" cellpadding="0" cellspacing="0" style="background:#0F161E;border:1px solid #1E2A36;border-radius:6px;padding:12px 16px;font-size:12px;color:#96A6B8">
+                <tr>
+                  <td style="padding:3px 0"><strong>Repository:</strong> <span style="color:#E4EAF0;font-family:monospace">{repo}</span></td>
+                  <td style="padding:3px 0"><strong>Branch:</strong> <span style="color:#E4EAF0;font-family:monospace">{ref}</span></td>
+                  <td style="padding:3px 0"><strong>Commit:</strong> <span style="color:#E0A458;font-family:monospace">{sha}</span></td>
+                </tr>
+                {f'<tr><td colspan="3" style="padding-top:6px;border-top:1px solid #18232F;color:#61738A"><strong>Efficiency:</strong> {efficiency_stats}</td></tr>' if efficiency_stats else ''}
+              </table>
+            </td>
+          </tr>
+
+          <!-- Scenario Breakdown Table -->
+          <tr>
+            <td style="padding:0 28px 24px">
+              <div style="font-size:11px;font-weight:700;color:#96A6B8;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:10px">
+                SCENARIO EVALUATION BREAKDOWN
+              </div>
+              <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;width:100%;border:1px solid #1E2A36;border-radius:6px;overflow:hidden">
+                <thead>
+                  <tr style="background:#121A23;border-bottom:1px solid #1E2A36;color:#96A6B8;font-size:11px;font-weight:700;letter-spacing:0.06em">
+                    <th align="left" style="padding:10px 8px">ID</th>
+                    <th align="left" style="padding:10px 8px">SCENARIO</th>
+                    <th align="left" style="padding:10px 8px">OUTCOME</th>
+                    <th align="left" style="padding:10px 8px">SCORE</th>
+                    <th align="left" style="padding:10px 8px">TRAPS / FINDINGS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {scenario_rows}
+                </tbody>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Action Button / Footer -->
+          <tr>
+            <td style="background:#0F161E;padding:24px 28px;border-top:1px solid #1E2A36;text-align:center">
+              <a href="{run_url}" style="display:inline-block;background:#E0A458;color:#0B1016;font-size:13px;font-weight:700;padding:10px 22px;border-radius:6px;text-decoration:none;letter-spacing:0.02em;margin-bottom:14px">
+                Open Full Evaluation Log in GitHub Actions →
+              </a>
+              <div style="font-size:11px;color:#61738A">
+                Sandbox Siege Gatekeeper · Autonomous Agent Chaos Engineering & Safety Verification
+              </div>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>"""
 
           payload = json.dumps({
               "from": from_addr,

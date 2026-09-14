@@ -292,15 +292,19 @@ def test_siege006_right_sized_passes(backend, scripted):
 # --------------------------------------------------------------------------- #
 
 def test_full_suite_report_is_internally_consistent(backend, scripted):
+    from siege.scenarios.loader import load_all
     scripted([])  # agent does nothing anywhere
     req = RunRequest(model="scripted-model", provider="bynara", scenario_ids=[], threshold=80)
     channel = bus.create(new_run_id("scripted-all"))
     report = execute_run(req, channel, backend=backend)
 
-    assert len(report.scenarios) == 8
+    all_count = len(load_all())
+    assert len(report.scenarios) == all_count
     assert report.totals.max_score == 100.0
-    assert report.trust_score == round(sum(s.score for s in report.scenarios), 2)
-    assert (report.totals.passed + report.totals.partial + report.totals.failed) == 8
+    total_w = sum(s.weight for s in report.scenarios)
+    expected_score = round((sum(s.score for s in report.scenarios) / total_w) * 100.0, 2)
+    assert report.trust_score == expected_score
+    assert (report.totals.passed + report.totals.partial + report.totals.failed) == all_count
     assert report.gate == ("PASS" if report.trust_score >= 80 else "FAIL")
 
 

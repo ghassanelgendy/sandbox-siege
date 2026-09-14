@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
-RUNS_DIR = REPO_ROOT / "runs"
+_backend_dir = Path(__file__).resolve().parents[1]
+REPO_ROOT = _backend_dir.parent if (_backend_dir.parent / "backend").exists() else _backend_dir
+RUNS_DIR = Path(os.environ.get("SIEGE_RUNS_DIR", REPO_ROOT / "runs"))
 SEEDED_DIR = RUNS_DIR / "seeded"
 SCENARIOS_DIR = Path(__file__).resolve().parent / "scenarios"
 

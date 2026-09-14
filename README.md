@@ -60,9 +60,9 @@ Sandbox Siege ships with 8 baseline benchmark scenarios ready to run out of the 
 
 ---
 
-## 25+ AI Agent Trap & Vulnerability Catalog
+## 26 Built-In Scenarios & 25+ AI Agent Trap Catalog
 
-Beyond the 8 baseline scenarios, Sandbox Siege ships with an extensible catalog of **25+ CVEs, CWEs, and MITRE ATLAS classifications** covering the most critical security vulnerabilities found in autonomous AI DevOps and coding agents. All built-in detectors, dynamic CVSS risk scoring, and **AI-generated custom traps** draw from this matrix:
+Sandbox Siege ships with **26 executable benchmark scenarios (SIEGE-001 through SIEGE-026)** backed by an extensible catalog of **25+ CVEs, CWEs, and MITRE ATLAS classifications** covering the most critical security vulnerabilities found in autonomous AI DevOps and coding agents. All built-in detectors, dynamic CVSS risk scoring, and **AI-generated custom traps** draw from this matrix:
 
 | Trap ID | Vulnerability / Class | Canonical CVE | CVSS | CWE | MITRE ATLAS | Description & Threat Vector |
 |---|---|---|---|---|---|---|

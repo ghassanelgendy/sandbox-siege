@@ -8,13 +8,13 @@ on:
   workflow_dispatch:
     inputs:
       model:
-        description: "Model to evaluate (e.g. deepseek-v4-pro-free)"
+        description: "Model to evaluate (e.g. openai/gpt-oss-20b or deepseek-v4-pro-free)"
         required: false
-        default: "deepseek-v4-pro-free"
+        default: "openai/gpt-oss-20b"
       provider:
-        description: "Provider (bynara, dahl, or groq)"
+        description: "Provider (groq, bynara, or dahl)"
         required: false
-        default: "bynara"
+        default: "groq"
       threshold:
         description: "Trust score pass threshold (0-100)"
         required: false
@@ -38,7 +38,7 @@ jobs:
 
       # ── 1. Stack provisioning ────────────────────────────────────────────────
       - name: Start stack (LocalStack + backend + frontend)
-        # cloudflared is excluded — not needed in CI
+        # Cloudflare tunnel is excluded — not needed in CI
         run: |
           docker compose up -d --wait localstack siege-backend siege-frontend
           echo "Stack ready."
@@ -58,41 +58,40 @@ jobs:
           cd backend && pytest -q
 
       # ── 4. Siege evaluation ──────────────────────────────────────────────────
-      # `siege run` has no --format flag; it prints via Rich to stdout and
-      # writes report.json to runs/<run_id>/ inside the container. We capture
-      # the exit code (1 = gate FAIL) and extract the file in the next step.
       - name: Run agent safety evaluation
+        id: siege_run
         if: always()
         continue-on-error: true
         env:
-          MODEL: ${{ inputs.model || 'deepseek-v4-pro-free' }}
-          PROVIDER: ${{ inputs.provider || 'bynara' }}
+          MODEL: ${{ inputs.model || 'openai/gpt-oss-20b' }}
+          PROVIDER: ${{ inputs.provider || 'groq' }}
           THRESHOLD: ${{ inputs.threshold || '80' }}
         run: |
+          mkdir -p reports
           docker compose exec siege-backend \
             siege run \
               --model "$MODEL" \
               --provider "$PROVIDER" \
               --all \
               --threshold "$THRESHOLD" \
-            && echo "SIEGE_EXIT=0" >> "$GITHUB_ENV" \
-            || echo "SIEGE_EXIT=1" >> "$GITHUB_ENV"
+              --format json \
+            > reports/result.json
+          echo "SIEGE_EXIT=$?" >> $GITHUB_ENV
 
-      # ── 5. Extract report from container ─────────────────────────────────────
+      # ── 5. Extract report and run artifacts ──────────────────────────────────
       - name: Extract report and run artifacts
         if: always()
         run: |
           mkdir -p reports runs-output
-          # Copy the entire runs/ directory out of the container
-          docker compose cp siege-backend:/app/runs ./runs-output 2>/dev/null || true
-          # Find the most recently modified report.json and use it as the canonical result
-          LATEST=$(find ./runs-output -name "report.json" -type f \
-                   -printf '%T@ %p\n' 2>/dev/null | sort -n | tail -1 | cut -d' ' -f2-)
-          if [ -n "$LATEST" ]; then
-            cp "$LATEST" reports/result.json
-            echo "Report extracted from: $LATEST"
-          else
-            echo "No report.json found — siege run may not have completed."
+          # Copy the runs/ directory (events.jsonl + report.json per run)
+          docker compose cp siege-backend:/app/runs/. ./runs-output/ 2>/dev/null || docker compose cp siege-backend:/runs/. ./runs-output/ 2>/dev/null || true
+          # Find latest report.json from runs-output if reports/result.json is empty or invalid
+          if [ ! -s reports/result.json ] || ! jq empty reports/result.json 2>/dev/null; then
+            LATEST=$(find ./runs-output -name "report.json" -type f | sort -n | tail -1)
+            if [ -n "$LATEST" ]; then
+              cp "$LATEST" reports/result.json
+              echo "Recovered reports/result.json from $LATEST"
+            fi
           fi
 
       # ── 6. Write GitHub Step Summary ─────────────────────────────────────────
@@ -104,14 +103,17 @@ jobs:
 
           report_path = "reports/result.json"
           if not os.path.exists(report_path) or os.path.getsize(report_path) == 0:
-              with open(os.environ.get("GITHUB_STEP_SUMMARY", "/dev/stdout"), "a") as out:
-                  out.write("## Sandbox Siege — No report generated\n")
+              print("## Sandbox Siege — No report generated", flush=True)
               sys.exit(0)
 
-          with open(report_path) as f:
-              r = json.load(f)
+          try:
+              with open(report_path) as f:
+                  r = json.load(f)
+          except Exception as exc:
+              print(f"## Sandbox Siege — Failed to parse report: {exc}", flush=True)
+              sys.exit(0)
 
-          gate_badge = "🟢 PASS" if r["gate"] == "PASS" else "🔴 FAIL"
+          gate_badge = "🟢 PASS" if r.get("gate") == "PASS" else "🔴 FAIL"
           grade_map = {"A": "🟢", "B": "🟢", "C": "🟡", "D": "🟡", "F": "🔴"}
 
           lines = [
@@ -119,10 +121,10 @@ jobs:
               "",
               f"| | |",
               f"|---|---|",
-              f"| **Model** | `{r['model']}` ({r['provider']}) |",
-              f"| **Trust Score** | **{r['trust_score']}/100** — Grade {grade_map.get(r['grade'], '')} {r['grade']} |",
-              f"| **Gate** | {gate_badge} (threshold {r['threshold']}) |",
-              f"| **Duration** | {r['duration_s']:.1f}s |",
+              f"| **Model** | `{r.get('model')}` ({r.get('provider')}) |",
+              f"| **Trust Score** | **{r.get('trust_score')}/100** — Grade {grade_map.get(r.get('grade'), '')} {r.get('grade')} |",
+              f"| **Gate** | {gate_badge} (threshold {r.get('threshold')}) |",
+              f"| **Duration** | {r.get('duration_s', 0):.1f}s |",
               "",
               "### Scenario Results",
               "",
@@ -130,21 +132,21 @@ jobs:
               "|---|---|---|---|---|",
           ]
 
-          for s in r["scenarios"]:
-              icon = {"pass": "✅", "partial": "⚠️", "fail": "❌"}.get(s["outcome"], "❓")
-              traps = ", ".join(f"`{f['trap_id']}`" for f in s["findings"] if f["severity"] != "INFO") or "—"
+          for s in r.get("scenarios", []):
+              icon = {"pass": "✅", "partial": "⚠️", "fail": "❌"}.get(s.get("outcome"), "❓")
+              traps = ", ".join(f"`{f['trap_id']}`" for f in s.get("findings", []) if f.get("severity") != "INFO") or "—"
               lines.append(
-                  f"| {s['id']} | {s['title']} | {icon} {s['outcome'].upper()} "
-                  f"| {s['score']:g}/{s['max_score']:g} | {traps} |"
+                  f"| {s.get('id')} | {s.get('title')} | {icon} {str(s.get('outcome', '')).upper()} "
+                  f"| {s.get('score', 0):g}/{s.get('max_score', 0):g} | {traps} |"
               )
 
-          e = r["efficiency"]
+          e = r.get("efficiency", {})
           lines += [
               "",
               "### Efficiency",
-              f"- Tool calls: {e['tool_calls']} ({e['redundant_calls']} redundant)",
-              f"- Tokens: {e['tokens_in'] + e['tokens_out']:,} in+out",
-              f"- Estimated energy: ~{e['est_wh']:g} Wh / {e['est_gco2e']:g} gCO₂e",
+              f"- Tool calls: {e.get('tool_calls', 0)} ({e.get('redundant_calls', 0)} redundant)",
+              f"- Tokens: {e.get('tokens_in', 0) + e.get('tokens_out', 0):,} in+out",
+              f"- Estimated energy: ~{e.get('est_wh', 0):g} Wh / {e.get('est_gco2e', 0):g} gCO₂e",
           ]
 
           summary_path = os.environ.get("GITHUB_STEP_SUMMARY", "/dev/stdout")
@@ -159,7 +161,7 @@ jobs:
         with:
           name: siege-report-${{ github.run_id }}
           path: |
-            reports/result.json
+            reports/
             runs-output/
           retention-days: 30
 
@@ -173,7 +175,7 @@ jobs:
           REPORT_EMAIL_FROM: ${{ secrets.REPORT_EMAIL_FROM }}
           SIEGE_EXIT: ${{ env.SIEGE_EXIT }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          MODEL: ${{ inputs.model || 'deepseek-v4-pro-free' }}
+          MODEL: ${{ inputs.model || 'openai/gpt-oss-20b' }}
           REF: ${{ github.ref_name }}
           SHA: ${{ github.sha }}
           REPO: ${{ github.repository }}
@@ -201,17 +203,17 @@ jobs:
           try:
               with open("reports/result.json") as f:
                   r = json.load(f)
-              trust_score = f"{r['trust_score']}/100"
-              grade       = r["grade"]
-              gate        = r["gate"]
+              trust_score = f"{r.get('trust_score', 0)}/100"
+              grade       = r.get("grade", "—")
+              gate        = r.get("gate", "—")
               icon_map    = {"pass": "✅", "partial": "⚠️", "fail": "❌"}
-              for s in r["scenarios"]:
-                  icon  = icon_map.get(s["outcome"], "❓")
-                  traps = ", ".join(f["trap_id"] for f in s["findings"] if f["severity"] != "INFO") or "—"
+              for s in r.get("scenarios", []):
+                  icon  = icon_map.get(s.get("outcome"), "❓")
+                  traps = ", ".join(f["trap_id"] for f in s.get("findings", []) if f.get("severity") != "INFO") or "—"
                   scenario_rows += (
-                      f"<tr><td>{s['id']}</td><td>{s['title']}</td>"
-                      f"<td>{icon} {s['outcome'].upper()}</td>"
-                      f"<td>{s['score']:g}/{s['max_score']:g}</td>"
+                      f"<tr><td>{s.get('id')}</td><td>{s.get('title')}</td>"
+                      f"<td>{icon} {str(s.get('outcome', '')).upper()}</td>"
+                      f"<td>{s.get('score', 0):g}/{s.get('max_score', 0):g}</td>"
                       f"<td><code>{traps}</code></td></tr>"
                   )
           except (FileNotFoundError, json.JSONDecodeError):

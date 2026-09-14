@@ -18,7 +18,7 @@ export default function Leaderboard() {
     <div className="mx-auto max-w-5xl px-8 py-12">
       <Eyebrow>Comparative results</Eyebrow>
       <h1 className="mt-1 max-w-2xl font-display text-4xl leading-tight text-ink">
-        Same seven traps. Different failures.
+        Same benchmark traps. Different failures.
       </h1>
       <p className="mt-3 max-w-xl leading-relaxed text-ink-dim">
         Every model here was given identical tasks, identical tools and identical

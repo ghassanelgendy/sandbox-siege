@@ -8,8 +8,7 @@ The roster is DISCOVERED AT RUNTIME and health-checked. Never hardcode it:
 provider credit state changes without warning (decision D-6).
 """
 
-from __future__ import annotations
-
+import re
 import time
 from typing import Any
 
@@ -221,16 +220,26 @@ def chat(provider: str, model: str, messages: list[dict[str, Any]],
         kwargs["tool_choice"] = "auto"
 
     last = ""
-    for attempt in range(max_retries + 1):
+    effective_retries = 5 if provider == "groq" else max_retries
+    for attempt in range(effective_retries + 1):
         try:
             return client.chat.completions.create(**kwargs)
         except Exception as exc:  # noqa: BLE001
             last = str(exc)
             if _is_fatal(last):
                 raise ProviderError(f"{provider}/{model}: {last}", fatal=True) from exc
-            if attempt < max_retries:
-                time.sleep(2 ** attempt)
-    raise ProviderError(f"{provider}/{model} failed after {max_retries + 1} attempts: {last}")
+            if attempt < effective_retries:
+                # If provider returned a rate limit cooldown message (e.g. 'try again in 3.5s' or '800ms')
+                # extract and sleep the exact requested time + jitter
+                sleep_s = float(2 ** attempt)
+                rate_match = re.search(r"try again in ([\d\.]+)(s|ms)", last)
+                if rate_match:
+                    val = float(rate_match.group(1))
+                    unit = rate_match.group(2)
+                    cooldown = val if unit == "s" else (val / 1000.0)
+                    sleep_s = max(sleep_s, cooldown + 0.5)
+                time.sleep(sleep_s)
+    raise ProviderError(f"{provider}/{model} failed after {effective_retries + 1} attempts: {last}")
 
 
 def discover_models(provider: str) -> list[str]:

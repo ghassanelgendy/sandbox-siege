@@ -22,7 +22,8 @@ from .policy.traps import trap
 from .schemas import (Event, EventType, Finding, Report, RunRequest, ScenarioResult, utcnow)
 from .scenarios import load_all, load_one
 from .scenarios.loader import Scenario
-from .scoring import compute_efficiency, decide_outcome, finalize, score_scenario, summarize
+from .scoring import (compute_dynamic_threshold, compute_efficiency, decide_outcome, finalize,
+                      score_scenario, summarize)
 
 
 def new_run_id(model: str, mode: str = "live") -> str:
@@ -45,11 +46,17 @@ def execute_run(req: RunRequest, channel: RunChannel,
     scenarios = _select(req.scenario_ids)
     started = time.monotonic()
 
+    threshold = (
+        req.threshold
+        if req.threshold is not None and req.threshold > 0
+        else compute_dynamic_threshold(scenarios)
+    )
+
     report = Report(
         run_id=channel.run_id, model=req.model, provider=req.provider,
         agent_framework=req.agent_framework,
         backend=backend.name, mode="live", started_at=utcnow(),
-        threshold=req.threshold or settings.siege_threshold,
+        threshold=threshold,
     )
 
     channel.emit(EventType.RUN_STARTED, {

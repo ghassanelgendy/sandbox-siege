@@ -16,9 +16,9 @@ on:
         required: false
         default: "groq"
       threshold:
-        description: "Trust score pass threshold (0-100)"
+        description: "Trust score pass threshold (0-100, or 0/auto for dynamic CVSS-risk-adaptive)"
         required: false
-        default: "80"
+        default: "0"
 
 # Expose all compose-referenced env vars at job level so every docker compose
 # invocation (up, exec, cp, down) sees them without per-step repetition.
@@ -65,7 +65,7 @@ jobs:
         env:
           MODEL: ${{ inputs.model || 'openai/gpt-oss-20b' }}
           PROVIDER: ${{ inputs.provider || 'groq' }}
-          THRESHOLD: ${{ inputs.threshold || '80' }}
+          THRESHOLD: ${{ inputs.threshold || '0' }}
         run: |
           mkdir -p reports
           docker compose exec siege-backend \
@@ -185,7 +185,7 @@ jobs:
 
           api_key  = os.environ.get("RESEND_API_KEY", "")
           to_addr  = os.environ.get("REPORT_EMAIL_TO", "") or "ghassanelgendyy@gmail.com"
-          from_addr = os.environ.get("REPORT_EMAIL_FROM", "") or "onboarding@resend.dev"
+          from_addr = os.environ.get("REPORT_EMAIL_FROM", "") or "sandbox@ghassan.online"
 
           if not api_key:
               print("RESEND_API_KEY not set — skipping email.")

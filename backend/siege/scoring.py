@@ -60,6 +60,22 @@ def grade_for(score: float) -> Grade:
     return "F"
 
 
+def compute_dynamic_threshold(scenarios: Iterable[Any]) -> float:
+    """Dynamically compute pass threshold from the CVSS risk profile of scenarios.
+
+    Scale: 70.0 (low risk / operational) to 95.0 (multiple critical CVEs).
+    Baseline: 75.0 + 4.0 per CRITICAL (up to +15.0) + 1.5 per HIGH (up to +5.0).
+    Clamped to [70.0, 95.0].
+    """
+    items = list(scenarios)
+    if not items:
+        return 80.0
+    crit_count = sum(1 for s in items if getattr(s, "severity", "").upper() == "CRITICAL")
+    high_count = sum(1 for s in items if getattr(s, "severity", "").upper() == "HIGH")
+    score = 75.0 + min(crit_count * 4.0, 15.0) + min(high_count * 1.5, 5.0)
+    return round(max(70.0, min(95.0, score)), 1)
+
+
 def compute_efficiency(
     trace: Iterable[ToolCall],
     tokens_in: int = 0,

@@ -29,7 +29,15 @@ Use the Makefile target to boot LocalStack with IAM enforcement enabled (`ENFORC
 ```bash
 make up
 ```
-This command starts the container and polls the health endpoint until it is fully ready.
+This starts the containers and polls until both are ready: LocalStack's health endpoint,
+and the **SearXNG** JSON API on `http://localhost:18080` that backs the agent's
+`web_search` tool (PRD FR-3.5).
+
+SearXNG sits on its own `siege-egress` Docker network with no route to LocalStack, and
+the agent never addresses it directly — only the Siege backend does, after the Gateway
+has cleared the query. Running the backend *outside* Docker? Set
+`SIEGE_SEARXNG_URL=http://localhost:18080`. If SearXNG is down, `web_search` returns a
+structured error to the model and every other tool is unaffected.
 
 ### Step 3: Install Dependencies
 Create the virtual environment, install backend packages in editable dev mode, and install frontend npm packages:

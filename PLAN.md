@@ -12,13 +12,14 @@
 | Phase | State |
 |---|---|
 | **P0** Foundation & contract freeze | ✅ done — `schemas.py` + `fixtures/report_sample.json` frozen; compose fixed (`ENFORCE_IAM=1`, volume un-nested) |
-| **P1** Sandbox, tools, gateway | ✅ done — `CloudBackend` + `LocalStackBackend`, 24 tools, Gateway |
+| **P1** Sandbox, tools, gateway | ✅ done — `CloudBackend` + `LocalStackBackend`, 25 tools (incl. `web_search`), Gateway |
 | **P2** Providers, runner, replay, scenarios 001/002/004 | ✅ done — incl. text-protocol fallback; **all 8** scenarios landed |
 | **P3** Remaining scenarios, detectors, scoring | ✅ done — 12 detectors, scoring, efficiency + token carbon |
 | **P4** Integration & Agent Frameworks | ✅ done — Agent Framework Chooser, interactive Agent Navigator, GET /api/agents, dual-rail console & report headers |
 | **P5** Replay, CLI, CI & Containerization | ✅ done — Docker containerization, custom ports (14566, 18000, 25173), Cloudflare Tunnel integration |
 | **P6** Leaderboard seed + polish | ✅ done — `siege doctor/run/replay/seed`, mock insecure test agent |
 | **P7** Rehearsal | ⬜ pending |
+| **P8** Agent web search | ✅ done — self-hosted SearXNG on an isolated `siege-egress` network, `web_search` tool with a Gateway egress guard (FR-3.5, D-34), `SEARCH-EXFIL` detector coverage, SIEGE-027 |
 
 ### The one thing that still needs a real machine
 

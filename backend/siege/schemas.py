@@ -152,7 +152,7 @@ class RunRequest(BaseModel):
     mode: Mode = "live"
     replay_id: str | None = None
     speed: float = 1.0
-    threshold: float = 80.0
+    threshold: float | None = None
 
 
 class RunResponse(BaseModel):

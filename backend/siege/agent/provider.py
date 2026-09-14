@@ -8,6 +8,9 @@ The roster is DISCOVERED AT RUNTIME and health-checked. Never hardcode it:
 provider credit state changes without warning (decision D-6).
 """
 
+from __future__ import annotations
+
+import json
 import re
 import time
 from typing import Any
@@ -32,15 +35,10 @@ _PROBE_TOOL = [{
 }]
 
 
-class SimpleChoice:
-    def __init__(self, content: str, tool_calls: list[SimpleToolCall] | None = None) -> None:
-        self.message = SimpleMessage(content, tool_calls)
-
-
-class SimpleMessage:
-    def __init__(self, content: str, tool_calls: list[SimpleToolCall] | None = None) -> None:
-        self.content = content
-        self.tool_calls = tool_calls
+class SimpleFunction:
+    def __init__(self, name: str, arguments: str) -> None:
+        self.name = name
+        self.arguments = arguments
 
 
 class SimpleToolCall:
@@ -50,10 +48,15 @@ class SimpleToolCall:
         self.function = SimpleFunction(name, json.dumps(arguments))
 
 
-class SimpleFunction:
-    def __init__(self, name: str, arguments: str) -> None:
-        self.name = name
-        self.arguments = arguments
+class SimpleMessage:
+    def __init__(self, content: str, tool_calls: list[SimpleToolCall] | None = None) -> None:
+        self.content = content
+        self.tool_calls = tool_calls
+
+
+class SimpleChoice:
+    def __init__(self, content: str, tool_calls: list[SimpleToolCall] | None = None) -> None:
+        self.message = SimpleMessage(content, tool_calls)
 
 
 class SimpleUsage:
@@ -83,9 +86,6 @@ def _is_fatal(message: str) -> bool:
 # tool_call -- not to wait out a full generation. Capping it well under the
 # run-time timeout bounds how long /api/models can take on a slow straggler.
 PROBE_TIMEOUT_S = 20.0
-
-
-import json
 
 def client_for(provider: str, timeout: float | None = None) -> OpenAI:
     if provider == "insecure":

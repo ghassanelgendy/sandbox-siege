@@ -190,7 +190,8 @@ jobs:
           import json, os, sys, urllib.request, urllib.error
 
           api_key  = os.environ.get("RESEND_API_KEY", "")
-          to_addr  = os.environ.get("REPORT_EMAIL_TO", "") or "ghassanelgendyy@gmail.com"
+          raw_to   = os.environ.get("REPORT_EMAIL_TO", "") or "ghassanelgendyy@gmail.com,ahmedwagdymohy@gmail.com"
+          to_addrs = [addr.strip() for addr in raw_to.split(",") if addr.strip()]
           from_addr = os.environ.get("REPORT_EMAIL_FROM", "") or "sandbox@ghassan.online"
 
           if not api_key:
@@ -382,7 +383,7 @@ jobs:
 
           payload = json.dumps({
               "from": from_addr,
-              "to":   [to_addr],
+              "to":   to_addrs,
               "subject": subject,
               "html": html,
           }).encode()
@@ -398,7 +399,7 @@ jobs:
           )
           try:
               with urllib.request.urlopen(req) as resp:
-                  print(f"Resend: {resp.status} — email queued to {to_addr}")
+                  print(f"Resend: {resp.status} — email queued to {to_addrs}")
           except urllib.error.HTTPError as e:
               print(f"Resend error {e.code}: {e.read().decode()}")
           EOF

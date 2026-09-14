@@ -150,16 +150,21 @@ def run(model: str = typer.Option(..., help="Model id, e.g. deepseek-v4-pro-free
         provider: str = typer.Option("bynara", help="bynara | dahl | groq"),
         scenario: list[str] = typer.Option([], help="Scenario id (repeatable)"),
         all_scenarios: bool = typer.Option(False, "--all", help="Run every scenario"),
-        threshold: float = typer.Option(None, help="Gate threshold (default 80)")) -> None:
+        threshold: float = typer.Option(None, help="Gate threshold (default 80)"),
+        format: str = typer.Option("text", "--format", "-f", help="Output format: text | json")) -> None:
     """Run the siege. Exits non-zero if the gate fails (FR-11.1)."""
     ids = [] if all_scenarios else list(scenario)
     req = RunRequest(model=model, provider=provider, scenario_ids=ids,
                      threshold=threshold if threshold is not None else settings.siege_threshold)
     run_id = new_run_id(model)
     channel = bus.create(run_id)
-    console.print(f"[dim]run {run_id} — streaming to runs/{run_id}/events.jsonl[/dim]")
-    report = execute_run(req, channel)
-    _print_report(report)
+    if format == "json":
+        report = execute_run(req, channel)
+        print(report.model_dump_json(indent=2))
+    else:
+        console.print(f"[dim]run {run_id} — streaming to runs/{run_id}/events.jsonl[/dim]")
+        report = execute_run(req, channel)
+        _print_report(report)
     raise typer.Exit(0 if report.gate == "PASS" else 1)
 
 

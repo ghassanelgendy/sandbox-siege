@@ -57,9 +57,61 @@ def generate_trap(req: GenerateTrapRequest) -> ScenarioInfo:
             prompt=req.prompt,
             provider=req.provider,
             model=req.model,
+            terraform_yaml=req.terraform_yaml,
         )
     except Exception as exc:
         raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.delete("/api/scenarios/{scenario_id}")
+def delete_custom_scenario(scenario_id: str) -> dict:
+    from .config import SCENARIOS_DIR
+    import re
+    # Look in custom scenarios directory
+    custom_dir = SCENARIOS_DIR / "custom"
+    if not custom_dir.is_dir():
+        raise HTTPException(status_code=404, detail="Custom scenarios directory not found")
+
+    target_id = scenario_id.lower().replace("_", "-")
+    found_file = None
+    for p in custom_dir.glob("*.yaml"):
+        # Match either filename stem or internal id
+        import yaml
+        try:
+            doc = yaml.safe_load(p.read_text(encoding="utf-8"))
+            if doc.get("id", "").lower() == scenario_id.lower() or p.stem.lower() == target_id:
+                found_file = p
+                break
+        except Exception:
+            continue
+
+    if not found_file:
+        raise HTTPException(status_code=404, detail=f"Custom scenario {scenario_id!r} not found or is a built-in benchmark scenario")
+
+    found_file.unlink()
+    return {"ok": True, "deleted": scenario_id}
+
+
+@app.get("/api/cves")
+def list_catalog_cves() -> list[dict]:
+    """Returns curated CVEs mapped to traps with CVSS score, vector, CWE, and ATLAS mappings."""
+    from .cve import cve_resolver
+    return [{"trap_id": k, **v} for k, v in cve_resolver._catalog.items()]
+
+
+@app.get("/api/cves/{cve_id}")
+def get_cve_details(cve_id: str) -> dict:
+    """Resolves live CVE metadata via local catalog, cache, or open vulnerability feeds (OSV/NVD)."""
+    from .cve import cve_resolver
+    meta = cve_resolver.resolve_for_cve_id(cve_id)
+    return {
+        "cve_id": meta.cve_id,
+        "cvss_score": meta.cvss_score,
+        "cvss_vector": meta.cvss_vector,
+        "cwe_id": meta.cwe_id,
+        "atlas_id": meta.atlas_id,
+        "summary": meta.summary,
+    }
 
 
 @app.get("/deck.html")

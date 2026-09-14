@@ -25,4 +25,7 @@ runs/*
 .DS_Store
 .idea/
 .vscode/
-/localstack
+# Environment secrets
+.env
+.env.*
+!.env.example

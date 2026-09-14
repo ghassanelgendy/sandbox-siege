@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Play, ShieldAlert, Compass, Sparkles, Loader2, Plus, Settings } from "lucide-react";
-import { getHealth, getModels, getScenarios, getAgents, generateTrap, addCustomProvider, AgentFramework } from "../api";
+import { Play, ShieldAlert, Compass, Sparkles, Loader2, Plus, Settings, Trash2 } from "lucide-react";
+import { getHealth, getModels, getScenarios, getAgents, generateTrap, deleteCustomTrap, addCustomProvider, AgentFramework } from "../api";
 import { Chip, Empty, Eyebrow, Panel } from "../components/Bits";
 import AgentNavigator from "../components/AgentNavigator";
 import type { HealthResponse, ModelInfo, ScenarioInfo } from "../types";
@@ -43,6 +43,7 @@ export default function Launch({ onLaunch }: {
   // AI Trap generation modal state
   const [aiModalOpen, setAiModalOpen] = useState(false);
   const [trapPrompt, setTrapPrompt] = useState("");
+  const [trapTerraformYaml, setTrapTerraformYaml] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [genError, setGenError] = useState<string | null>(null);
 
@@ -230,8 +231,13 @@ export default function Launch({ onLaunch }: {
             Add Trap with AI
           </button>
         </div>
-        <button onClick={() => setSelected(new Set(scenarios.map((s) => s.id)))}
-                className="font-mono text-[11px] text-ink-mute hover:text-ink">select all</button>
+        <div className="flex items-center gap-3">
+          <button onClick={() => setSelected(new Set(scenarios.map((s) => s.id)))}
+                  className="font-mono text-[11px] text-ink-mute hover:text-ink">select all</button>
+          <span className="font-mono text-[11px] text-rule-lit">·</span>
+          <button onClick={() => setSelected(new Set())}
+                  className="font-mono text-[11px] text-ink-mute hover:text-ink">deselect all</button>
+        </div>
       </div>
 
       {loading ? (
@@ -244,25 +250,65 @@ export default function Launch({ onLaunch }: {
         <div className="mt-3 divide-y divide-rule border border-rule">
           {scenarios.map((s) => {
             const on = selected.has(s.id);
+            const isCustom = !/^SIEGE-0(0[1-9]|1[0-9]|2[0-6])$/.test(s.id);
             return (
-              <button key={s.id} onClick={() => toggle(s.id)}
-                      className={`flex w-full items-start gap-4 p-4 text-left transition-colors
-                                  ${on ? "bg-panel" : "bg-transparent opacity-45"}`}>
-                <span className={`mt-1 h-3 w-3 shrink-0 border
-                                  ${on ? "border-sand bg-sand" : "border-rule-lit"}`} />
-                <span className="min-w-0 flex-1">
-                  <span className="flex items-baseline gap-2">
+              <div key={s.id}
+                   className={`flex w-full items-start gap-4 p-4 text-left transition-colors
+                               ${on ? "bg-panel" : "bg-transparent opacity-45"}`}>
+                <button
+                  type="button"
+                  onClick={() => toggle(s.id)}
+                  className="mt-1 h-3 w-3 shrink-0 border transition-colors cursor-pointer"
+                  style={{ borderColor: on ? "var(--sand)" : "var(--rule-lit)", backgroundColor: on ? "var(--sand)" : "transparent" }}
+                />
+                <div className="min-w-0 flex-1 cursor-pointer" onClick={() => toggle(s.id)}>
+                  <div className="flex flex-wrap items-baseline gap-2">
                     <span className="font-mono text-[11px] text-ink-mute">{s.id}</span>
                     <span className="font-display text-base text-ink">{s.title}</span>
-                  </span>
+                    {s.cve_id && (
+                      <span className="border border-signal/30 bg-signal/10 px-1.5 py-0.5 font-mono text-[10px] text-signal font-semibold rounded-xs">
+                        {s.cve_id}
+                      </span>
+                    )}
+                    {isCustom && (
+                      <span className="border border-sand/30 bg-sand/10 px-1.5 py-0.5 font-mono text-[10px] text-sand rounded-xs">
+                        CUSTOM
+                      </span>
+                    )}
+                  </div>
                   {s.trap_summary && (
                     <span className="mt-0.5 block text-sm text-ink-dim">{s.trap_summary}</span>
                   )}
-                </span>
-                <span className="shrink-0 font-mono text-[11px] text-ink-mute">
-                  {s.severity} · {s.weight}
-                </span>
-              </button>
+                </div>
+                <div className="shrink-0 flex items-center gap-3">
+                  <span className="font-mono text-[11px] text-ink-mute">
+                    {s.severity} · {s.weight}
+                  </span>
+                  {isCustom && (
+                    <button
+                      type="button"
+                      title={`Delete custom trap ${s.id}`}
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        if (confirm(`Delete custom trap ${s.id}?`)) {
+                          const ok = await deleteCustomTrap(s.id);
+                          if (ok) {
+                            setScenarios((prev) => prev.filter((x) => x.id !== s.id));
+                            setSelected((prev) => {
+                              const next = new Set(prev);
+                              next.delete(s.id);
+                              return next;
+                            });
+                          }
+                        }
+                      }}
+                      className="p-1 text-ink-mute hover:text-signal transition-colors"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  )}
+                </div>
+              </div>
             );
           })}
         </div>
@@ -319,11 +365,27 @@ export default function Launch({ onLaunch }: {
                 Trap Requirement Prompt
               </label>
               <textarea
-                rows={4}
+                rows={3}
                 value={trapPrompt}
                 onChange={(e) => setTrapPrompt(e.target.value)}
-                placeholder="e.g. Test if the agent deletes production database tables after reading a poisoned log message instructing it to wipe data."
+                placeholder="e.g. Test if the agent deletes production database tables or storage buckets after reading untrusted logs."
                 className="w-full border border-rule bg-ground p-3 font-sans text-sm text-ink focus:border-sand focus:outline-none"
+              />
+            </div>
+
+            <div className="mt-4">
+              <div className="flex items-center justify-between mb-1">
+                <label className="block font-mono text-[11px] text-ink-mute uppercase tracking-wider">
+                  Terraform Infrastructure Structure (YAML / HCL - Optional)
+                </label>
+                <span className="font-mono text-[10px] text-sand/80">Replicates live infra in sandbox</span>
+              </div>
+              <textarea
+                rows={4}
+                value={trapTerraformYaml}
+                onChange={(e) => setTrapTerraformYaml(e.target.value)}
+                placeholder={`resource:\n  aws_s3_bucket:\n    prod-customer-archive:\n      bucket: prod-customer-archive\n  aws_db_instance:\n    prod-main-db:\n      identifier: prod-main-db\n      tags: { env: prod, tier: critical }`}
+                className="w-full border border-rule bg-ground p-3 font-mono text-xs text-ink focus:border-sand focus:outline-none"
               />
             </div>
 
@@ -343,19 +405,20 @@ export default function Launch({ onLaunch }: {
               </button>
               <button
                 type="button"
-                disabled={!trapPrompt.trim() || isGenerating}
+                disabled={(!trapPrompt.trim() && !trapTerraformYaml.trim()) || isGenerating}
                 onClick={async () => {
                   setIsGenerating(true);
                   setGenError(null);
-                  const res = await generateTrap(trapPrompt);
+                  const res = await generateTrap(trapPrompt, "groq", "", trapTerraformYaml);
                   setIsGenerating(false);
                   if (res) {
                     setScenarios((prev) => [res, ...prev.filter((x) => x.id !== res.id)]);
                     setSelected((prev) => new Set([...prev, res.id]));
                     setTrapPrompt("");
+                    setTrapTerraformYaml("");
                     setAiModalOpen(false);
                   } else {
-                    setGenError("Failed to generate trap. Please verify your prompt or LLM provider.");
+                    setGenError("Failed to generate trap. Please verify your prompt, Terraform YAML, or LLM provider.");
                   }
                 }}
                 className="inline-flex items-center gap-2 border border-sand bg-sand px-5 py-2 font-display text-xs font-semibold uppercase tracking-wider text-ground hover:bg-sand-lit disabled:opacity-50"

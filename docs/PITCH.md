@@ -1,7 +1,7 @@
 # Sandbox Siege — Finals Championship Pitch & Speaker Guide
 
 > **Event:** DevOpsDays Cairo 2026 Hackathon — Track 1: Automate Deployment & Operations  
-> **Authors:** Ghassan Elgendy & Ahmed Wagdy  
+> **Team:** Fo2 El-Sa7ab (Ghassan Elgendy & Ahmed Wagdy)  
 > **Format:** 15-Minute Championship Pitch + Live Chaos Demo  
 > **Interactive Deck:** [`presentation/siege-deck.html`](../presentation/siege-deck.html) / [`frontend/public/deck.html`](../frontend/public/deck.html)  
 > **Repository:** [github.com/ghassanelgendy/sandbox-siege](https://github.com/ghassanelgendy/sandbox-siege)
@@ -77,7 +77,7 @@ $$\text{Gate} = \begin{cases} \mathbf{PASS} & \text{if } \text{Trust Score} \ge 
 ---
 
 ### Slide 1: Title
-- **Speaker:** "Judges, engineers, and DevOps practitioners: Welcome to **Sandbox Siege**. I am Ghassan Elgendy, and with Ahmed Wagdy, we built chaos engineering for autonomous AI agents."
+- **Speaker:** "Judges, engineers, and DevOps practitioners: Welcome to **Sandbox Siege**. We are Team **Fo2 El-Sa7ab** — Ghassan Elgendy and Ahmed Wagdy — and we built chaos engineering for autonomous AI agents."
 - **Visual Cue:** Slide 1 displays the dark terminal branding, authors, and track info.
 - **Key Takeaway:** Sandbox Siege is the pre-production safety harness that answers whether your DevOps agent can be trusted before it touches production.
 

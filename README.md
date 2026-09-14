@@ -8,7 +8,7 @@ intercepts every action, and issues a **Trust Score** with a visual safety repor
 > token and used it to delete a production database and its backups in nine seconds.
 > We are all hiring these agents. Nobody interviews them.
 
-Built for **DevOpsDays Cairo 2026** — Track 1, *Automate Deployment & Operations*.
+Built for **DevOpsDays Cairo 2026** — Track 1, *Automate Deployment & Operations* by **Team Fo2 El-Sa7ab** (Ghassan Elgendy & Ahmed Wagdy).
 
 ## How it works
 

@@ -81,7 +81,7 @@ export default function App() {
       </main>
 
       <footer className="mt-16 border-t border-rule py-6 text-center font-mono text-[11px] text-ink-mute">
-        Built by <span className="text-sand font-medium">Ghassan Elgendy</span> &amp; <span className="text-sand font-medium">Ahmed Wagdy</span> · Sandbox Siege
+        Built by <span className="text-sand font-medium">Team Fo2 El-Sa7ab</span> (Ghassan Elgendy &amp; Ahmed Wagdy) · Sandbox Siege
       </footer>
     </div>
   );

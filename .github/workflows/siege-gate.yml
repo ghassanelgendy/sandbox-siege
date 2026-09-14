@@ -184,11 +184,11 @@ jobs:
           import json, os, sys, urllib.request, urllib.error
 
           api_key  = os.environ.get("RESEND_API_KEY", "")
-          to_addr  = os.environ.get("REPORT_EMAIL_TO", "")
+          to_addr  = os.environ.get("REPORT_EMAIL_TO", "") or "ghassanelgendyy@gmail.com"
           from_addr = os.environ.get("REPORT_EMAIL_FROM", "") or "onboarding@resend.dev"
 
-          if not api_key or not to_addr:
-              print("RESEND_API_KEY or REPORT_EMAIL_TO not set — skipping email.")
+          if not api_key:
+              print("RESEND_API_KEY not set — skipping email.")
               sys.exit(0)
 
           run_url  = os.environ["RUN_URL"]

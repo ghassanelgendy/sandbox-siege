@@ -35,6 +35,7 @@ services:
       - BYNARA_API_KEY=${BYNARA_API_KEY}
       - DAHL_API_KEY=${DAHL_API_KEY}
       - GROQ_API_KEY=${GROQ_API_KEY}
+    restart: unless-stopped
     depends_on:
       localstack:
         condition: service_healthy

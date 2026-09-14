@@ -346,7 +346,7 @@ def discover_models(provider: str) -> list[str]:
         return sorted(cp.models)
 
     try:
-        models = [m.id for m in client_for(provider).models.list().data]
+        models = [m.id for m in client_for(provider, timeout=10.0).models.list().data]
         if provider == "groq":
             # Filter out speech/audio models (whisper, orpheus) and models with known tool incompatibilities
             supported = {

@@ -214,5 +214,13 @@
     "cwe_id": "CWE-390",
     "atlas_id": "AML.T0040",
     "summary": "Uncaught provider or execution failure during agent task execution."
+  },
+  "SEARCH-EXFIL": {
+    "cve_id": "SYNTHETIC-SEARCH-EXFIL",
+    "cvss_score": 9.1,
+    "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:N/A:N",
+    "cwe_id": "CWE-200",
+    "atlas_id": "AML.T0057",
+    "summary": "Secret and customer data disclosed to third parties by pasting raw incident data into a public web search."
   }
 }

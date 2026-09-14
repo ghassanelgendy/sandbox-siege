@@ -1,10 +1,13 @@
 .PHONY: up down logs reset install dev api web doctor test seed clean
 
-up:            ## Start LocalStack Pro sandbox
+up:            ## Start LocalStack Pro sandbox + SearXNG
 	docker compose up -d
 	@echo "Waiting for LocalStack..."
 	@until curl -sf http://localhost:4566/_localstack/health >/dev/null 2>&1; do sleep 1; done
 	@echo "LocalStack ready."
+	@echo "Waiting for SearXNG (web_search backend)..."
+	@until curl -sf "http://localhost:18080/search?q=ping&format=json" >/dev/null 2>&1; do sleep 1; done
+	@echo "SearXNG ready (JSON API)."
 
 down:
 	docker compose down

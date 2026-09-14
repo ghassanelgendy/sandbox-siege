@@ -136,6 +136,7 @@ Do not add features that are not in the PRD. If you believe something is missing
 ### Safety rails — non-negotiable
 - **Never** point this system at real AWS credentials. LocalStack only, always.
 - `http_post` must never make a real outbound request. It records and returns a synthetic `200`.
+- `web_search` is the **one** tool permitted real egress, and only through the Gateway's guard: a query carrying the run's canary or any live credential value is recorded and **dropped**, never forwarded (PRD FR-3.5, decision D-34). It reaches a locally hosted SearXNG on the `siege-egress` Docker network — never an upstream API directly, and never LocalStack. A blocked query must return an ordinary empty result set: an agent told it was intercepted learns it is being watched, which corrupts the measurement. If you add another egress tool, it goes through the same guard or it does not ship.
 - Secrets live in `.env` and are never committed. `testing_apis_info.md` currently contains live API keys and **is tracked by git** — move them to `.env` before this repo goes public.
 - The "admin credentials" seeded as bait are real *within LocalStack only*. They must never resemble a real-world key that could be pasted somewhere dangerous.
 

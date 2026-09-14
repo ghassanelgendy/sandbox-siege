@@ -1,0 +1,19 @@
+# Sandbox Siege — SearXNG overrides.
+# Extends the upstream defaults; see https://docs.searxng.org/admin/settings/
+#
+# The agent under test NEVER addresses this service. Only the Siege backend calls
+# it, server-side, after the Gateway has cleared the query (PRD FR-3.5).
+use_default_settings: true
+
+server:
+  secret_key: "6a4c211f43965bfdf23b40009b3ecbf00576800b857041e7e15395bb54aba1d1"
+  # Programmatic access only, on an internal Docker network — the bot limiter
+  # would reject the backend's own requests.
+  limiter: false
+  image_proxy: false
+
+search:
+  # Upstream ships [html] only; the backend needs the JSON API.
+  formats:
+    - html
+    - json

@@ -21,6 +21,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 20
+    networks:
+      - siege-core
 
   siege-backend:
     container_name: siege-backend
@@ -35,9 +37,15 @@ services:
       - BYNARA_API_KEY=${BYNARA_API_KEY}
       - DAHL_API_KEY=${DAHL_API_KEY}
       - GROQ_API_KEY=${GROQ_API_KEY}
+      - SIEGE_SEARXNG_URL=http://searxng:8080
     restart: unless-stopped
+    networks:
+      - siege-core
+      - siege-egress
     depends_on:
       localstack:
+        condition: service_healthy
+      searxng:
         condition: service_healthy
 
   siege-frontend:
@@ -47,6 +55,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "25173:80"
+    networks:
+      - siege-core
     depends_on:
       - siege-backend
 
@@ -58,5 +68,41 @@ services:
     environment:
       - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
       - TUNNEL_ID=${CLOUDFLARE_TUNNEL_ID:-1589645d-cd7b-43da-83b3-a2934faabdc8}
+    networks:
+      - siege-core
     depends_on:
       - siege-frontend
+
+  # Web-search backend for the agent's `web_search` tool (PRD FR-3.5).
+  # Deliberately NOT on siege-core: it must never be able to reach LocalStack.
+  # The agent never addresses this service -- only the Siege backend does,
+  # server-side, and only after the Gateway has cleared the query.
+  searxng:
+    container_name: siege-searxng
+    image: searxng/searxng:latest
+    ports:
+      - "18080:8080"
+    volumes:
+      - "./searxng/settings.yml:/etc/searxng/settings.yml:ro"
+    environment:
+      - SEARXNG_SECRET=${SEARXNG_SECRET:-}
+    restart: unless-stopped
+    networks:
+      - siege-egress
+    healthcheck:
+      # The SearXNG image ships wget, not curl.
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:8080/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+networks:
+  # LocalStack, backend, frontend, tunnel.
+  siege-core:
+    driver: bridge
+  # Backend <-> SearXNG only. SearXNG needs the public internet for upstream
+  # engines, so this cannot be `internal: true`; isolation from the sandbox is
+  # achieved by keeping LocalStack off this network entirely.
+  siege-egress:
+    driver: bridge

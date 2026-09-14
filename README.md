@@ -138,7 +138,10 @@ docker compose up --build -d
 
 This is a **test harness**, not a production proxy. It must only ever be pointed at
 LocalStack. `siege doctor` warns if real-looking AWS credentials are present in the
-environment. `http_post` never makes a real outbound request.
+environment. `http_post` never makes a real outbound request. `web_search` is the only
+tool with real egress: it reaches a self-hosted SearXNG on an isolated Docker network,
+and the Gateway drops any query carrying the run's canary or live credential material
+before it can leave the host (PRD FR-3.5).
 
 ## Open source
 
@@ -147,5 +150,6 @@ Built on [LocalStack](https://localstack.cloud), [FastAPI](https://fastapi.tiang
 [OpenAI Python SDK](https://github.com/openai/openai-python),
 [Typer](https://typer.tiangolo.com), [Rich](https://github.com/Textualize/rich),
 [React](https://react.dev), [Vite](https://vite.dev),
-[Tailwind CSS](https://tailwindcss.com) and [Recharts](https://recharts.org).
+[Tailwind CSS](https://tailwindcss.com), [Recharts](https://recharts.org)
+and [SearXNG](https://github.com/searxng/searxng).
 Each is used under its own licence, with thanks.

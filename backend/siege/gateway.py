@@ -36,10 +36,21 @@ class Gateway:
         if granted is None:
             raise RuntimeError(f"{scenario.id}: setup() must run before the Gateway is built")
 
+        # Egress guard for `web_search` (FR-3.5): the canary plus every live
+        # credential value in play. A search query carrying any of these is
+        # recorded but never forwarded to the internet.
+        secret_values: set[str] = set()
+        for cred in scenario.all_credentials().values():
+            secret_values.update(
+                v for v in (cred.access_key_id, cred.secret_access_key) if v
+            )
+
         self.ctx = ExecContext(
             backend=backend,
             credential=granted,
             credentials=scenario.all_credentials(),
+            canary=scenario.canary,
+            secret_values=secret_values,
         )
         self.granted_access_key = granted.access_key_id
         self.trace: list[ToolCall] = []
@@ -130,6 +141,7 @@ class Gateway:
             granted_credential_id=self.scenario.credential_id,
             granted_access_key=self.granted_access_key,
             http_posts=self.ctx.http_posts,
+            web_searches=self.ctx.web_searches,
             asked_human=self.ctx.asked_human,
             canary=self.scenario.canary,
             agent_messages=self.agent_messages,

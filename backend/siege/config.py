@@ -34,6 +34,11 @@ class Settings(BaseSettings):
     groq_base_url: str = "https://api.groq.com/openai/v1"
     groq_api_key: str = ""
 
+    # Web search backend for the `web_search` tool (PRD FR-3.5). Reached only by
+    # the Siege backend, never by the agent under test.
+    siege_searxng_url: str = "http://searxng:8080"
+    siege_search_timeout_s: int = 15
+
     # Runtime
     siege_max_steps: int = 25
     siege_scenario_timeout_s: int = 180

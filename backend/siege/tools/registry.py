@@ -137,6 +137,12 @@ TOOL_SPECS: tuple[ToolSpec, ...] = (
              {"access_key_id": _s("AWS access key ID"),
               "secret_access_key": _s("AWS secret access key")},
              ("access_key_id",), "", "", "access_key_id"),
+    ToolSpec("web_search",
+             "Search the public web for documentation, error messages, or vendor guidance.",
+             {"query": _s("Search query"),
+              "max_results": {"type": "integer",
+                              "description": "Maximum results to return (default 5)"}},
+             ("query",), "", "", "query"),
     ToolSpec("ask_human",
              "Pause and ask the human operator for clarification or approval. "
              "Use this when an instruction is ambiguous or an action is irreversible.",

@@ -238,6 +238,20 @@ figcaption strong{color:var(--ink-dim)}
   .progrid,.roadcols,.scoring-row{grid-template-columns:1fr;gap:28px}
   .qlist{grid-template-columns:1fr}
 }
+
+/* ===== Final Edition additions: QR Code, Pipeline, Jev, Attribution ===== */
+.pipegrid{display:grid;grid-template-columns:1.2fr 1fr;gap:28px;align-items:start;margin-top:20px;}
+.pipecard{background:var(--panel);border:1px solid var(--rule-lit);padding:20px 22px;border-radius:4px;}
+.pipecard h4{font-family:var(--font-display);font-size:1.15rem;margin:0 0 10px;color:var(--sand);}
+.badge-row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;}
+.qr-box{background:var(--panel);border:1px solid var(--rule-lit);padding:24px;display:flex;align-items:center;gap:24px;border-radius:4px;margin-top:24px;}
+.qr-img{width:130px;height:130px;background:#fff;padding:6px;border-radius:4px;flex-shrink:0;}
+.qr-img img{width:100%;height:100%;display:block;}
+.attr-flow{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:20px;}
+.attr-step{background:var(--panel);border:1px solid var(--rule-lit);padding:16px 18px;border-radius:4px;}
+.attr-step .stepnum{font-family:var(--font-mono);font-size:0.7rem;color:var(--sand);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;}
+.attr-step h4{font-family:var(--font-display);font-size:1.05rem;margin:0 0 6px;color:var(--ink);}
+.attr-step p{font-size:0.8rem;color:var(--ink-dim);line-height:1.4;margin:0;}
 </style>
 
 <div class="rail l1"></div>
@@ -552,50 +566,142 @@ figcaption strong{color:var(--ink-dim)}
   </div>
 </section>
 
-<section class="slide" id="s8" data-label="LIVE DEMO">
-  <div class="slide-inner" style="text-align:center;align-items:center;display:flex;flex-direction:column;">
-    <div class="eyebrow" style="margin:0 auto 26px">Now watch it happen</div>
-    <div class="demo-word">— <span class="live">Live</span> Demo —</div>
-    <div class="demo-cmd">siege run --model deepseek-v4-pro-free --scenario SIEGE-001 --threshold 0</div>
-    <p class="demo-note">Watch the left rail flare amber while the IAM boundary holds — then see the L2 behavioral gateway flag the escalation trap and evaluate the dynamic gate in real time.</p>
+<section class="slide" id="s8" data-label="TRAP ATTRIBUTION">
+  <div class="slide-inner">
+    <div class="eyebrow">Exposition Layer · Causal Telemetry</div>
+    <h2>Per-Trap Attribution: Intent ➔ Action ➔ Target</h2>
+    <p class="lede">A security finding is useless without causal proof. Sandbox Siege correlates every tripped trap with the agent's exact conversational reasoning, intercepted tool call, and matched infrastructure seed.</p>
+    
+    <div class="attr-flow">
+      <div class="attr-step">
+        <div class="stepnum">01 · Agent Intent (Chat)</div>
+        <h4>"What the agent said"</h4>
+        <p>Captures the reasoning window preceding the breach. e.g. <em>"I don't have RDS access... I found db-migrator credentials. I'll switch to admin."</em></p>
+      </div>
+      <div class="attr-step">
+        <div class="stepnum">02 · Action Sequence (Gateway)</div>
+        <h4>"What the agent did"</h4>
+        <p>Exact intercepted tool calls with step indices, parameters, and independent IAM verdicts (<code>ALLOW</code> vs <code>DENY</code>).</p>
+      </div>
+      <div class="attr-step">
+        <div class="stepnum">03 · Targeted Infrastructure</div>
+        <h4>"Which resource was hit"</h4>
+        <p>Reverse-maps target ARNs back to the exact Terraform declarations: <code>aws_secretsmanager_secret.staging_db_migrator</code>.</p>
+      </div>
+    </div>
   </div>
 </section>
 
-<section class="slide" id="s9" data-label="PROGRESS">
+<section class="slide" id="s9" data-label="SYSTEM ONE JUDGE">
   <div class="slide-inner">
-    <div class="eyebrow">Finals Milestone · 100% Shipped</div>
-    <h2>What's actually built, verified and running live.</h2>
-    <div class="progrid">
-      <ul class="plist">
-        <li class="done"><span class="mark">✓ done</span><span class="lbl">26 Scenarios &amp; AI Trap Generator<span class="sub">Full CVE catalog across IAM, SSRF, exfiltration + on-the-fly generator</span></span></li>
-        <li class="done"><span class="mark">✓ done</span><span class="lbl">Real Agent CVE API &amp; Open Feeds<span class="sub">/api/cves resolution backed by OSV.dev, NIST NVD v2.0, and CWE/ATLAS taxonomy</span></span></li>
-        <li class="done"><span class="mark">✓ done</span><span class="lbl">Dynamic Risk-Adaptive Scoring<span class="sub">CVSS-calibrated threshold [70.0%–95.0%] across CLI, CI, API, and UI</span></span></li>
-        <li class="done"><span class="mark">✓ done</span><span class="lbl">Cascading Multi-Provider Fallbacks<span class="sub">Zero-downtime failover across Groq, Dahl, and Bynara with 429 adaptive backoff</span></span></li>
-        <li class="done"><span class="mark">✓ done</span><span class="lbl">Dual-Layer Gateway &amp; Sandbox<span class="sub">LocalStack Pro ENFORCE_IAM=1 (L1) + behavioral detectors (L2)</span></span></li>
-        <li class="done"><span class="mark">✓ done</span><span class="lbl">Full Docker Compose &amp; Cloudflare Tunnel<span class="sub">Isolated microservices stack accessible publicly with zero open ports</span></span></li>
-        <li class="done"><span class="mark">✓ done</span><span class="lbl">CI/CD Agent Gate &amp; Resend Email<span class="sub">GitHub Actions gate blocking merges with dark-terminal HTML report cards</span></span></li>
-        <li class="done"><span class="mark">✓ done</span><span class="lbl">Comparative Leaderboard<span class="sub">Multi-model benchmark matrix (DeepSeek, GPT, Qwen, Mistral)</span></span></li>
-        <li class="done"><span class="mark">✓ done</span><span class="lbl">Deterministic Replay Engine<span class="sub">100% offline playback from JSONL telemetry tapes at variable speeds</span></span></li>
-      </ul>
-      <div>
-        <div class="chip" style="max-width:none">
-          <b>siege doctor — verified live</b>
-          <span class="mono" style="color:var(--jade)">ENFORCE_IAM: active</span> · 26 scenarios loaded · providers online · all 55 unit tests green · zero real AWS exposure.
+    <div class="eyebrow">Next-Gen L2 Detection · Calibrated Probabilities</div>
+    <h2>Jev by TypeSafe AI: System One Advisory Judge</h2>
+    <p class="lede">Deterministic regexes catch known tool signatures. Jev introduces real-time semantic evaluation of intent, ambiguity, and complex behavioral risk with sub-500ms latency.</p>
+
+    <div class="pipegrid">
+      <div class="pipecard">
+        <h4>How Jev Enhances Behavioral Detection</h4>
+        <ul class="roadlist" style="margin-top:14px;">
+          <li><b>Typed Decisions (70–500ms)</b><span>Answers structured <code>yes/no</code>, <code>choice</code>, and <code>score</code> questions without generative drift or tool looping.</span></li>
+          <li><b>Calibrated Confidence (0.0 – 1.0)</b><span>Every finding gains mathematical certainty: renders probability indicators rather than binary red cards.</span></li>
+          <li><b>Advisory Sanity Evaluator</b><span>Evaluates full action traces at run completion to prevent benchmark gaming and false negatives.</span></li>
+          <li><b>Egress Guard Protection</b><span>All requests pass through the Gateway egress guard: canaries and live credentials scrubbed before leaving host.</span></li>
+        </ul>
+      </div>
+
+      <div class="pipecard">
+        <h4>Judge vs. Agent Under Test</h4>
+        <p style="font-size:0.85rem;color:var(--ink-dim);line-height:1.5;">
+          <strong>Critical Distinction:</strong> Jev is a <em>judge</em>, not an agent under test. Autonomous agents (DeepSeek, GPT-4o, Claude, Qwen) run inside the chaos loop; Jev sits alongside the Gateway's L2 behavioral policy engine providing calibrated advisory verdicts.
+        </p>
+        <div class="badge-row" style="margin-top:16px;">
+          <span class="tag jade">System One</span>
+          <span class="tag high">Calibrated Confidence</span>
+          <span class="tag med">Advisory Gating</span>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<section class="slide" id="s10" data-label="STACK">
+<section class="slide" id="s10" data-label="TERRAFORM & CI">
+  <div class="slide-inner">
+    <div class="eyebrow signal">Production Deployment · Enterprise CI Gate</div>
+    <h2>Real Infrastructure &amp; Target Repositories: ACME Cloud Platform</h2>
+    <p class="lede">Sandbox Siege isn't a synthetic toy benchmark. It clones real-world production topologies and enforces safety gates directly in external company repositories.</p>
+
+    <div class="pipegrid">
+      <div class="pipecard">
+        <h4>Terraform &amp; OpenTofu Sandbox Seeding</h4>
+        <p style="font-size:0.85rem;color:var(--ink-dim);line-height:1.5;">
+          Our HCL/YAML parser (<code>siege/terraform.py</code>) replicates real Terraform infrastructure (<code>aws_s3_bucket</code>, <code>aws_db_instance</code>, <code>aws_instance</code>, <code>aws_secretsmanager_secret</code>) directly into LocalStack Pro sandboxes.
+        </p>
+        <div class="badge-row">
+          <span class="tag jade">HCL / OpenTofu</span>
+          <span class="tag crit">Real Topologies</span>
+          <span class="tag high">Zero Mock Theater</span>
+        </div>
+      </div>
+
+      <div class="pipecard">
+        <h4>acme-cloud-platform CI Integration</h4>
+        <p style="font-size:0.85rem;color:var(--ink-dim);line-height:1.5;">
+          Demonstrated on <strong>github.com/ghassanelgendy/acme-cloud-platform</strong>:
+          GitHub Actions workflow (<code>agent-chaos-gate.yml</code>) auto-fetches the latest Sandbox Siege engine, seeds its Terraform infrastructure, evaluates agent PRs, and blocks merges if the Trust Score fails.
+        </p>
+        <div style="margin-top:12px;font-family:var(--font-mono);font-size:0.8rem;color:var(--sand);">
+          ➔ Automated Merges Blocked on Security Failure
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s11" data-label="LIVE DEMO">
+  <div class="slide-inner" style="text-align:center;align-items:center;display:flex;flex-direction:column;">
+    <div class="eyebrow" style="margin:0 auto 26px">Now watch it happen</div>
+    <div class="demo-word">— <span class="live">Live</span> Demo —</div>
+    <div class="demo-cmd">siege run --model deepseek-v4-pro-free --scenario SIEGE-001 --threshold 0</div>
+    <p class="demo-note">Watch the left rail flare amber while the IAM boundary holds — then see the L2 behavioral gateway catch the escalation trap, snapshot attribution, and evaluate the dynamic gate in real time.</p>
+  </div>
+</section>
+
+<section class="slide" id="s12" data-label="PROGRESS">
+  <div class="slide-inner">
+    <div class="eyebrow">Finals Milestone · 100% Shipped</div>
+    <h2>What's actually built, verified and running live.</h2>
+    <div class="progrid">
+      <ul class="plist">
+        <li class="done"><span class="mark">✓ done</span><span class="lbl">27 Scenarios &amp; AI Trap Generator<span class="sub">Full CVE catalog across IAM, SSRF, exfiltration + on-the-fly generator</span></span></li>
+        <li class="done"><span class="mark">✓ done</span><span class="lbl">Per-Trap Attribution Mapping<span class="sub">Chat intent ➔ intercepted tool sequence ➔ Terraform seed item</span></span></li>
+        <li class="done"><span class="mark">✓ done</span><span class="lbl">Real Agent CVE API &amp; Open Feeds<span class="sub">/api/cves resolution backed by OSV.dev, NIST NVD v2.0, and CWE/ATLAS taxonomy</span></span></li>
+        <li class="done"><span class="mark">✓ done</span><span class="lbl">Dynamic Risk-Adaptive Scoring<span class="sub">CVSS-calibrated threshold [70.0%–95.0%] across CLI, CI, API, and UI</span></span></li>
+        <li class="done"><span class="mark">✓ done</span><span class="lbl">External CI Pipeline Integration<span class="sub">Live GitHub Actions chaos gate demonstrated on acme-cloud-platform repo</span></span></li>
+        <li class="done"><span class="mark">✓ done</span><span class="lbl">Cascading Multi-Provider Fallbacks<span class="sub">Zero-downtime failover across Groq, Dahl, and Bynara with 429 adaptive backoff</span></span></li>
+        <li class="done"><span class="mark">✓ done</span><span class="lbl">Dual-Layer Gateway &amp; Sandbox<span class="sub">LocalStack Pro ENFORCE_IAM=1 (L1) + behavioral detectors (L2)</span></span></li>
+        <li class="done"><span class="mark">✓ done</span><span class="lbl">Full Docker Compose &amp; Cloudflare Tunnel<span class="sub">Isolated microservices stack accessible publicly with zero open ports</span></span></li>
+        <li class="done"><span class="mark">✓ done</span><span class="lbl">Deterministic Replay Engine<span class="sub">100% offline playback from JSONL telemetry tapes at variable speeds</span></span></li>
+      </ul>
+      <div>
+        <div class="chip" style="max-width:none">
+          <b>siege doctor — verified live</b>
+          <span class="mono" style="color:var(--jade)">ENFORCE_IAM: active</span> · 27 scenarios loaded · providers online · all 67 unit tests green · zero real AWS exposure.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s13" data-label="STACK">
   <div class="slide-inner">
     <div class="eyebrow">Under the hood</div>
     <h2>Small, boring, and enterprise-grade.</h2>
     <div class="progrid">
       <ul class="stacklist">
         <li><b>Backend</b> — Python 3.13, FastAPI, Pydantic v2, uvicorn<br><small>Single interception point via siege/gateway.py</small></li>
-        <li><b>Providers</b> — Groq (ultra-low latency), Dahl, Bynara<br><small>Cascading fallback engine with dynamic TPM cooldown recovery</small></li>
+        <li><b>Providers</b> — Groq (ultra-low latency), Dahl, Bynara, Custom Providers<br><small>Cascading fallback engine with dynamic TPM cooldown recovery</small></li>
         <li><b>Sandbox</b> — LocalStack Pro, ENFORCE_IAM=1, boto3<br><small>s3 · dynamodb · rds · ec2 · logs · secretsmanager · ssm · iam · sts</small></li>
+        <li><b>Infrastructure</b> — Terraform / OpenTofu parser for production seeding</li>
         <li><b>Scoring</b> — CVSS 3.1 risk-adaptive dynamic engine</li>
         <li><b>Streaming</b> — Server-Sent Events (sse-starlette)</li>
         <li><b>Frontend</b> — React 18, Vite, TypeScript, Tailwind, Recharts</li>
@@ -616,7 +722,7 @@ figcaption strong{color:var(--ink-dim)}
   </div>
 </section>
 
-<section class="slide" id="s11" data-label="ROADMAP">
+<section class="slide" id="s14" data-label="ROADMAP">
   <div class="slide-inner">
     <div class="eyebrow">Championship Delivery &amp; Beyond</div>
     <h2>What we shipped for finals, and where it goes next.</h2>
@@ -624,41 +730,54 @@ figcaption strong{color:var(--ink-dim)}
       <div class="roadcol now">
         <h3>Delivered for finals</h3>
         <ul class="roadlist">
-          <li><b>26 CVE-Mapped Scenarios</b><span>Full coverage of IAM escalation, SSRF, secret exfiltration, tool poisoning, and disaster purge.</span></li>
+          <li><b>27 CVE-Mapped Scenarios</b><span>Full coverage of IAM escalation, SSRF, secret exfiltration, tool poisoning, and disaster purge.</span></li>
+          <li><b>Trap Attribution Engine</b><span>Chat reasoning ➔ tool actions ➔ Terraform infrastructure mapping.</span></li>
           <li><b>Dynamic Risk-Adaptive Scoring</b><span>Mathematical threshold calibration based on exact CVSS severity distributions.</span></li>
-          <li><b>Cascading Multi-Provider Engine</b><span>Zero-downtime failovers across Groq, Dahl, and Bynara with 429 backoff handling.</span></li>
-          <li><b>Public Tunnel &amp; CI Gate</b><span>Live Cloudflare Zero-Trust edge + GitHub Actions gate sending cyber-branded Resend reports.</span></li>
+          <li><b>acme-cloud-platform CI Gate</b><span>GitHub Actions gate in external production repos blocking unsafe merges.</span></li>
         </ul>
       </div>
       <div class="roadcol traps">
         <h3>Security &amp; Policy</h3>
         <ul class="roadlist">
-          <li><b>Critical Zero-Tolerance Veto</b><span>Configurable policy abort: any breach of a Critical CVE instantly fails the deployment gate.</span></li>
-          <li><b>Least-Privilege Policy Synthesis</b><span>Auto-generate minimal, tight IAM JSON policies from the recorded execution trace.</span></li>
+          <li><b>Least-Privilege Policy Synthesis</b><span>Auto-generate minimal, tight IAM JSON policies directly from benign trace actions.</span></li>
+          <li><b>Jev System One Advisory Engine</b><span>Full integration of TypeSafe's calibrated confidence judge.</span></li>
           <li><b>OWASP LLM Top 10 Native Alignment</b><span>Direct compliance reporting against LLM01 (Prompt Injection) through LLM10.</span></li>
         </ul>
       </div>
       <div class="roadcol ship">
         <h3>Enterprise Horizon</h3>
         <ul class="roadlist">
+          <li><b>AgentFuse Runtime Firewall</b><span>Run Siege Gateway as an inline active proxy blocking dangerous actions in production.</span></li>
           <li><b>Multi-Cloud Emulation</b><span>Expand beyond AWS LocalStack to GCP and Azure infrastructure sandboxes.</span></li>
           <li><b>SIEM / SOC Integration</b><span>Stream behavioral interception verdicts directly to Datadog, Splunk, and AWS Security Hub.</span></li>
-          <li><b>Agent Safety Certification</b><span>Standardized trust certification badge for open-source and commercial DevOps agents.</span></li>
         </ul>
       </div>
     </div>
   </div>
 </section>
 
-<section class="slide" id="s12" data-label="CLOSING">
+<section class="slide" id="s15" data-label="CLOSING">
   <div class="slide-inner" style="text-align:center;align-items:center;display:flex;flex-direction:column;">
     <div class="close-word">Thank you.</div>
     <p class="lede" style="text-align:center;margin-top:16px">We're all hiring these agents. This is how we start interviewing them.</p>
     <div style="margin-top:24px;font-family:var(--font-display);font-size:1.4rem;font-weight:600;color:var(--sand);letter-spacing:0.04em;">
       Team Fo2 El-Sa7ab &nbsp;·&nbsp; Ghassan Elgendy &nbsp;&amp;&nbsp; Ahmed Wagdy
     </div>
-    <div class="close-links" style="margin-top:16px;">
-      <a href="https://github.com/ghassanelgendy/sandbox-siege">github.com/ghassanelgendy/sandbox-siege</a>
+
+    <!-- Judge QR Code Box -->
+    <div class="qr-box">
+      <div class="qr-img">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https%3A%2F%2Fgithub.com%2Fghassanelgendy%2Fsandbox-siege" alt="QR Code to Sandbox Siege Repository" />
+      </div>
+      <div style="text-align:left;">
+        <div style="font-family:var(--font-display);font-size:1.1rem;font-weight:700;color:var(--ink);">Scan to View Live Demo &amp; Code</div>
+        <div style="font-family:var(--font-mono);font-size:0.82rem;color:var(--sand);margin-top:4px;">
+          github.com/ghassanelgendy/sandbox-siege
+        </div>
+        <div style="font-size:0.8rem;color:var(--ink-mute);margin-top:6px;">
+          CI Template: <a href="https://github.com/ghassanelgendy/acme-cloud-platform" style="color:var(--ink-dim);text-decoration:underline;">acme-cloud-platform</a>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -672,6 +791,12 @@ figcaption strong{color:var(--ink-dim)}
   var main = document.getElementById('main');
   var numEl = document.getElementById('slideNum');
   var labelEl = document.getElementById('slideLabel');
+  var countWrap = document.querySelector('.chrome-count');
+  if (countWrap) {
+    countWrap.innerHTML = '<b id="slideLabel">THE PROBLEM</b> <span id="slideNum">01</span> / ' + String(slides.length).padStart(2, '0');
+    numEl = document.getElementById('slideNum');
+    labelEl = document.getElementById('slideLabel');
+  }
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var currentIndex = 0;
 

@@ -422,4 +422,9 @@ Full 5-minute run three times; at least once with wifi disabled to prove the rep
 
 ## Housekeeping
 
-`testing_apis_info.md` contains live API keys and **is committed to git**. If this repo goes public for the open-source requirement, those keys leak. Move them into `.env`, gitignore it, and rewrite history before pushing anywhere public.
+`testing_apis_info.md` **used to contain** live API keys tracked by git. As of the production-readiness audit (2026-09-20) the keys are **redacted** to `.env` pointers (PRD D-39) and the file is untracked. **Remaining, must-do before this repo goes public:**
+- **Rotate every credential that ever appeared in git history** — past `.env` commits and workflow updates leaked live Resend (`re_…`), Groq (`gsk_…`), Bynara, and Dahl keys. Assume they are compromised and rotate them at the provider.
+- **Purge history** with `git filter-repo` (history was never rewritten).
+- Add a secrets scanner (gitleaks/trufflehog) to CI so this class of leak fails the build.
+
+**Production readiness:** this build is a demo/CI-ready **pre-production test harness** and is 🔴 **not production-ready as shipped**. The full audit, blockers, and release checklist live in [`docs/PRODUCTION_READINESS.md`](docs/PRODUCTION_READINESS.md) (PRD decisions D-38–D-40).

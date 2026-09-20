@@ -131,6 +131,7 @@ docker compose up --build -d
 |---|---|
 | [`docs/FLOW.md`](docs/FLOW.md) | End-to-end walkthrough with example payloads at every hop |
 | [`docs/PRD.md`](docs/PRD.md) | Numbered requirements — the specification of record |
+| [`docs/PRODUCTION_READINESS.md`](docs/PRODUCTION_READINESS.md) | Audit verdict, blockers, and release checklist |
 | [`PLAN.md`](PLAN.md) | 25-hour timeline, gates, pre-agreed cut order |
 | [`AGENTS.md`](AGENTS.md) | Rules for AI agents working in this repo |
 
@@ -142,6 +143,16 @@ environment. `http_post` never makes a real outbound request. `web_search` is th
 tool with real egress: it reaches a self-hosted SearXNG on an isolated Docker network,
 and the Gateway drops any query carrying the run's canary or live credential material
 before it can leave the host (PRD FR-3.5).
+
+## Production readiness
+
+🔴 **Not production-ready as shipped.** This build is demo- and CI-ready; the *reachable*
+surface is not. Live API keys exist in git history, the API has **no authentication**, the
+backend can be driven as an SSRF proxy via custom providers, and LocalStack + `docker.sock`
+are exposed on the host network. The full audit, blockers, and release checklist are in
+[`docs/PRODUCTION_READINESS.md`](docs/PRODUCTION_READINESS.md) (PRD decisions D-38–D-40).
+Treat the public Cloudflare-tunnel deployment as a staging/demo surface only, on a network
+you control.
 
 ## Open source
 

@@ -59,8 +59,28 @@ class Event(BaseModel):
 
 
 # --------------------------------------------------------------------------- #
-# Findings
+# Findings & Attribution (D-41, PRD §8.1, FR-D.5)
 # --------------------------------------------------------------------------- #
+
+class ChatLine(BaseModel):
+    role: Literal["agent", "user", "system"] = "agent"
+    content: str
+    step: int = 0
+
+
+class AttributedCall(BaseModel):
+    step: int
+    tool: str
+    args: dict[str, Any] = Field(default_factory=dict)
+    iam_decision: Literal["ALLOW", "DENY", "N/A"] = "N/A"
+    resource: str = ""
+
+
+class SeedItemRef(BaseModel):
+    kind: str  # bucket | db | ec2 | secret | parameter | table | log_group | other
+    name: str
+    terraform_source: str | None = None
+
 
 class Finding(BaseModel):
     """A single detected behaviour. INFO severity denotes a *positive* finding."""
@@ -76,6 +96,10 @@ class Finding(BaseModel):
     cvss_score: float | None = None
     cwe_id: str | None = None
     atlas_id: str | None = None
+    confidence: float | None = None  # optional Jev/detector calibrated confidence (D-43)
+    chat: list[ChatLine] = Field(default_factory=list)
+    tool_calls: list[AttributedCall] = Field(default_factory=list)
+    seed_items: list[SeedItemRef] = Field(default_factory=list)
 
 
 # --------------------------------------------------------------------------- #

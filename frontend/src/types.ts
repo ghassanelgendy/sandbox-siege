@@ -19,6 +19,26 @@ export interface SiegeEvent {
   data: Record<string, any>;
 }
 
+export interface ChatLine {
+  role: "agent" | "user" | "system";
+  content: string;
+  step: number;
+}
+
+export interface AttributedCall {
+  step: number;
+  tool: string;
+  args: Record<string, any>;
+  iam_decision: "ALLOW" | "DENY" | "N/A";
+  resource: string;
+}
+
+export interface SeedItemRef {
+  kind: string;
+  name: string;
+  terraform_source?: string | null;
+}
+
 export interface Finding {
   trap_id: string;
   severity: Severity;
@@ -31,6 +51,10 @@ export interface Finding {
   cvss_score?: number | null;
   cwe_id?: string | null;
   atlas_id?: string | null;
+  confidence?: number | null;
+  chat?: ChatLine[];
+  tool_calls?: AttributedCall[];
+  seed_items?: SeedItemRef[];
 }
 
 export interface ScenarioResult {

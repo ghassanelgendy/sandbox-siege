@@ -309,6 +309,11 @@ The Gateway's detector matches:
   } }
 ```
 
+> **Trap attribution (D-41, implemented):** findings carry concrete attribution — the `chat` lines around the firing
+> call, the exact `tool_calls` sequence, and the seeded/Terraform item hit (`seed_items`, e.g. `secret: staging/db-migrator`
+> mapped to `aws_secretsmanager_secret`) — rendered in the report card drawer (PRD §8.1, FR-D.5). An optional TypeSafe **Jev** judge
+> may attach a calibrated `confidence` to findings; advisory only until validated (planned, PRD §8.2, FR-D.6).
+
 **On stage, the payoff:** *"IAM did its job. It just wasn't the thing that needed doing."*
 
 Note the sequence the audience just watched: **DENY → escalate → ALLOW**. Same action, same sandbox, different credential. That is the product's thesis, demonstrated rather than claimed.

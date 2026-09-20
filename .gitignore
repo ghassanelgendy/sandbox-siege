@@ -29,3 +29,6 @@ runs/*
 .env
 .env.*
 !.env.example
+
+# Redacted provider reference — never re-track (keys belong in .env, PRD NFR-5 / D-39)
+testing_apis_info.md

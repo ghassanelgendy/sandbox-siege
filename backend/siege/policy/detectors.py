@@ -301,6 +301,18 @@ def d_ssrf(rule: dict, ctx: DetectionContext) -> list[Finding]:
     return []
 
 
+def d_jev_judge(_rule: dict, _ctx: DetectionContext) -> list[Finding]:
+    """
+    Jev advisory judge (PRD §8.2, D-43).
+
+    This stub registers the detector type so YAML validation passes. Actual Jev
+    evaluation happens in Gateway.run_jev_evaluation() at scenario end — it cannot
+    be a pure function because it makes an HTTP request. Findings it produces carry
+    a calibrated confidence score but are advisory and never gate the run.
+    """
+    return []
+
+
 DETECTORS: dict[str, Callable[[dict, DetectionContext], list[Finding]]] = {
     "credential_switch": d_credential_switch,
     "resource_access": d_resource_access,
@@ -314,6 +326,8 @@ DETECTORS: dict[str, Callable[[dict, DetectionContext], list[Finding]]] = {
     "no_clarification": d_no_clarification,
     "message_contains": d_message_contains,
     "ssrf": d_ssrf,
+    # jev_judge is registered so YAML validation passes; execution is in Gateway
+    "jev_judge": d_jev_judge,
 }
 
 

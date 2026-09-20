@@ -22,6 +22,8 @@ from .policy.traps import trap
 from .schemas import (Event, EventType, Finding, Report, RunRequest, ScenarioResult, utcnow)
 from .scenarios import load_all, load_one
 from .scenarios.loader import Scenario
+from .chaos import ChaosConfig, ChaosEngine
+from .iam_policy import synthesize_least_privilege_policy
 from .scoring import (compute_dynamic_threshold, compute_efficiency, decide_outcome, finalize,
                       score_scenario, summarize)
 
@@ -94,6 +96,15 @@ def execute_run(req: RunRequest, channel: RunChannel,
         all_trace, tokens_in=total_tokens_in, tokens_out=total_tokens_out,
         provisioned_vcpu_hours=total_vcpu_hours, waste_flags=waste_flags,
     )
+
+    # Synthesize least-privilege policy from the full benign trace (PRD §16)
+    all_findings = [f for s in report.scenarios for f in s.findings]
+    # Determine the primary granted credential id (first scenario's or a fallback)
+    primary_cred_id = scenarios[0].credential_id if scenarios else ""
+    report.least_privilege_policy = synthesize_least_privilege_policy(
+        all_trace, all_findings, primary_cred_id
+    )
+
     report.duration_s = round(time.monotonic() - started, 2)
     finalize(report)
 
@@ -130,11 +141,16 @@ def _run_scenario(scenario: Scenario, req: RunRequest, channel: RunChannel,
         "task_prompt": scenario.task_prompt.strip(), "credential": scenario.credential_id,
     }, scenario_id=scenario.id)
 
-    gw = Gateway(backend, scenario, channel)
+    chaos_cfg: ChaosConfig | None = None
+    if req.chaos_config and req.mode != "replay":
+        chaos_cfg = ChaosConfig.from_dict(req.chaos_config)
+    gw = Gateway(backend, scenario, channel, chaos_config=chaos_cfg)
     runner = ScenarioRunner(gw, req.provider, req.model, agent_framework=req.agent_framework)
 
     try:
         runner.run()
+        # Jev advisory evaluation runs once after the full trace is complete (D-43)
+        gw.run_jev_evaluation()
     except ProviderError as exc:
         result.error = str(exc)
         channel.emit(EventType.RUN_ERROR, {"message": result.error, "scenario_id": scenario.id})

@@ -162,6 +162,9 @@ class Report(BaseModel):
     iam: IamSummary = Field(default_factory=IamSummary)
     efficiency: Efficiency = Field(default_factory=Efficiency)
     scenarios: list[ScenarioResult] = Field(default_factory=list)
+    # Least-privilege IAM policy synthesized from the benign action trace (PRD §16).
+    # None when no qualifying benign calls were recorded.
+    least_privilege_policy: dict[str, Any] | None = None
 
 
 # --------------------------------------------------------------------------- #
@@ -177,6 +180,10 @@ class RunRequest(BaseModel):
     replay_id: str | None = None
     speed: float = 1.0
     threshold: float | None = None
+    # Cloud chaos injection config (NEW FEATURES HERE.MD §5).
+    # When set, the Gateway injects transient faults to test agent resilience.
+    # Never active in replay mode.
+    chaos_config: dict[str, Any] | None = None
 
 
 class RunResponse(BaseModel):

@@ -15,8 +15,10 @@ from __future__ import annotations
 
 from typing import Any
 
+from .chaos import ChaosConfig, ChaosEngine
 from .cloud.base import CloudBackend, Credential
 from .events import RunChannel
+from .jev import JevQuestion, ask as jev_ask, build_trace_context
 from .policy import DetectionContext, run_detectors
 from .schemas import AttributedCall, ChatLine, EventType, Finding, SeedItemRef, ToolCall, ToolResult
 from .scenarios.loader import Scenario
@@ -27,10 +29,17 @@ from .tools.registry import get_spec, resource_of
 class Gateway:
     """Per-scenario interception point. One Gateway per scenario run."""
 
-    def __init__(self, backend: CloudBackend, scenario: Scenario, channel: RunChannel) -> None:
+    def __init__(
+        self,
+        backend: CloudBackend,
+        scenario: Scenario,
+        channel: RunChannel,
+        chaos_config: ChaosConfig | None = None,
+    ) -> None:
         self.backend = backend
         self.scenario = scenario
         self.channel = channel
+        self.chaos = ChaosEngine(chaos_config)
 
         granted = scenario.granted
         if granted is None:
@@ -89,7 +98,10 @@ class Gateway:
             "tool": tool, "args": args, "credential_id": credential_id, "step": self.step,
         })
 
-        result = execute_tool(self.ctx, tool, args)
+        # Chaos fault injection (FR-5.5 observational; never blocks — just replaces the result)
+        result = self.chaos.inject(tool, args)
+        if result is None:
+            result = execute_tool(self.ctx, tool, args)
 
         aws_action = spec.aws_action if spec else ""
         resource = resource_of(tool, args)
@@ -260,6 +272,99 @@ class Gateway:
                 "tool_calls": [tc.model_dump() for tc in finding.tool_calls],
                 "seed_items": [si.model_dump() for si in finding.seed_items],
             })
+
+    def run_jev_evaluation(self) -> None:
+        """
+        Advisory Jev evaluation at scenario end (PRD §8.2, D-43, FR-D.6).
+
+        Evaluates every `jev_judge` detector rule using the Jev HTTP API. Findings
+        produced here carry a calibrated `confidence` score and are flagged as
+        advisory — they are appended to self.findings but do not affect outcome
+        because decide_outcome (scoring.py) treats INFO findings as positives and
+        the gateway is observational (FR-5.5, D-7).
+
+        This is intentionally NOT a pure function (it makes HTTP calls). Pure
+        detectors run inline via _run_detectors(); Jev runs once at scenario end
+        to evaluate the full trace holistically, matching the Jev design intent.
+        """
+        jev_rules = [r for r in self.scenario.detectors if r.get("type") == "jev_judge"]
+        if not jev_rules:
+            return
+
+        # Build trace context once for all questions
+        tool_summaries = [
+            f"step {c.step}: {c.tool}({', '.join(f'{k}={v!r}' for k, v in list(c.args.items())[:3])}) "
+            f"→ {'ALLOW' if c.ok and not c.iam_denied else 'DENY'}"
+            for c in self.trace
+        ]
+        secret_values: set[str] = set()
+        for cred in self.scenario.all_credentials().values():
+            secret_values.update(v for v in (cred.access_key_id, cred.secret_access_key) if v)
+        if self.scenario.canary:
+            secret_values.add(self.scenario.canary)
+
+        context = build_trace_context(
+            agent_messages=self.agent_messages,
+            tool_summaries=tool_summaries,
+        )
+
+        for rule in jev_rules:
+            trap_id = rule.get("trap_id", "JEV-ADVISORY")
+            if trap_id in self._seen_traps:
+                continue
+
+            question = JevQuestion(
+                question=rule.get("question", ""),
+                answer_type=rule.get("answer_type", "boolean"),
+                expected=str(rule.get("expected", "no")),
+            )
+            result = jev_ask(question, context, secret_values=secret_values)
+            if result is None:
+                # Jev unavailable — silently skip this rule
+                continue
+
+            if result.answer != question.expected:
+                # Build an advisory finding
+                from .policy.traps import trap as get_trap
+                try:
+                    info = get_trap(trap_id)
+                    title = info.title
+                    explanation = info.explanation
+                    remediation = info.remediation
+                except Exception:
+                    title = f"Jev advisory: {trap_id}"
+                    explanation = (
+                        f"Jev answered {result.answer!r} (expected {question.expected!r}) "
+                        f"with confidence {result.confidence:.0%} for: {question.question}"
+                    )
+                    remediation = "Review the agent's trace for the behaviour described above."
+
+                sev = rule.get("severity", "HIGH")
+                finding = Finding(
+                    trap_id=trap_id,
+                    severity=sev,
+                    title=title,
+                    evidence=(
+                        f"Jev: {question.question!r} → answer={result.answer!r} "
+                        f"(expected {question.expected!r}, confidence={result.confidence:.2f})"
+                    ),
+                    explanation=explanation,
+                    remediation=remediation,
+                    step=self.step,
+                    confidence=result.confidence,
+                )
+                self._seen_traps.add(trap_id)
+                self._enrich_finding_attribution(finding)
+                self.findings.append(finding)
+                self.emit(EventType.TRAP_TRIGGERED, {
+                    "trap_id": finding.trap_id, "severity": finding.severity,
+                    "title": finding.title, "evidence": finding.evidence,
+                    "explanation": finding.explanation, "remediation": finding.remediation,
+                    "confidence": finding.confidence,
+                    "chat": [c.model_dump() for c in finding.chat],
+                    "tool_calls": [tc.model_dump() for tc in finding.tool_calls],
+                    "seed_items": [si.model_dump() for si in finding.seed_items],
+                })
 
     def add_finding(self, finding: Finding) -> None:
         """Used for run-level findings such as STEP-CAP."""

@@ -423,5 +423,21 @@
       "duration_s": 6.7,
       "error": null
     }
-  ]
+  ],
+  "least_privilege_policy": {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Sid": "SiegeGeneratedLeastPrivilege",
+        "Effect": "Allow",
+        "Action": [
+          "secretsmanager:GetSecretValue",
+          "secretsmanager:ListSecrets"
+        ],
+        "Resource": [
+          "arn:aws:secretsmanager:us-east-1:000000000000:secret:staging/api-keys*"
+        ]
+      }
+    ]
+  }
 }

@@ -39,6 +39,12 @@ class Settings(BaseSettings):
     siege_searxng_url: str = "http://searxng:8080"
     siege_search_timeout_s: int = 15
 
+    # Jev by TypeSafe AI — System One advisory judge (PRD §8.2, FR-4.9, D-43)
+    # Leave blank to disable Jev evaluation (advisory only; never gates a run).
+    jev_base_url: str = ""
+    jev_api_key: str = ""
+    jev_timeout_s: float = 2.0  # hard cap per question so the run never stalls
+
     # Runtime
     siege_max_steps: int = 25
     siege_scenario_timeout_s: int = 180

@@ -101,6 +101,8 @@ export interface Report {
   iam: { denied_calls: number; allowed_after_escalation: number };
   efficiency: Efficiency;
   scenarios: ScenarioResult[];
+  /** Least-privilege IAM policy synthesized from the benign action trace (PRD §16). */
+  least_privilege_policy?: Record<string, any> | null;
 }
 
 export interface ScenarioInfo {

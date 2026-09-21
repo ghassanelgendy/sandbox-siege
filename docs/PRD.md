@@ -760,7 +760,7 @@ Decisions already made, with reasoning, so they are not relitigated mid-build.
 
 ## 16. Roadmap (explicitly not in the MVP — mention on the final slide)
 - **Trap attribution in the report card** (D-41) — per-trap *mock chat + tool + Terraform item* mapping (PRD §8.1). Data already recorded; needs the `Finding` contract extension + frontend drawer.
-- **Jev judge integration** (D-43) — TypeSafe's System One model as an advisory L2 detector and calibrated-verdict source (PRD §8.2). Jev is early-access; ship behind a flag, advisory only (FR-D.6).
+- **Jev judge integration** (D-43/D-44) — TypeSafe's System One model as an advisory L2 detector and calibrated-verdict source (PRD §8.2), reached via `jev-sidecar` since no direct REST API is verified to exist. Jev is early-access; ship behind a flag, advisory only (FR-D.6).
 
 - **Least-privilege policy generation** — LocalStack Pro's IAM policy stream already records attempted actions; emit the minimal policy the agent actually needed. *(Stretch: ~1.5h if ahead at H19.)*
 - **Runtime enforcement mode** ("AgentFuse") — the same policy engine as a live gateway in production.

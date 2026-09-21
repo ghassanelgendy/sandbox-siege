@@ -835,7 +835,7 @@ figcaption strong{color:var(--ink-dim)}
   <div class="slide-inner">
     <div class="eyebrow jade">Progress to date</div>
     <h2>What is actually built, verified and running.</h2>
-    <div class="progrid">
+    <div class="progrid" style="grid-template-columns:1fr">
       <ul class="plist">
         <li class="done"><span class="mark">✓ done</span><span class="lbl">27 scenarios + AI trap generator<span class="sub">CVE-mapped coverage across IAM escalation, injection, SSRF, exfiltration, waste — plus plain-English trap synthesis</span></span></li>
         <li class="done"><span class="mark">✓ done</span><span class="lbl">Dual-layer gateway &amp; sandbox<span class="sub">LocalStack Pro ENFORCE_IAM=1 (L1) + 18 stateless behavioural detectors (L2), single interception point</span></span></li>
@@ -847,18 +847,6 @@ figcaption strong{color:var(--ink-dim)}
         <li class="done"><span class="mark">✓ done</span><span class="lbl">Deterministic replay engine<span class="sub">Fully offline playback from JSONL telemetry tapes at variable speed</span></span></li>
         <li class="done"><span class="mark">✓ done</span><span class="lbl">Docker Compose + Cloudflare tunnel<span class="sub">Isolated microservice stack, publicly reachable with zero open ingress ports</span></span></li>
       </ul>
-      <div>
-        <div class="chip" style="max-width:none">
-          <b>verified on this machine</b>
-          <span class="mono" style="color:var(--jade)">67 tests collected — all green.</span> 27 scenario specs loaded, <code>ENFORCE_IAM</code> active, providers online, zero real-AWS exposure.
-        </div>
-        <div style="position:relative;margin-top:22px;border:1px solid var(--rule-lit);background:var(--panel);border-radius:3px;padding:16px 18px 16px 18px;overflow:hidden">
-          <div style="font-family:var(--font-display);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--sand);margin-bottom:8px">Shipped by two people</div>
-          <div style="font-size:.85rem;color:var(--ink-dim);line-height:1.5;max-width:62%">Backend, detectors, scoring, sandbox seeding, CI gate, dashboard and this deck — built end to end by Fo2 El-Sa7ab.</div>
-          <span class="memoji mj-w" style="position:absolute;right:88px;bottom:-14px;width:76px;transform:rotate(-8deg);filter:drop-shadow(0 8px 14px rgba(0,0,0,.6))" aria-hidden="true"></span>
-          <span class="memoji mj-g" style="position:absolute;right:-12px;bottom:-16px;width:118px;filter:drop-shadow(0 8px 14px rgba(0,0,0,.6))" aria-hidden="true"></span>
-        </div>
-      </div>
     </div>
   </div>
 </section>

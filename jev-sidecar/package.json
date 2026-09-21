@@ -1,0 +1,14 @@
+{
+  "name": "jev-sidecar",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "dependencies": {
+    "ai": "^7.0.108"
+  }
+}

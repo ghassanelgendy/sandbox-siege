@@ -456,6 +456,16 @@ as **advisory only**. Deterministic detectors stay the source of truth for pass/
 until a Jev judge has been validated against a labelled trace corpus. Jev runs on the `siege-egress` guard
 the same way `web_search` does — a canary/credential-carrying state is never sent.
 
+**Delivery mechanism (D-44):** the only verified way to call Jev is Vercel AI Gateway's Node-only
+`experimental_evaluate` SDK function for the `typesafe-ai/jev` model — there is no documented or
+verified direct REST API. `backend/siege/jev.py` is a Python `urllib` client built against a plain
+REST shape, so a small Node sidecar (`jev-sidecar/`, Node 22+, `ai@^7`) adapts one onto the other:
+it exposes `POST /v1/judge` matching `jev.py`'s existing request/response shape, and internally
+calls `experimental_evaluate`. `jev.py` and the detector contract are unchanged. `choice`/`score`
+question types require synthesized (unvalidated) criteria text since detector rules only carry plain
+labels — `boolean`, the default and only type used in this repo today, needs no criteria and is
+fully verified end-to-end (sidecar unit test + real `jev.py.ask()` call, both against the live Gateway).
+
 ---
 ---
 

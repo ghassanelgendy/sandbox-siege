@@ -79,6 +79,25 @@ services:
     depends_on:
       - siege-frontend
 
+  # Jev advisory judge sidecar (PRD §8.2, FR-4.9, D-43/D-44) -- optional.
+  # Adapts jev.py's REST contract (POST /v1/judge) onto Vercel AI Gateway's
+  # Node-only `experimental_evaluate` SDK call for the `typesafe-ai/jev`
+  # model, since no direct REST endpoint for Jev is documented or verified.
+  # Deliberately NOT on siege-core, same isolation rationale as searxng below:
+  # it only needs egress to reach the Gateway, never LocalStack.
+  jev-sidecar:
+    container_name: siege-jev-sidecar
+    build:
+      context: ./jev-sidecar
+      dockerfile: Dockerfile
+    environment:
+      - AI_GATEWAY_API_KEY=${AI_GATEWAY_API_KEY:-}
+      - JEV_API_KEY=${JEV_API_KEY:-}
+      - PORT=8090
+    restart: unless-stopped
+    networks:
+      - siege-egress
+
   # Web-search backend for the agent's `web_search` tool (PRD FR-3.5).
   # Deliberately NOT on siege-core: it must never be able to reach LocalStack.
   # The agent never addresses this service -- only the Siege backend does,

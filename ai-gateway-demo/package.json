@@ -1,0 +1,16 @@
+{
+  "name": "ai-gateway-demo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx index.ts",
+    "evaluate": "tsx evaluate.ts"
+  },
+  "dependencies": {
+    "ai": "^7.0.108",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2"
+  }
+}

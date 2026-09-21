@@ -3,7 +3,8 @@
 > **Event:** DevOpsDays Cairo 2026 Hackathon — Track 1: Automate Deployment & Operations  
 > **Team:** Fo2 El-Sa7ab (Ghassan Elgendy & Ahmed Wagdy)  
 > **Format:** 15-Minute Championship Pitch + Live Chaos Demo  
-> **Interactive Deck:** [`presentation/siege-deck.html`](../presentation/siege-deck.html) / [`frontend/public/deck.html`](../frontend/public/deck.html)  
+> **Interactive Deck (finals):** [`presentation/siege-deck-final.html`](../presentation/siege-deck-final.html) — 17 slides, self-contained, covers overview, business impact, differentiation, architecture, progress and roadmap  
+> **Earlier decks:** [`presentation/siege-deck.html`](../presentation/siege-deck.html) / [`frontend/public/deck.html`](../frontend/public/deck.html)  
 > **Repository:** [github.com/ghassanelgendy/sandbox-siege](https://github.com/ghassanelgendy/sandbox-siege)
 
 ---

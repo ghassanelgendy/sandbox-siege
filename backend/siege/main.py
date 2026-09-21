@@ -130,6 +130,19 @@ def deck() -> FileResponse:
     raise HTTPException(status_code=404, detail="Deck presentation file not found")
 
 
+@app.get("/presentation.html")
+@app.get("/presentation")
+def presentation() -> FileResponse:
+    pkg_presentation = os.path.join(os.path.dirname(__file__), "presentation.html")
+    if os.path.exists(pkg_presentation):
+        return FileResponse(pkg_presentation, media_type="text/html")
+    base = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    presentation_path = os.path.join(base, "presentation", "siege-deck-final.html")
+    if os.path.exists(presentation_path):
+        return FileResponse(presentation_path, media_type="text/html")
+    raise HTTPException(status_code=404, detail="Presentation file not found")
+
+
 @app.get("/api/agents")
 def agents() -> list[dict]:
     return get_all_frameworks()

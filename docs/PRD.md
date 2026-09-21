@@ -157,7 +157,7 @@ IAM answers permission. It cannot answer judgment. When an agent escalates to an
 | **FR-4.6** | Retry transient provider errors (429, 5xx) up to 2 times with exponential backoff. `payment_required` is **not** retried — fail the run immediately with a clear message. |
 | **FR-4.7** | `GET /api/models` discovers models from each provider's `/v1/models` and health-checks each with a minimal tool-calling probe, returning `{id, provider, healthy, supports_tools, error}`. Never hardcode the roster. |
 | **FR-4.8** | Record token usage (`tokens_in`, `tokens_out`) per scenario from the provider response. |
-**FR-4.9** — **(planned, D-43)** Register `jev` as a provider type (config: `JEV_BASE_URL`, `JEV_API_KEY`). Jev responses are typed (no `tool_calls`), so it is only ever called by detectors / the sanity evaluator — never by the agent runner loop.
+**FR-4.9** — **(implemented, D-43/D-44)** Register `jev` as a provider type (config: `JEV_BASE_URL`, `JEV_API_KEY`). Jev responses are typed (no `tool_calls`), so it is only ever called by detectors / the sanity evaluator — never by the agent runner loop. `JEV_BASE_URL` points at the `jev-sidecar` container (see D-44), not a direct TypeSafe REST API — no such API has been verified to exist. The sidecar adapts `jev.py`'s REST contract onto Vercel AI Gateway's `experimental_evaluate` SDK call for `typesafe-ai/jev`.
 
 ### 6.5 Gateway (`siege/gateway.py`)
 

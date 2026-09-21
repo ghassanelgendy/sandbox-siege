@@ -650,15 +650,19 @@ DAHL_BASE_URL=https://inference.dahl.global/v1
 DAHL_API_KEY=<key>
 
 
-# Jev (TypeSafe System One) — optional advisory judge (planned, D-43)
-JEV_BASE_URL=https://api.typesafe.ai
-JEV_API_KEY=<key>
+# Jev (TypeSafe System One) — optional advisory judge (implemented, D-43/D-44)
+# JEV_BASE_URL points at the jev-sidecar container in docker-compose, not a
+# direct TypeSafe REST API — see D-44. Set AI_GATEWAY_API_KEY + JEV_API_KEY
+# in .env to enable; leave either blank to disable (jev.py falls back to None).
+JEV_BASE_URL=http://jev-sidecar:8090
+JEV_API_KEY=<shared secret with jev-sidecar>
+AI_GATEWAY_API_KEY=<vercel ai gateway key, consumed by jev-sidecar only>
 SIEGE_MAX_STEPS=25
 SIEGE_SCENARIO_TIMEOUT_S=180
 SIEGE_THRESHOLD=80
 ```
 
-**Docker Compose must set:** `ENFORCE_IAM=1`, `SERVICES=s3,dynamodb,rds,ec2,logs,secretsmanager,ssm,iam,sts`, `LOCALSTACK_AUTH_TOKEN`, and mount `./.localstack-data:/var/lib/localstack`.
+**Docker Compose must set:** `ENFORCE_IAM=1`, `SERVICES=s3,dynamodb,rds,ec2,logs,secretsmanager,ssm,iam,sts`, `LOCALSTACK_AUTH_TOKEN`, and mount `./.localstack-data:/var/lib/localstack`. It also runs the `jev-sidecar` service (egress-only, same isolation rationale as `searxng`) that `siege-backend` calls for Jev evaluation.
 
 ---
 

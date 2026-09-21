@@ -38,6 +38,10 @@ services:
       - DAHL_API_KEY=${DAHL_API_KEY}
       - GROQ_API_KEY=${GROQ_API_KEY}
       - SIEGE_SEARXNG_URL=http://searxng:8080
+      # Jev advisory judge (PRD §8.2, FR-4.9, D-43/D-44) — optional. Leave
+      # JEV_API_KEY unset in .env to disable; jev.py falls back to None cleanly.
+      - JEV_BASE_URL=http://jev-sidecar:8090
+      - JEV_API_KEY=${JEV_API_KEY:-}
     restart: unless-stopped
     networks:
       - siege-core
@@ -47,6 +51,8 @@ services:
         condition: service_healthy
       searxng:
         condition: service_healthy
+      jev-sidecar:
+        condition: service_started
 
   siege-frontend:
     container_name: siege-frontend

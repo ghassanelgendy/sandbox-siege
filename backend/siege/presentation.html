@@ -154,7 +154,7 @@ figcaption strong{color:var(--ink-dim)}
 
 /* ============ slide 1 title ============ */
 #s1{padding-top:44px}
-.title-wrap{display:grid;grid-template-columns:1.25fr .75fr;gap:30px;align-items:center}
+.title-wrap{display:grid;grid-template-columns:1fr;gap:30px;align-items:center}
 .title-eyebrow{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.1em;
   color:var(--ink-mute);text-transform:uppercase;margin-bottom:26px;}
 .wordmark{font-family:var(--font-display);font-weight:700;
@@ -418,17 +418,6 @@ figcaption strong{color:var(--ink-dim)}
           <div><b>Repo</b><span class="mono">github.com/ghassanelgendy/sandbox-siege</span></div>
         </div>
       </div>
-      <div class="cast">
-        <div class="cast-stage">
-          <div class="glow"></div>
-          <span class="memoji mj-w w float" role="img" aria-label="Ahmed Wagdy memoji"></span>
-          <span class="memoji mj-g g float" role="img" aria-label="Ghassan Elgendy memoji"></span>
-        </div>
-        <div class="cast-tags">
-          <div class="nametag"><b>Wagdy</b> · gateway &amp; scoring</div>
-          <div class="nametag"><b>Ghassan</b> · traps &amp; platform</div>
-        </div>
-      </div>
     </div>
   </div>
 </section>
@@ -484,11 +473,6 @@ figcaption strong{color:var(--ink-dim)}
       <div><b>~1s+</b>Time for a human to read the action, let alone cancel it</div>
       <div><b>0</b>Of these were caught by IAM, tests, or code review</div>
       <div class="ok"><b>100%</b>Reproducible as a seeded trap in a sandbox — which is the whole point</div>
-    </div>
-    <div class="aside sig">
-      <div class="av"><span class="memoji mj-w" aria-hidden="true"></span></div>
-      <div class="bubble"><div class="who">Wagdy</div>
-      <p>Every one of these agents did exactly what it was told. What was missing wasn't permission — it was the human reflex that says "wait, that's production."</p></div>
     </div>
   </div>
 </section>
@@ -664,11 +648,6 @@ figcaption strong{color:var(--ink-dim)}
         Cross-tenant leakage, env-var harvesting, tool poisoning, oversized provisioning &amp; carbon waste, disaster purge — plus live <strong style="color:var(--sand)">CVE resolution</strong> (OSV.dev · NVD v2.0 · CVSS 3.1) and the <strong style="color:var(--sand)">AI Trap Generator</strong>.</div>
       </div>
     </div>
-    <div class="aside">
-      <div class="av ghassan"><span class="memoji mj-g" aria-hidden="true"></span></div>
-      <div class="bubble"><div class="who">Ghassan</div>
-      <p>Read a post-mortem this morning, paste it into the generator, and it is a running scenario by lunch. That is how the library keeps up with reality.</p></div>
-    </div>
   </div>
 </section>
 
@@ -833,11 +812,6 @@ figcaption strong{color:var(--ink-dim)}
       <div class="seg"><b>AI platform vendors</b><span>Regression-test agent releases against a fixed adversarial suite; publish a Trust Score the way you publish a benchmark.</span></div>
       <div class="seg"><b>Enterprises adopting agents</b><span>A procurement answer: compare candidate agents on the same 27 traps before any of them get a production credential.</span></div>
     </div>
-    <div class="aside jd">
-      <div class="av ghassan"><span class="memoji mj-g" aria-hidden="true"></span></div>
-      <div class="bubble"><div class="who">Ghassan</div>
-      <p>Nobody budgets for "the agent might delete prod." Everybody budgets for a CI check that says whether it would.</p></div>
-    </div>
   </div>
 </section>
 
@@ -853,12 +827,6 @@ figcaption strong{color:var(--ink-dim)}
       <div><b>BEAT 03</b>It finds the admin key, switches credential. Right rail goes red: L2 catches what L1 cannot.</div>
       <div><b>BEAT 04</b>Trust Score, letter grade, attribution trail, dynamic gate verdict — live.</div>
     </div>
-    <div style="position:relative;margin-top:26px;height:96px;width:100%;max-width:900px">
-      <span class="memoji mj-w float" style="position:absolute;right:2%;bottom:-18px;width:120px;transform:rotate(6deg);--rot:6deg;filter:drop-shadow(0 14px 22px rgba(0,0,0,.6))" aria-hidden="true"></span>
-      <div style="position:absolute;right:16%;bottom:24px;max-width:340px;text-align:right;font-family:var(--font-mono);font-size:.78rem;color:var(--ink-mute);line-height:1.5">
-        If the agent behaves itself today,<br>that is a result too — we score it either way.
-      </div>
-    </div>
   </div>
 </section>
 
@@ -867,7 +835,7 @@ figcaption strong{color:var(--ink-dim)}
   <div class="slide-inner">
     <div class="eyebrow jade">Progress to date</div>
     <h2>What is actually built, verified and running.</h2>
-    <div class="progrid">
+    <div class="progrid" style="grid-template-columns:1fr">
       <ul class="plist">
         <li class="done"><span class="mark">✓ done</span><span class="lbl">27 scenarios + AI trap generator<span class="sub">CVE-mapped coverage across IAM escalation, injection, SSRF, exfiltration, waste — plus plain-English trap synthesis</span></span></li>
         <li class="done"><span class="mark">✓ done</span><span class="lbl">Dual-layer gateway &amp; sandbox<span class="sub">LocalStack Pro ENFORCE_IAM=1 (L1) + 18 stateless behavioural detectors (L2), single interception point</span></span></li>
@@ -879,18 +847,6 @@ figcaption strong{color:var(--ink-dim)}
         <li class="done"><span class="mark">✓ done</span><span class="lbl">Deterministic replay engine<span class="sub">Fully offline playback from JSONL telemetry tapes at variable speed</span></span></li>
         <li class="done"><span class="mark">✓ done</span><span class="lbl">Docker Compose + Cloudflare tunnel<span class="sub">Isolated microservice stack, publicly reachable with zero open ingress ports</span></span></li>
       </ul>
-      <div>
-        <div class="chip" style="max-width:none">
-          <b>verified on this machine</b>
-          <span class="mono" style="color:var(--jade)">67 tests collected — all green.</span> 27 scenario specs loaded, <code>ENFORCE_IAM</code> active, providers online, zero real-AWS exposure.
-        </div>
-        <div style="position:relative;margin-top:22px;border:1px solid var(--rule-lit);background:var(--panel);border-radius:3px;padding:16px 18px 16px 18px;overflow:hidden">
-          <div style="font-family:var(--font-display);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--sand);margin-bottom:8px">Shipped by two people</div>
-          <div style="font-size:.85rem;color:var(--ink-dim);line-height:1.5;max-width:62%">Backend, detectors, scoring, sandbox seeding, CI gate, dashboard and this deck — built end to end by Fo2 El-Sa7ab.</div>
-          <span class="memoji mj-w" style="position:absolute;right:88px;bottom:-14px;width:76px;transform:rotate(-8deg);filter:drop-shadow(0 8px 14px rgba(0,0,0,.6))" aria-hidden="true"></span>
-          <span class="memoji mj-g" style="position:absolute;right:-12px;bottom:-16px;width:118px;filter:drop-shadow(0 8px 14px rgba(0,0,0,.6))" aria-hidden="true"></span>
-        </div>
-      </div>
     </div>
   </div>
 </section>
@@ -935,6 +891,7 @@ figcaption strong{color:var(--ink-dim)}
 <!-- ===================== 17 CLOSING ===================== -->
 <section class="slide" id="close" data-label="CLOSING">
   <div class="slide-inner" style="text-align:center;display:flex;flex-direction:column;align-items:center">
+    <div class="eyebrow signal" style="margin:0 auto 14px">QA Time</div>
     <div class="close-word">Thank you.</div>
     <p class="lede" style="text-align:center;margin:14px auto 0;max-width:54ch">We are all hiring these agents. This is how we start interviewing them.</p>
     <div class="close-cast">

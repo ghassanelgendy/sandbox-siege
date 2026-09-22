@@ -549,46 +549,9 @@ figcaption strong{color:var(--ink-dim)}
     <div class="eyebrow">High-level architecture</div>
     <h2>One gateway. Every action passes through it.</h2>
     <div class="archrow">
-      <figure>
-      <svg viewBox="0 0 960 480" style="--ar:2;--figw:860px" role="img" aria-label="Architecture: the Agent Runner exchanges chat and tool calls with the agent under test; every tool call is proposed to the Siege Gateway, which records it to the event bus, runs behavioural detectors, and forwards it to LocalStack Pro where IAM independently allows or denies; both verdicts stream over server-sent events to the React dashboard.">
-        <defs>
-          <marker id="arrInk" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#96A6B8"/></marker>
-          <marker id="arrSand" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#E0A458"/></marker>
-        </defs>
-        <rect x="40" y="40" width="230" height="64" rx="3" fill="#121A23" stroke="#2C3D4E" stroke-width="1.5"/>
-        <text x="155" y="66" text-anchor="middle" font-family="IBM Plex Sans Condensed, sans-serif" font-weight="700" font-size="13" fill="#E4EAF0">AGENT UNDER TEST</text>
-        <text x="155" y="86" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#61738A">deepseek · mistral · kimi · minimax</text>
-        <rect x="690" y="40" width="230" height="64" rx="3" fill="#121A23" stroke="#2C3D4E" stroke-width="1.5"/>
-        <text x="805" y="66" text-anchor="middle" font-family="IBM Plex Sans Condensed, sans-serif" font-weight="700" font-size="13" fill="#E4EAF0">AGENT RUNNER</text>
-        <text x="805" y="86" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#61738A">tool-use loop · max 25 steps</text>
-        <line x1="270" y1="72" x2="688" y2="72" stroke="#96A6B8" stroke-width="1.5" marker-end="url(#arrInk)" marker-start="url(#arrInk)"/>
-        <text x="480" y="63" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#96A6B8">chat + tools · openai sdk</text>
-        <rect x="330" y="190" width="300" height="104" rx="3" fill="#121A23" stroke="#E0A458" stroke-width="1.5"/>
-        <text x="480" y="216" text-anchor="middle" font-family="IBM Plex Sans Condensed, sans-serif" font-weight="700" font-size="14" fill="#E0A458">SIEGE GATEWAY</text>
-        <text x="480" y="238" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#96A6B8">1 record → JSONL + SSE</text>
-        <text x="480" y="256" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#96A6B8">2 behavioural detectors (L2)</text>
-        <text x="480" y="274" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#96A6B8">3 forward via boto3</text>
-        <line x1="790" y1="104" x2="610" y2="190" stroke="#96A6B8" stroke-width="1.5" marker-end="url(#arrInk)"/>
-        <text x="806" y="142" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="10" fill="#96A6B8">every tool call</text>
-        <rect x="90" y="380" width="300" height="90" rx="3" fill="#121A23" stroke="#6B4E28" stroke-width="1.5"/>
-        <text x="240" y="406" text-anchor="middle" font-family="IBM Plex Sans Condensed, sans-serif" font-weight="700" font-size="13" fill="#E0A458">LOCALSTACK PRO</text>
-        <text x="240" y="424" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#96A6B8">ENFORCE_IAM=1 · L1</text>
-        <text x="240" y="442" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="#61738A">s3 · dynamodb · rds · ec2 · logs</text>
-        <text x="240" y="457" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="#61738A">secretsmanager · ssm · iam · sts</text>
-        <line x1="420" y1="270" x2="260" y2="380" stroke="#E0A458" stroke-width="2" marker-end="url(#arrSand)"/>
-        <text x="296" y="352" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10" fill="#E0A458">forward (boto3)</text>
-        <line x1="300" y1="380" x2="450" y2="272" stroke="#6B4E28" stroke-width="1.5" stroke-dasharray="3 4" marker-end="url(#arrSand)"/>
-        <text x="470" y="352" text-anchor="start" font-family="IBM Plex Mono, monospace" font-size="10" fill="#6B4E28">ALLOW / DENY</text>
-        <rect x="560" y="380" width="180" height="60" rx="3" fill="#121A23" stroke="#2C3D4E" stroke-width="1.5"/>
-        <text x="650" y="406" text-anchor="middle" font-family="IBM Plex Sans Condensed, sans-serif" font-weight="700" font-size="12" fill="#E4EAF0">EVENT BUS</text>
-        <text x="650" y="424" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#61738A">server-sent events</text>
-        <line x1="560" y1="270" x2="640" y2="380" stroke="#96A6B8" stroke-width="1.5" marker-end="url(#arrInk)"/>
-        <text x="622" y="335" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#96A6B8">record event</text>
-        <rect x="780" y="380" width="180" height="60" rx="3" fill="#121A23" stroke="#2C3D4E" stroke-width="1.5"/>
-        <text x="870" y="406" text-anchor="middle" font-family="IBM Plex Sans Condensed, sans-serif" font-weight="700" font-size="12" fill="#E4EAF0">REACT DASHBOARD</text>
-        <text x="870" y="424" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#61738A">console + report card</text>
-        <line x1="740" y1="410" x2="778" y2="410" stroke="#96A6B8" stroke-width="1.5" marker-end="url(#arrInk)"/>
-      </svg>
+      <figure class="diagram-embed">
+        <iframe src="architecture.html" title="Sandbox Siege system architecture — every layer and tool in one frame" loading="lazy"></iframe>
+        <a class="open-full" href="architecture.html" target="_blank" rel="noopener">Open full interactive architecture diagram ↗</a>
       </figure>
       <div class="side">
         <p style="font-size:.86rem;line-height:1.55;margin:0"><strong>The invariant:</strong> the agent never talks to LocalStack directly. Every action is proposed to the Gateway, recorded, judged behaviourally, then forwarded — where IAM independently permits or denies. Both verdicts stream to the UI. If the gateway is bypassed, the run is invalid by construction.</p>

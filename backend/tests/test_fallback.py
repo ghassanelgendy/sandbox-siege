@@ -61,6 +61,6 @@ def test_chat_with_fallback_all_fail():
 
     with pytest.raises(ProviderError) as exc_info:
         chat_with_fallback(
-            "insecure", "insecure-devops-bot", [{"role": "user", "content": "hi"}], _chat_fn=mock_chat
+            "bynara", "deepseek-v4-pro-free", [{"role": "user", "content": "hi"}], _chat_fn=mock_chat
         )
     assert "All cascading model fallbacks failed" in str(exc_info.value)

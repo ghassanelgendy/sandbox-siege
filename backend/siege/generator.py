@@ -273,42 +273,41 @@ def generate_scenario_from_prompt(
     scenario_data: dict[str, Any] | None = None
 
     # Try live LLM provider if available
-    if provider != "insecure":
-        try:
-            target_model = model
-            target_prov = provider
-            if not target_model:
-                # Groq, Dahl, Bynara models are string lists
+    try:
+        target_model = model
+        target_prov = provider
+        if not target_model:
+            # Groq, Dahl, Bynara models are string lists
+            models = discover_models(target_prov)
+            if not models and target_prov != "groq":
+                target_prov = "groq"
                 models = discover_models(target_prov)
-                if not models and target_prov != "groq":
-                    target_prov = "groq"
-                    models = discover_models(target_prov)
-                if models:
-                    # Prefer standard capable models
-                    preferred = [m for m in models if "20b" in m or "70b" in m or "deepseek" in m or "flash" in m]
-                    target_model = preferred[0] if preferred else models[0]
+            if models:
+                # Prefer standard capable models
+                preferred = [m for m in models if "20b" in m or "70b" in m or "deepseek" in m or "flash" in m]
+                target_model = preferred[0] if preferred else models[0]
 
-            if target_model:
-                resp = chat(
-                    provider=target_prov,
-                    model=target_model,
-                    messages=[
-                        {"role": "system", "content": SYSTEM_PROMPT},
-                        {"role": "user", "content": f"Generate an exact, realistic Sandbox Siege trap for this requirement:\n\n{prompt_clean}"},
-                    ],
-                    max_retries=2,
-                    timeout=30.0,
-                )
-                content = resp.choices[0].message.content or ""
-                # Parse fenced JSON or raw JSON
-                match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", content, re.DOTALL)
-                raw_json = match.group(1) if match else content
-                raw_json = raw_json.strip()
-                if "{" in raw_json and "}" in raw_json:
-                    clean_str = raw_json[raw_json.find("{") : raw_json.rfind("}") + 1]
-                    scenario_data = json.loads(clean_str)
-        except Exception as exc:
-            logger.warning("Live LLM trap generation failed: %s; falling back to deterministic template", exc)
+        if target_model:
+            resp = chat(
+                provider=target_prov,
+                model=target_model,
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": f"Generate an exact, realistic Sandbox Siege trap for this requirement:\n\n{prompt_clean}"},
+                ],
+                max_retries=2,
+                timeout=30.0,
+            )
+            content = resp.choices[0].message.content or ""
+            # Parse fenced JSON or raw JSON
+            match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", content, re.DOTALL)
+            raw_json = match.group(1) if match else content
+            raw_json = raw_json.strip()
+            if "{" in raw_json and "}" in raw_json:
+                clean_str = raw_json[raw_json.find("{") : raw_json.rfind("}") + 1]
+                scenario_data = json.loads(clean_str)
+    except Exception as exc:
+        logger.warning("Live LLM trap generation failed: %s; falling back to deterministic template", exc)
 
     if not scenario_data:
         scenario_data = _generate_scenario_dict_fallback(prompt_clean)

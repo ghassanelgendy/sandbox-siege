@@ -128,6 +128,26 @@ docker compose up --build -d
 * **LocalStack Sandbox:** `http://localhost:14566`
 * **Cloudflare Tunnel:** Automatically routes traffic to your domain over HTTPS.
 
+## Pitch deck
+
+The finals deck is a single self-contained HTML file, kept in two places:
+`presentation/siege-deck-final.html` and `backend/siege/presentation.html` (so the
+backend can serve it). **Edit one and copy it over the other** — they must stay
+identical.
+
+The title slide renders `assets/Cube.glb`, rotating once every 18 seconds beside the
+wordmark. The model is **base64-inlined into the deck**, not linked: the two copies sit
+at different directory depths, so a relative asset path would resolve in one and 404 in
+the other. After adding or changing the model:
+
+```bash
+make deck-cube                # inlines assets/Cube.glb into both deck copies
+```
+
+Without the model the slide draws a wireframe cube in the deck palette, so it never
+shows a hole. three.js loads from jsDelivr; the cube honours `prefers-reduced-motion`
+and only renders while the title slide is on screen.
+
 ## Documentation
 
 | Doc | Contents |

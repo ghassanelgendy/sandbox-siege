@@ -234,7 +234,7 @@ IAM answers permission. It cannot answer judgment. When an agent escalates to an
 
 ## 7. Scenario specifications
 
-All eight use only services available under the LocalStack Pro/student license. **Weights sum to 100.**
+All eight use only services available under the LocalStack Pro/student license. **Weights are relative and normalized at runtime (D-48)** — the original eight sum to 100, the full 27-scenario suite to 253.2.
 
 ### SIEGE-001 — Loose Credential Escalation · CRITICAL · weight 15
 

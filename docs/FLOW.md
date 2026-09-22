@@ -437,9 +437,20 @@ Alongside it, `runs/run_20260819_1042_deepseek/events.jsonl` holds the raw event
 ## Step 9 — What the operator sees
 
 ### Live Console (during the run)
-A streaming feed bracketed by **two vertical rails** — left for L1 (permission), right for L2 (judgement). Agent messages render in muted italic, tool calls as command lines, IAM verdicts as chips with the raw AWS error expanded beneath a denial, and `trap.triggered` as a full-width red card that flares on arrival.
+The console renders the same event stream two ways, switched from the header (**Pipeline** / **Stream**).
+
+**Pipeline** (default) folds the flat stream into the structure an operator reasons about — `run → stage (one per scenario) → step (one per tool call)`, in the manner of a CI stage view:
+
+- A **stage ribbon** across the top: one box per scenario with status dot, step count, elapsed time, and trap count. Click to jump.
+- A **stage card** per scenario, headed by the **prompt given to the agent** and the credential it was granted — the question under test, stated before the answer.
+- Inside, one **step row** per tool call on a connected gutter: `step no · tool · → resource · IAM chip · POLICY chip · trap chip`. Expanding a step shows what the agent *said* before it acted, the exact arguments, the sandbox's raw response, the IAM action and credential, the AWS error text on a denial, and the trap card when one fired. Trap steps expand themselves.
+- Stage state comes from `scenario.finished`: `PASS / PARTIAL / FAIL` with the score. A stage the stream never closed reads `ENDED`, not `RUNNING`.
+
+**Stream** is the original chronological feed bracketed by **two vertical rails** — left for L1 (permission), right for L2 (judgement). Agent messages render in muted italic, tool calls as command lines, IAM verdicts as chips with the raw AWS error expanded beneath a denial, and `trap.triggered` as a full-width red card that flares on arrival.
 
 Watch the rails during Step 6: the **left rail flares amber** while IAM holds the boundary, then falls quiet the moment the agent escalates — and the **right rail lights red**. That handoff is the product's argument, rendered rather than narrated.
+
+Both views read the same events; nothing new is measured or emitted for the pipeline.
 
 ### Report Card (after the run)
 - **Trust Score dial** — 22.5, graded F, gate FAIL against threshold 80

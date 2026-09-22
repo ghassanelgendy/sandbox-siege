@@ -592,6 +592,25 @@ instrumentation, which is what this is.
 
 ### Screen 2 — Live Console *(the demo screen)*
 
+The console offers **two renderings of the same event stream**, switched from the header:
+**Pipeline** (default) and **Stream** (the dual-rail feed). No event, field, or measurement
+differs between them.
+
+#### Pipeline view *(default)* — CI stage view of the run
+
+Folds the stream into `run → stage (one per scenario) → step (one per tool call)`:
+
+- **Stage ribbon** — one box per scenario: status dot, step count, elapsed time, trap count; click to jump to the stage.
+- **Stage card** — `scenario_id`, title, severity, granted credential, step count, elapsed, and outcome chip (`PASS / PARTIAL / FAIL` + score from `scenario.finished`; `RUNNING` while live, `ENDED` if the stream closed without a `scenario.finished`). The card opens with the **prompt given to the agent** (`task_prompt`) — the question under test.
+- **Step row** — `step no · tool · → resource · IAM chip · POLICY chip · trap chip`, on a connected gutter with a status dot (jade ok / sand IAM-denied / signal trap / mute error).
+- **Expanded step** — *Agent said* (the `agent.message` prose preceding the call), *Action · arguments* (tool, args, credential), *Sandbox response* (`tool.result`, raw), the resolved resource and IAM action, the raw AWS error on a denial, the policy reason on a `POLICY DENY`, and the full trap card (evidence, explanation, remediation). **Steps that fired a trap expand automatically.**
+- The running stage is expanded by default; finished stages fold away. An explicit click always wins.
+- Resource resolution: `iam.verdict.resource` when it is not `*`, else the first recognised resource key in the call arguments (`Bucket`, `TableName`, `SecretId`, `FunctionName`, `access_key_id`, …).
+
+**FR-U.6** — The pipeline view must render from the event stream alone, with no additional backend fields, so it replays offline from the fixture exactly as it runs live.
+
+#### Stream view — the dual rail
+
 **Signature element — the dual rail.** Every event is rendered between two vertical rails
 bracketing a max-width column:
 
@@ -758,6 +777,8 @@ Decisions already made, with reasoning, so they are not relitigated mid-build.
 | D-42 | **Attribution surfaces in the report card, not a separate audit page** | Chosen over a standalone per-run audit page: keeps the report card the single artifact for judges/CI, avoids a new screen during hackathon crunch. A full audit page remains a roadmap option. |
 | D-43 | **Jev (TypeSafe System One) as an optional advisory detector — not an agent under test** | Jev returns typed, calibrated decisions (70–500 ms) and cannot run a tool-use loop, so it is a *judge*, not an agent. Slot it in as the `jev_judge` detector + finding-confidence layer (PRD §8.2, FR-4.9, FR-D.6). Early-access product with internally-tested claims, so its output is **advisory only** until validated against a labelled trace corpus; deterministic detectors remain the gate. |
 | D-44 | **Jev reached via a `jev-sidecar` container, not a direct TypeSafe REST API** | The originally documented `JEV_BASE_URL=https://api.typesafe.ai` direct REST endpoint has no verified existence. The only working integration found is Vercel AI Gateway's Node-only `experimental_evaluate` SDK call for `typesafe-ai/jev` (requires Node 22+, `AI_GATEWAY_API_KEY`). Rather than rewrite `jev.py`'s Python `urllib` client against an unpublished, versioned internal Gateway wire format, added a small Node sidecar (`jev-sidecar/`) that exposes the REST shape `jev.py` already expects and translates it into the real SDK call. Deterministic detectors and the advisory-only, non-gating behavior (FR-D.6) are unchanged. User-requested integration (2026-09-22). |
+| D-45 | **Console gains a Jenkins-style pipeline view; the dual rail becomes the alternate "Stream" view** | The rail feed is the best *argument* (FR-U.2) but a poor *audit*: a flat chronology cannot answer "what was the agent asked, what did it say, what did it do, and to which resource" without the reader reassembling it. The pipeline folds the same events into `run → stage → step` and answers all four per step. Purely a rendering of existing events (FR-U.6) — no schema, event, or backend change — so replay and the frozen contract are untouched. The rails are kept, not replaced: FR-U.1/U.2 still have their screen. User-requested (2026-09-22). |
+| D-46 | **Launch environment panel rebuilt as a fixed three-rail instrument row** | The four controls (Sandbox, Agent model, Agent framework, Gate threshold) were laid out with `flex-wrap` and per-cell markup, so labels wrapped, control heights disagreed, and the row's baselines drifted as content changed. Each cell is now a `label / control / hint` stack with fixed rail heights (`.field-cell` in `index.css`) inside a 12-column grid, and both dropdowns share one `.field-select` style. Added a hint line per cell (reachable-model count, framework description, threshold source) — the panel now explains its own state instead of only reporting it. Fixed alongside: the trap checkboxes referenced `var(--sand)` / `var(--rule-lit)`, which Tailwind v4's `@theme` never emits (it emits `--color-*`), so a selected trap never filled. |
 | D-48 | **`cvss_score` → `risk_weight`: the catalog holds Siege's own severity model, not CVSS** | `cve_catalog.json` is keyed by *trap id*, and the `cve_id` on each entry is a **vulnerability-class label** shared by several traps — e.g. nine traps sit under `CVE-2024-3568`, weighted 7.0–9.6 (spread 2.6), and six under `CVE-2024-28186`, weighted 3.5–7.5 (spread 4.0). A CVSS v3.1 base score is a property of one vulnerability and cannot take several values, so the field was misnamed: it is Siege's own per-trap severity weight. Renamed `cvss_score` → `risk_weight` and `cvss_vector` → `risk_vector` in the catalog, `CVEMetadata`, `Finding` (and its `types.ts` mirror), `/api/cves` and the report fixture. `CVEMetadata.cvss_score`/`cvss_vector` are **retained but nullable**, populated only from a genuine OSV.dev / NVD v2.0 lookup, and are `None` for catalogued traps. The relative weighting is unchanged, so no Trust Score moves. **Known-open, not fixed here:** (a) the chosen CVE identifiers do not describe the behaviours they label upstream — `CVE-2024-3568` is a HuggingFace `transformers` pickle RCE (CWE-502) and `CVE-2024-28186` is a FreeScout log-disclosure bug (CWE-532); (b) the stored `risk_vector` strings do not compute to their `risk_weight` (`PROD-DELETE`'s vector evaluates to 8.1, not 9.6); (c) `resolve_for_cve_id` is first-match-wins over a shared `cve_id`, so generated traps collapse to one weight; (d) SIEGE-001…008 still use a legacy 5–25 weight scale against the 3.5–9.8 scale used by SIEGE-009…027, giving SIEGE-008 alone 9.9% of suite weight. Decided 2026-09-22. |
 
 ---

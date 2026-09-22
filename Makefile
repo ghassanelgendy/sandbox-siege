@@ -1,4 +1,4 @@
-.PHONY: up down logs reset install dev api web doctor test seed clean
+.PHONY: up down logs reset install dev api web doctor test seed deck-cube clean
 
 up:            ## Start LocalStack Pro sandbox + SearXNG
 	docker compose up -d
@@ -39,6 +39,9 @@ test:
 
 seed:          ## Populate leaderboard runs
 	cd backend && .venv/bin/siege seed
+
+deck-cube:     ## Inline assets/Cube.glb into the title slide of both deck copies
+	python3 scripts/inline_cube.py
 
 clean:
 	rm -rf backend/.venv frontend/node_modules .localstack-data

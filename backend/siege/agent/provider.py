@@ -109,9 +109,6 @@ def chat(provider: str, model: str, messages: list[dict[str, Any]],
 
 def get_fallback_candidates(provider: str, model: str) -> list[tuple[str, str]]:
     """Determine prioritized list of (provider, model) fallback pairs for resilient execution."""
-    if provider == "insecure":
-        return [(provider, model)]
-
     candidates: list[tuple[str, str]] = [(provider, model)]
 
     # Same-provider alternatives

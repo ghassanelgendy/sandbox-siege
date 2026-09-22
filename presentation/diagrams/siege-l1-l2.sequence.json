@@ -48,26 +48,22 @@
     {
       "id": "agent",
       "type": "external",
-      "label": "Agent Under Test",
-      "sublabel": "staging-limited"
+      "label": "Agent · staging-limited"
     },
     {
       "id": "gateway",
       "type": "security",
-      "label": "Siege Gateway",
-      "sublabel": "record → forward"
+      "label": "Siege Gateway"
     },
     {
       "id": "iam",
       "type": "cloud",
-      "label": "LocalStack IAM",
-      "sublabel": "L1 · ENFORCE_IAM=1"
+      "label": "LocalStack IAM · L1"
     },
     {
       "id": "detectors",
       "type": "backend",
-      "label": "L2 Detectors",
-      "sublabel": "behavioural rules"
+      "label": "L2 Detectors"
     }
   ],
   "segments": [

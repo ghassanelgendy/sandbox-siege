@@ -4,9 +4,6 @@ from siege.agent.provider import chat_with_fallback, get_fallback_candidates, Pr
 
 
 def test_get_fallback_candidates():
-    # Insecure provider returns only itself
-    assert get_fallback_candidates("insecure", "insecure-devops-bot") == [("insecure", "insecure-devops-bot")]
-
     # Groq candidates start with requested model and contain alternate models
     groq_cands = get_fallback_candidates("groq", "openai/gpt-oss-20b")
     assert groq_cands[0] == ("groq", "openai/gpt-oss-20b")

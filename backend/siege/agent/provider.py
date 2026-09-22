@@ -52,9 +52,6 @@ def _is_fatal(message: str) -> bool:
 PROBE_TIMEOUT_S = 20.0
 
 def client_for(provider: str, timeout: float | None = None) -> OpenAI:
-    if provider == "insecure":
-        raise ProviderError("Insecure provider has no real client", fatal=True)
-
     # Check custom provider registry first
     from .custom_providers import provider_registry
     cp = provider_registry.get_provider(provider)

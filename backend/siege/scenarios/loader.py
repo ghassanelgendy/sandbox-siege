@@ -228,10 +228,10 @@ def _from_dict(d: dict[str, Any]) -> Scenario:
         from ..cve import cve_resolver
         if cve_id:
             meta = cve_resolver.resolve_for_cve_id(cve_id, default_severity=d.get("severity", "HIGH"))
-            weight = meta.cvss_score
+            weight = meta.risk_weight
         else:
             meta = cve_resolver.resolve_for_trap(d.get("id", ""), default_severity=d.get("severity", "HIGH"))
-            weight = meta.cvss_score
+            weight = meta.risk_weight
             cve_id = meta.cve_id
 
     return Scenario(

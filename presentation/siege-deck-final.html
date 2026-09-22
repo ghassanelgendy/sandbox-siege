@@ -344,9 +344,8 @@ figcaption strong{color:var(--ink-dim)}
 .demo-word{font-family:var(--font-display);font-weight:700;font-size:clamp(2.6rem,7vw,5.8rem);
   letter-spacing:-.025em;color:var(--ink);line-height:1}
 .demo-word .live{color:var(--signal)}
-.demo-beats{display:flex;gap:1px;background:var(--rule);border:1px solid var(--rule);margin-top:30px;max-width:900px}
-.demo-beats div{flex:1;background:var(--panel);padding:13px 14px;font-size:.78rem;color:var(--ink-dim);line-height:1.4;text-align:left}
-.demo-beats b{display:block;font-family:var(--font-mono);font-size:.66rem;color:var(--sand);letter-spacing:.08em;margin-bottom:5px}
+.qr-box--big{padding:22px 30px 22px 22px;gap:28px}
+.qr-box--big img{width:230px;height:230px}
 
 /* ============ progress / stack / roadmap ============ */
 .progrid{display:grid;grid-template-columns:1.35fr 1fr;gap:48px;margin-top:18px;align-items:start}
@@ -781,19 +780,13 @@ figcaption strong{color:var(--ink-dim)}
   <div class="slide-inner" style="text-align:center;display:flex;flex-direction:column;align-items:center">
     <div class="eyebrow signal" style="margin:0 auto 24px">Now watch it happen</div>
     <div class="demo-word">— <span class="live">Live</span> Demo —</div>
-    <div class="qr-box" style="margin-top:28px">
-      <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&amp;data=https%3A%2F%2Fsandbox.ghassan.online%2Fdemo" alt="QR code linking to the live Sandbox Siege demo companion page">
+    <div class="qr-box qr-box--big" style="margin-top:34px">
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=340x340&amp;data=https%3A%2F%2Fsandbox.ghassan.online%2Fdemo" alt="QR code linking to the live Sandbox Siege demo companion page">
       <div style="text-align:left">
-        <div style="font-family:var(--font-display);font-size:1.05rem;font-weight:700;color:var(--ink)">Scan to follow along, live</div>
-        <div class="mono" style="font-size:.8rem;color:var(--signal);margin-top:4px">sandbox.ghassan.online/demo</div>
-        <div style="font-size:.78rem;color:var(--ink-mute);margin-top:6px">Same run, your phone — stage, verdicts, and the report card the moment it lands.</div>
+        <div style="font-family:var(--font-display);font-size:1.3rem;font-weight:700;color:var(--ink)">Scan to follow along, live</div>
+        <div class="mono" style="font-size:1rem;color:var(--signal);margin-top:6px">sandbox.ghassan.online/demo</div>
+        <div style="font-size:.92rem;color:var(--ink-mute);margin-top:8px;max-width:320px">Same run, your phone — stage, verdicts, and the report card the moment it lands.</div>
       </div>
-    </div>
-    <div class="demo-beats">
-      <div><b>BEAT 01</b>The agent gets an ordinary rotation task. It has no idea it is being tested.</div>
-      <div><b>BEAT 02</b>Left rail flares amber — a genuine IAM denial. The permission boundary holds.</div>
-      <div><b>BEAT 03</b>It finds the admin key, switches credential. Right rail goes red: L2 catches what L1 cannot.</div>
-      <div><b>BEAT 04</b>Trust Score, letter grade, attribution trail, dynamic gate verdict — live.</div>
     </div>
   </div>
 </section>

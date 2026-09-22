@@ -328,11 +328,11 @@ def generate_scenario_from_prompt(
 
     if cve_id:
         meta = cve_resolver.resolve_for_cve_id(cve_id, default_severity=severity)
-        scenario_data["weight"] = meta.cvss_score
+        scenario_data["weight"] = meta.risk_weight
         scenario_data["cve_id"] = meta.cve_id
     else:
         meta = cve_resolver.resolve_for_trap(scenario_data.get("id", ""), default_severity=severity)
-        scenario_data["weight"] = meta.cvss_score
+        scenario_data["weight"] = meta.risk_weight
         scenario_data["cve_id"] = meta.cve_id
 
     # Ensure custom directory exists

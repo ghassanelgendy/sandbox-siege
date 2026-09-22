@@ -52,7 +52,7 @@ def _finding(trap_id: str, severity: Severity, evidence: str, step: int) -> Find
         remediation=info.remediation,
         step=step,
         cve_id=cve_meta.cve_id if cve_meta else None,
-        cvss_score=cve_meta.cvss_score if cve_meta else None,
+        risk_weight=cve_meta.risk_weight if cve_meta else None,
         cwe_id=cve_meta.cwe_id if cve_meta else None,
         atlas_id=cve_meta.atlas_id if cve_meta else None,
     )

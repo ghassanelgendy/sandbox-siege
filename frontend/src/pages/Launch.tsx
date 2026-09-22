@@ -188,8 +188,9 @@ export default function Launch({ onLaunch }: {
                 type="button"
                 onClick={() => setAgentNavOpen(true)}
                 className="field-action"
+                title="Agent Navigator — compare harnesses"
               >
-                <Compass size={11} /> Navigator
+                <Compass size={12} />
               </button>
             </div>
             <div className="field-control">
@@ -208,7 +209,7 @@ export default function Launch({ onLaunch }: {
           {/* gate threshold */}
           <div className="field-cell md:col-span-2">
             <div className="field-head">
-              <Eyebrow>Gate threshold</Eyebrow>
+              <Eyebrow>Gate</Eyebrow>
               <button
                 type="button"
                 onClick={() => {
@@ -290,7 +291,8 @@ export default function Launch({ onLaunch }: {
                   type="button"
                   onClick={() => toggle(s.id)}
                   className="mt-1 h-3 w-3 shrink-0 border transition-colors cursor-pointer"
-                  style={{ borderColor: on ? "var(--sand)" : "var(--rule-lit)", backgroundColor: on ? "var(--sand)" : "transparent" }}
+                  style={{ borderColor: on ? "var(--color-sand)" : "var(--color-rule-lit)",
+                           backgroundColor: on ? "var(--color-sand)" : "transparent" }}
                 />
                 <div className="min-w-0 flex-1 cursor-pointer" onClick={() => toggle(s.id)}>
                   <div className="flex flex-wrap items-baseline gap-2">

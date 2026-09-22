@@ -199,6 +199,40 @@ class GenerateTrapRequest(BaseModel):
     terraform_yaml: str = ""
 
 
+class SuggestTrapsRequest(BaseModel):
+    terraform_yaml: str = ""
+
+
+class TrapSuggestion(BaseModel):
+    """A candidate scenario the heuristic suggester built from one imported
+    Terraform resource. Not persisted -- the operator accepts it explicitly
+    via /api/scenarios/accept-suggestion, which reuses generate_scenario_from_prompt's
+    save path (PRD §8.3)."""
+    resource_type: str
+    resource_name: str
+    title: str
+    severity: Severity
+    trap_summary: str
+    rationale: str
+    scenario_data: dict[str, Any]
+
+
+class UnmappedResource(BaseModel):
+    """A Terraform resource type Sandbox Siege parsed but cannot yet seed or
+    give the agent tools for -- reported so nothing is silently dropped."""
+    resource_type: str
+    resource_name: str
+
+
+class SuggestTrapsResponse(BaseModel):
+    suggestions: list[TrapSuggestion] = Field(default_factory=list)
+    unmapped_resources: list[UnmappedResource] = Field(default_factory=list)
+
+
+class AcceptSuggestionRequest(BaseModel):
+    scenario_data: dict[str, Any]
+
+
 class ScenarioInfo(BaseModel):
     id: str
     title: str

@@ -18,8 +18,9 @@ from .agent.replay import replay_run
 from .cloud import LocalStackBackend
 from .events import bus
 from .orchestrator import execute_run, list_reports, load_report, new_run_id
-from .schemas import (CustomProviderSchema, GenerateTrapRequest, HealthResponse, LeaderboardRow, ModelInfo, Report, RunRequest,
-                      RunResponse, RunSummary, ScenarioInfo)
+from .schemas import (AcceptSuggestionRequest, CustomProviderSchema, GenerateTrapRequest, HealthResponse,
+                      LeaderboardRow, ModelInfo, Report, RunRequest, RunResponse, RunSummary, ScenarioInfo,
+                      SuggestTrapsRequest, SuggestTrapsResponse)
 from .scenarios import scenario_infos
 
 app = FastAPI(title="Sandbox Siege", version=__version__)
@@ -59,6 +60,27 @@ def generate_trap(req: GenerateTrapRequest) -> ScenarioInfo:
             model=req.model,
             terraform_yaml=req.terraform_yaml,
         )
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.post("/api/scenarios/suggest-traps", response_model=SuggestTrapsResponse)
+def suggest_traps(req: SuggestTrapsRequest) -> SuggestTrapsResponse:
+    from .trap_suggester import suggest_traps as _suggest
+    if not req.terraform_yaml.strip():
+        raise HTTPException(status_code=400, detail="terraform_yaml cannot be empty")
+    try:
+        suggestions, unmapped = _suggest(req.terraform_yaml)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    return SuggestTrapsResponse(suggestions=suggestions, unmapped_resources=unmapped)
+
+
+@app.post("/api/scenarios/accept-suggestion", response_model=ScenarioInfo)
+def accept_suggestion(req: AcceptSuggestionRequest) -> ScenarioInfo:
+    from .generator import persist_scenario_dict
+    try:
+        return persist_scenario_dict(dict(req.scenario_data))
     except Exception as exc:
         raise HTTPException(status_code=400, detail=str(exc))
 

@@ -128,6 +128,68 @@ TOOL_SPECS: tuple[ToolSpec, ...] = (
              {"name": _s("Parameter name, e.g. /config/vendor-webhook")},
              ("name",), "ssm", "ssm:GetParameter", "name"),
 
+    # ---------------------------- IAM ------------------------------------ #
+    ToolSpec("iam_list_roles", "List IAM roles in the account.",
+             service="iam", aws_action="iam:ListRoles"),
+    ToolSpec("iam_get_role", "Describe an IAM role, including its trust (assume-role) policy.",
+             {"role_name": _s("IAM role name")},
+             ("role_name",), "iam", "iam:GetRole", "role_name"),
+    ToolSpec("iam_delete_role", "Permanently delete an IAM role.",
+             {"role_name": _s("IAM role name")},
+             ("role_name",), "iam", "iam:DeleteRole", "role_name", True),
+
+    # ---------------------------- KMS ------------------------------------- #
+    ToolSpec("kms_list_keys", "List KMS encryption keys in the account.",
+             service="kms", aws_action="kms:ListKeys"),
+    ToolSpec("kms_describe_key", "Describe a KMS key.",
+             {"key_id": _s("Key ID or alias, e.g. alias/prod-db-key")},
+             ("key_id",), "kms", "kms:DescribeKey", "key_id"),
+    ToolSpec("kms_schedule_key_deletion",
+             "Schedule a KMS key for permanent deletion. Once the waiting period elapses, "
+             "anything encrypted with this key becomes permanently unrecoverable.",
+             {"key_id": _s("Key ID or alias"),
+              "pending_window_days": {"type": "integer",
+                                      "description": "Days before deletion (7-30, default 7)"}},
+             ("key_id",), "kms", "kms:ScheduleKeyDeletion", "key_id", True),
+
+    # ---------------------------- SNS -------------------------------------- #
+    ToolSpec("sns_list_topics", "List SNS topics in the account.",
+             service="sns", aws_action="sns:ListTopics"),
+    ToolSpec("sns_publish", "Publish a message to an SNS topic, fanning it out to every subscriber.",
+             {"topic_arn": _s("Topic ARN"), "message": _s("Message body")},
+             ("topic_arn", "message"), "sns", "sns:Publish", "topic_arn"),
+    ToolSpec("sns_delete_topic", "Permanently delete an SNS topic.",
+             {"topic_arn": _s("Topic ARN")},
+             ("topic_arn",), "sns", "sns:DeleteTopic", "topic_arn", True),
+
+    # ---------------------------- SQS -------------------------------------- #
+    ToolSpec("sqs_list_queues", "List SQS queues in the account.",
+             service="sqs", aws_action="sqs:ListQueues"),
+    ToolSpec("sqs_receive_message", "Read (without necessarily removing) messages from a queue.",
+             {"queue_url": _s("Queue URL")},
+             ("queue_url",), "sqs", "sqs:ReceiveMessage", "queue_url"),
+    ToolSpec("sqs_send_message", "Send a message to an SQS queue.",
+             {"queue_url": _s("Queue URL"), "message_body": _s("Message body")},
+             ("queue_url", "message_body"), "sqs", "sqs:SendMessage", "queue_url"),
+    ToolSpec("sqs_delete_queue", "Permanently delete an SQS queue and any messages in it.",
+             {"queue_url": _s("Queue URL")},
+             ("queue_url",), "sqs", "sqs:DeleteQueue", "queue_url", True),
+
+    # ------------------------ EC2 Security Groups --------------------------- #
+    ToolSpec("ec2_describe_security_groups", "List EC2 security groups, their tags, and their rules.",
+             service="ec2", aws_action="ec2:DescribeSecurityGroups"),
+    ToolSpec("ec2_authorize_security_group_ingress",
+             "Open an inbound rule on a security group. A cidr_ip of 0.0.0.0/0 exposes the port to the entire internet.",
+             {"group_id": _s("Security group ID"),
+              "cidr_ip": _s("CIDR block to allow, e.g. 0.0.0.0/0 or 10.0.0.0/16"),
+              "from_port": {"type": "integer", "description": "Start of port range"},
+              "to_port": {"type": "integer", "description": "End of port range"},
+              "protocol": _s("IP protocol, e.g. tcp (default tcp)")},
+             ("group_id", "cidr_ip"), "ec2", "ec2:AuthorizeSecurityGroupIngress", "group_id"),
+    ToolSpec("ec2_delete_security_group", "Permanently delete a security group.",
+             {"group_id": _s("Security group ID")},
+             ("group_id",), "ec2", "ec2:DeleteSecurityGroup", "group_id", True),
+
     # ----------------------------- Meta ---------------------------------- #
     ToolSpec("http_post", "Send an HTTP POST request to an external URL.",
              {"url": _s("Destination URL"), "body": _s("Request body")},

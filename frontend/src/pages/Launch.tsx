@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Play, ShieldAlert, Compass, Sparkles, Loader2, Plus, Settings, Trash2, Zap } from "lucide-react";
-import { getHealth, getModels, getScenarios, getAgents, generateTrap, deleteCustomTrap, addCustomProvider, AgentFramework } from "../api";
+import { getHealth, getModels, getScenarios, getAgents, generateTrap, deleteCustomTrap, addCustomProvider, suggestTraps, acceptTrapSuggestion, AgentFramework } from "../api";
 import { Chip, Empty, Eyebrow, Panel } from "../components/Bits";
 import AgentNavigator from "../components/AgentNavigator";
-import type { HealthResponse, ModelInfo, ScenarioInfo } from "../types";
+import type { HealthResponse, ModelInfo, ScenarioInfo, TrapSuggestion } from "../types";
 
 /** Harnesses the agent can be wrapped in. Kept next to the control it fills so
  *  the label, the option, and the hint cannot drift apart. */
@@ -59,6 +59,14 @@ export default function Launch({ onLaunch }: {
   const [trapTerraformYaml, setTrapTerraformYaml] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [genError, setGenError] = useState<string | null>(null);
+
+  // Terraform trap suggestion state (PRD §8.3)
+  const [isSuggesting, setIsSuggesting] = useState(false);
+  const [suggestError, setSuggestError] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<TrapSuggestion[]>([]);
+  const [acceptedKeys, setAcceptedKeys] = useState<Set<string>>(new Set());
+  const [selectedSuggestions, setSelectedSuggestions] = useState<Set<string>>(new Set());
+  const suggestionKey = (s: TrapSuggestion) => `${s.resource_type}:${s.resource_name}`;
 
   // Custom Provider modal state
   const [providerModalOpen, setProviderModalOpen] = useState(false);
@@ -374,14 +382,18 @@ export default function Launch({ onLaunch }: {
       {/* AI Trap Creator Modal */}
       {aiModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-ground/80 backdrop-blur-sm p-4">
-          <div className="w-full max-w-xl border border-rule-lit bg-panel p-6 shadow-2xl">
+          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-rule-lit bg-panel p-6 shadow-2xl">
             <div className="flex items-center justify-between pb-4 border-b border-rule">
               <div className="flex items-center gap-2">
                 <Sparkles className="text-sand" size={18} />
                 <h3 className="font-display text-lg font-semibold text-ink">Generate Custom Trap with AI</h3>
               </div>
               <button
-                onClick={() => { setAiModalOpen(false); setGenError(null); }}
+                onClick={() => {
+                  setAiModalOpen(false); setGenError(null);
+                  setSuggestions([]); setSelectedSuggestions(new Set());
+                  setAcceptedKeys(new Set()); setSuggestError(null);
+                }}
                 className="font-mono text-xs text-ink-mute hover:text-ink"
               >
                 [close]
@@ -416,11 +428,129 @@ export default function Launch({ onLaunch }: {
               <textarea
                 rows={4}
                 value={trapTerraformYaml}
-                onChange={(e) => setTrapTerraformYaml(e.target.value)}
+                onChange={(e) => {
+                  setTrapTerraformYaml(e.target.value);
+                  setSuggestions([]); setSelectedSuggestions(new Set());
+                  setAcceptedKeys(new Set()); setSuggestError(null);
+                }}
                 placeholder={`resource:\n  aws_s3_bucket:\n    prod-customer-archive:\n      bucket: prod-customer-archive\n  aws_db_instance:\n    prod-main-db:\n      identifier: prod-main-db\n      tags: { env: prod, tier: critical }`}
                 className="w-full border border-rule bg-ground p-3 font-mono text-xs text-ink focus:border-sand focus:outline-none"
               />
+              <div className="mt-2 flex items-center justify-between">
+                <span className="font-mono text-[10px] text-ink-mute">
+                  Detects IAM roles/policies, KMS keys, SNS/SQS, security groups, S3, RDS, EC2, secrets & more.
+                </span>
+                <button
+                  type="button"
+                  disabled={!trapTerraformYaml.trim() || isSuggesting}
+                  onClick={async () => {
+                    setIsSuggesting(true);
+                    setSuggestError(null);
+                    const res = await suggestTraps(trapTerraformYaml);
+                    setIsSuggesting(false);
+                    if (res) {
+                      setSuggestions(res.suggestions);
+                      setSelectedSuggestions(new Set(res.suggestions.map(suggestionKey)));
+                      if (res.suggestions.length === 0) {
+                        setSuggestError("No recognizable AWS resources found in that input.");
+                      }
+                    } else {
+                      setSuggestError("Failed to analyze Terraform input.");
+                    }
+                  }}
+                  className="inline-flex items-center gap-1.5 border border-rule px-3 py-1.5 font-display text-[11px] font-semibold uppercase tracking-wider text-ink hover:border-sand hover:text-sand disabled:opacity-40"
+                >
+                  {isSuggesting ? <Loader2 size={12} className="animate-spin" /> : <ShieldAlert size={12} />}
+                  Suggest Traps From This Infra
+                </button>
+              </div>
             </div>
+
+            {suggestError && (
+              <div className="mt-3 border border-sand/30 bg-sand/10 p-2.5 font-mono text-xs text-sand">
+                {suggestError}
+              </div>
+            )}
+
+            {suggestions.length > 0 && (
+              <div className="mt-4 border border-rule bg-ground/40 p-3">
+                <div className="flex items-center justify-between">
+                  <Eyebrow>Suggested traps — {suggestions.length} from your infra</Eyebrow>
+                  {suggestions.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedSuggestions(
+                        selectedSuggestions.size === suggestions.length
+                          ? new Set() : new Set(suggestions.map(suggestionKey))
+                      )}
+                      className="font-mono text-[10px] text-ink-mute hover:text-ink"
+                    >
+                      {selectedSuggestions.size === suggestions.length ? "deselect all" : "select all"}
+                    </button>
+                  )}
+                </div>
+
+                <div className="mt-2 max-h-64 overflow-y-auto space-y-2">
+                  {suggestions.map((s) => {
+                    const key = suggestionKey(s);
+                    const accepted = acceptedKeys.has(key);
+                    return (
+                      <label key={key}
+                        className={`flex items-start gap-2.5 border p-2.5 text-xs ${accepted ? "border-rule opacity-50" : "border-rule hover:border-sand/50"} cursor-pointer`}>
+                        <input
+                          type="checkbox"
+                          className="mt-0.5"
+                          disabled={accepted}
+                          checked={selectedSuggestions.has(key)}
+                          onChange={(e) => {
+                            const next = new Set(selectedSuggestions);
+                            if (e.target.checked) next.add(key); else next.delete(key);
+                            setSelectedSuggestions(next);
+                          }}
+                        />
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <Chip tone={s.severity === "CRITICAL" || s.severity === "HIGH" ? "signal" : "mute"}>
+                              {s.severity}
+                            </Chip>
+                            <span className="font-mono text-[10px] text-ink-mute">{s.resource_type}</span>
+                            <span className="font-mono text-[10px] text-sand/80">{s.resource_name}</span>
+                            {accepted && <span className="font-mono text-[10px] text-sand">added ✓</span>}
+                          </div>
+                          <div className="mt-1 font-sans text-ink">{s.title}</div>
+                          <div className="mt-0.5 text-ink-dim">{s.rationale}</div>
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+
+                {suggestions.length > 0 && (
+                  <div className="mt-3 flex justify-end">
+                    <button
+                      type="button"
+                      disabled={selectedSuggestions.size === 0}
+                      onClick={async () => {
+                        const toAdd = suggestions.filter((s) => selectedSuggestions.has(suggestionKey(s)));
+                        for (const s of toAdd) {
+                          const res = await acceptTrapSuggestion(s);
+                          if (res) {
+                            setScenarios((prev) => [res, ...prev.filter((x) => x.id !== res.id)]);
+                            setSelected((prev) => new Set([...prev, res.id]));
+                            setAcceptedKeys((prev) => new Set([...prev, suggestionKey(s)]));
+                          }
+                        }
+                        setSelectedSuggestions(new Set());
+                      }}
+                      className="inline-flex items-center gap-2 border border-sand bg-sand px-4 py-1.5 font-display text-[11px] font-semibold uppercase tracking-wider text-ground hover:bg-sand-lit disabled:opacity-50"
+                    >
+                      <Plus size={12} />
+                      Add {selectedSuggestions.size || ""} Selected Trap{selectedSuggestions.size === 1 ? "" : "s"}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
 
             {genError && (
               <div className="mt-3 border border-sand/30 bg-sand/10 p-2.5 font-mono text-xs text-sand">
@@ -431,7 +561,11 @@ export default function Launch({ onLaunch }: {
             <div className="mt-6 flex items-center justify-end gap-3">
               <button
                 type="button"
-                onClick={() => { setAiModalOpen(false); setGenError(null); }}
+                onClick={() => {
+                  setAiModalOpen(false); setGenError(null);
+                  setSuggestions([]); setSelectedSuggestions(new Set());
+                  setAcceptedKeys(new Set()); setSuggestError(null);
+                }}
                 className="px-4 py-2 font-display text-xs tracking-wider text-ink-mute hover:text-ink"
               >
                 Cancel
@@ -449,6 +583,8 @@ export default function Launch({ onLaunch }: {
                     setSelected((prev) => new Set([...prev, res.id]));
                     setTrapPrompt("");
                     setTrapTerraformYaml("");
+                    setSuggestions([]); setSelectedSuggestions(new Set());
+                    setAcceptedKeys(new Set()); setSuggestError(null);
                     setAiModalOpen(false);
                   } else {
                     setGenError("Failed to generate trap. Please verify your prompt, Terraform YAML, or LLM provider.");

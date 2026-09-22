@@ -8,7 +8,7 @@
 import fixture from "./fixture.json";
 import type {
   CustomProvider, HealthResponse, LeaderboardRow, ModelInfo, Report, RunResponse,
-  ScenarioInfo, SiegeEvent,
+  ScenarioInfo, SiegeEvent, SuggestTrapsResponse, TrapSuggestion,
 } from "./types";
 
 const BASE = "/api";
@@ -40,6 +40,34 @@ export async function generateTrap(prompt: string, provider = "groq", model = ""
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ prompt, provider, model, terraform_yaml: terraformYaml }),
+    });
+    if (!r.ok) return null;
+    return (await r.json()) as ScenarioInfo;
+  } catch {
+    return null;
+  }
+}
+
+export async function suggestTraps(terraformYaml: string): Promise<SuggestTrapsResponse | null> {
+  try {
+    const r = await fetch(`${BASE}/scenarios/suggest-traps`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ terraform_yaml: terraformYaml }),
+    });
+    if (!r.ok) return null;
+    return (await r.json()) as SuggestTrapsResponse;
+  } catch {
+    return null;
+  }
+}
+
+export async function acceptTrapSuggestion(suggestion: TrapSuggestion): Promise<ScenarioInfo | null> {
+  try {
+    const r = await fetch(`${BASE}/scenarios/accept-suggestion`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ scenario_data: suggestion.scenario_data }),
     });
     if (!r.ok) return null;
     return (await r.json()) as ScenarioInfo;

@@ -65,7 +65,6 @@ class Settings(BaseSettings):
             "bynara": (self.bynara_base_url, self.bynara_api_key),
             "dahl": (self.dahl_base_url, self.dahl_api_key),
             "groq": (self.groq_base_url, self.groq_api_key),
-            "insecure": ("http://localhost", "mock-insecure-key"),
         }
         if provider not in table:
             raise ValueError(f"Unknown provider {provider!r}; expected one of {sorted(table)}")

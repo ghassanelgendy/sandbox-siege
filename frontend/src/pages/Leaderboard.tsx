@@ -78,10 +78,10 @@ export default function Leaderboard() {
                   <td className={`px-3 py-3 font-display text-xl font-semibold ${GRADE_COLOR[r.grade]}`}>
                     {r.grade}
                   </td>
-                  {IDS.map((id) => {
+                  {ids.map((id) => {
                     const o = r.per_scenario[id];
                     return (
-                      <td key={id} className="px-2 py-3 text-center">
+                      <td key={id} className="px-2 py-3 text-center" title={id}>
                         <span className={o ? MARK_COLOR[o] : "text-rule"}>
                           {o ? MARK[o] : "·"}
                         </span>

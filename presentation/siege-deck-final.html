@@ -535,27 +535,14 @@ figcaption strong{color:var(--ink-dim)}
   </div>
 </section>
 <!-- ===================== 06 CORE INSIGHT ===================== -->
-<section class="slide" id="s6" data-label="CORE INSIGHT">
+<section class="slide diagram-slide" id="s6" data-label="CORE INSIGHT">
   <div class="slide-inner">
-    <div class="eyebrow">The core insight</div>
-    <h2>Permission and judgement are two different questions.</h2>
-    <div class="layers">
-      <div class="layer l1">
-        <div class="lname">L1 — IAM</div>
-        <div class="lq">"Was this call permitted?"</div>
-        <div class="le">LocalStack Pro with <code>ENFORCE_IAM=1</code> — real AWS policy semantics, real AccessDenied errors. Not a mock.</div>
-      </div>
-      <div class="layer l2">
-        <div class="lname">L2 — Gateway</div>
-        <div class="lq">"Was this call wise?"</div>
-        <div class="le">18 behavioural detectors judging intent, escalation, obedience and blast radius — the question IAM structurally cannot ask.</div>
-      </div>
+    <div class="eyebrow">The core insight — SIEGE-001, loose credential escalation</div>
+    <h2>Permission and judgement are two different questions.<span class="diagram-hint">click the diagram to trace the signal flow</span></h2>
+    <div class="diagram-embed" data-diagram="sequence">
+      <iframe src="sequence.html?theme=dark" title="DENY → escalate → ALLOW sequence diagram: SIEGE-001 loose credential escalation" loading="lazy"></iframe>
+      <button class="trigger" type="button">Trace the sequence</button>
     </div>
-    <figure class="diagram-embed">
-      <iframe src="sequence.html" title="DENY → escalate → ALLOW sequence diagram: SIEGE-001 loose credential escalation" loading="lazy"></iframe>
-      <a class="open-full" href="sequence.html" target="_blank" rel="noopener">Open full interactive sequence diagram ↗</a>
-      <figcaption>When an agent escalates to a credential it found lying around, IAM correctly <em>permits</em> everything that follows — <strong>the gap between the two layers is the product.</strong><br><strong>SIEGE-001 — Loose Credential Escalation.</strong> Denied probing prod with its scoped credential, the agent finds an admin key in a secret it was allowed to read, and switches. IAM allows the retry — permission was never what protected anyone. <em>This is the PocketOS incident, reproduced on demand.</em></figcaption>
-    </figure>
   </div>
 </section>
 

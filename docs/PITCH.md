@@ -5,8 +5,8 @@
 > **Format:** 15-Minute Championship Pitch + Live Chaos Demo  
 > **Interactive Deck (finals):** [`presentation/siege-deck-final.html`](../presentation/siege-deck-final.html) — 17 slides, self-contained, covers overview, business impact, differentiation, architecture, progress and roadmap  
 > **Earlier decks:** [`presentation/siege-deck.html`](../presentation/siege-deck.html) / [`frontend/public/deck.html`](../frontend/public/deck.html)  
-> **Architecture diagram (Slide 5):** [`presentation/siege-architecture.html`](../presentation/siege-architecture.html) — every layer and tool in one frame, 5 guided views, dark/light, PNG/SVG export  
-> **L1 vs L2 sequence (Slide 4):** [`presentation/siege-l1-l2-sequence.html`](../presentation/siege-l1-l2-sequence.html) — the DENY → escalate → ALLOW beat, 3 guided views  
+> **Architecture diagram (Slide 07 — ARCHITECTURE):** [`presentation/siege-architecture.html`](../presentation/siege-architecture.html) — every layer and tool in one frame, 5 guided views, dark/light, PNG/SVG export. Embedded live in the deck and served at `/architecture` (proxied through the frontend, so it is reachable on the public Cloudflare hostname).  
+> **L1 vs L2 sequence (Slide 06 — CORE INSIGHT):** [`presentation/siege-l1-l2-sequence.html`](../presentation/siege-l1-l2-sequence.html) — the DENY → escalate → ALLOW beat, 3 guided views. Embedded live in the deck and served at `/sequence` (same public-host proxy).  
 > **Diagram sources:** [`presentation/diagrams/`](../presentation/diagrams/) — Archify JSON specs; re-render with `archify deliver`  
 > **Repository:** [github.com/ghassanelgendy/sandbox-siege](https://github.com/ghassanelgendy/sandbox-siege)
 

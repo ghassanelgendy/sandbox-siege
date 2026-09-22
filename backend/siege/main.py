@@ -3,12 +3,16 @@
 from __future__ import annotations
 
 import asyncio
+import json
+import re
+import time
 from concurrent.futures import ThreadPoolExecutor
 
 import os
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 
 from . import __version__
@@ -16,8 +20,10 @@ from .agent.frameworks import get_all_frameworks
 from .agent.provider import PROVIDERS, discover_models, health_check_model
 from .agent.replay import replay_run
 from .cloud import LocalStackBackend
-from .events import bus
+from .config import RUNS_DIR
+from .events import bus, read_events
 from .orchestrator import execute_run, list_reports, load_report, new_run_id
+from .reporting import EmailSendError, send_report_email
 from .schemas import (AcceptSuggestionRequest, CustomProviderSchema, GenerateTrapRequest, HealthResponse,
                       LeaderboardRow, ModelInfo, Report, RunRequest, RunResponse, RunSummary, ScenarioInfo,
                       SuggestTrapsRequest, SuggestTrapsResponse)
@@ -196,6 +202,20 @@ def sequence_diagram() -> FileResponse:
     raise HTTPException(status_code=404, detail="Sequence diagram not found")
 
 
+@app.get("/demo.html")
+@app.get("/demo")
+def demo_companion() -> FileResponse:
+    """Public, mobile-optimized spectator page — QR target on deck slide 14 (D-52)."""
+    pkg_path = os.path.join(os.path.dirname(__file__), "demo.html")
+    if os.path.exists(pkg_path):
+        return FileResponse(pkg_path, media_type="text/html")
+    base = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    pub_path = os.path.join(base, "frontend", "public", "demo.html")
+    if os.path.exists(pub_path):
+        return FileResponse(pub_path, media_type="text/html")
+    raise HTTPException(status_code=404, detail="Demo companion page not found")
+
+
 @app.get("/api/agents")
 def agents() -> list[dict]:
     return get_all_frameworks()
@@ -302,12 +322,86 @@ def runs() -> list[RunSummary]:
             for r in list_reports()]
 
 
+class CurrentRun(BaseModel):
+    status: str  # "live" | "finished" | "idle"
+    run_id: str | None = None
+    report: Report | None = None
+
+
+@app.get("/api/runs/current", response_model=CurrentRun)
+def current_run() -> CurrentRun:
+    """Whichever run the `/demo` spectator page should follow (D-52).
+
+    The deck's QR is static and can't be repointed per-run, so it always hits
+    this indirection: the most recently started live run, else the most
+    recently finished report, else an explicit idle state. Must be registered
+    before `/api/runs/{run_id}` or that path param swallows "current" first.
+    """
+    active = bus.active_ids()
+    if active:
+        return CurrentRun(status="live", run_id=active[-1])
+    reports = list_reports()
+    if reports:
+        latest = max(reports, key=lambda r: r.started_at)
+        return CurrentRun(status="finished", run_id=latest.run_id, report=latest)
+    return CurrentRun(status="idle")
+
+
 @app.get("/api/runs/{run_id}", response_model=Report)
 def run_report(run_id: str) -> Report:
     report = load_report(run_id)
     if report is None:
         raise HTTPException(404, f"No report for run {run_id!r}")
     return report
+
+
+class EmailReportRequest(BaseModel):
+    email: str
+
+
+_EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+_last_send_by_ip: dict[str, float] = {}
+_sent_pairs: set[tuple[str, str]] = set()
+_RATE_LIMIT_S = 10.0
+
+
+@app.post("/api/runs/{run_id}/email")
+def email_report(run_id: str, req: EmailReportRequest, request: Request) -> dict[str, bool | str]:
+    """Sends the finished report to a spectator-supplied address via Resend (D-52).
+
+    Public and unauthenticated by design (QR-driven, no login for a judge to
+    do) — mitigated with format validation and a light per-IP rate limit
+    rather than a login wall, per the accepted tradeoff in PRD D-52/D-38.
+    """
+    email = req.email.strip()
+    if not _EMAIL_RE.match(email):
+        raise HTTPException(400, "That doesn't look like a valid email address")
+
+    report = load_report(run_id)
+    if report is None:
+        raise HTTPException(404, f"Run {run_id!r} hasn't finished yet")
+
+    ip = request.client.host if request.client else "unknown"
+    now = time.monotonic()
+    if now - _last_send_by_ip.get(ip, 0.0) < _RATE_LIMIT_S:
+        raise HTTPException(429, "Please wait a few seconds before trying again")
+    _last_send_by_ip[ip] = now
+
+    pair = (email.lower(), run_id)
+    RUNS_DIR.mkdir(parents=True, exist_ok=True)
+    with (RUNS_DIR / "leads.jsonl").open("a", encoding="utf-8") as fh:
+        fh.write(json.dumps({"email": email, "run_id": run_id, "ts": time.time()}) + "\n")
+
+    if pair in _sent_pairs:
+        return {"ok": True, "detail": "already sent"}
+
+    try:
+        send_report_email(report, email)
+    except EmailSendError as exc:
+        raise HTTPException(502, str(exc))
+
+    _sent_pairs.add(pair)
+    return {"ok": True}
 
 
 @app.get("/api/runs/{run_id}/stream")

@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sandbox Siege — Live</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ground:#0B1016; --panel:#121A23; --panel2:#18232F; --rule:#1E2A36; --rule-lit:#2C3D4E;
+    --ink:#E4EAF0; --ink-dim:#96A6B8; --ink-mute:#61738A;
+    --sand:#E0A458; --sand-dim:#6B4E28; --signal:#E5484D; --signal-dim:#5E1F22;
+    --jade:#6FD3A6; --jade-dim:#1F4738;
+    --font-display:"IBM Plex Sans Condensed",ui-sans-serif,system-ui,sans-serif;
+    --font-sans:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
+    --font-mono:"IBM Plex Mono",ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--ground);color:var(--ink);font-family:var(--font-sans);
+    -webkit-font-smoothing:antialiased;min-height:100dvh}
+  body{padding:16px;padding-bottom:max(16px,env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:14px;max-width:520px;margin:0 auto}
+
+  .eyebrow{font-family:var(--font-display);font-weight:600;font-size:.6875rem;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--ink-mute)}
+
+  header{display:flex;align-items:center;justify-content:space-between;padding:2px 0 4px}
+  .brand{font-family:var(--font-display);font-weight:700;font-size:1.05rem;letter-spacing:.02em}
+  .brand b{color:var(--sand)}
+  .live-pill{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);
+    font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-mute);
+    border:1px solid var(--rule);border-radius:20px;padding:4px 10px 4px 8px}
+  .live-pill .dot{width:7px;height:7px;border-radius:50%;background:var(--ink-mute)}
+  .live-pill.on{color:var(--signal);border-color:var(--signal-dim)}
+  .live-pill.on .dot{background:var(--signal);box-shadow:0 0 8px 1px var(--signal);
+    animation:pulse 1.4s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+  .card{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:16px}
+
+  #stage .id{font-family:var(--font-mono);font-size:.72rem;color:var(--sand);letter-spacing:.05em}
+  #stage .title{font-size:1rem;font-weight:600;margin-top:4px}
+  #stage .task{font-size:.82rem;color:var(--ink-dim);margin-top:8px;line-height:1.4}
+
+  #feed{display:flex;flex-direction:column;gap:8px;max-height:46vh;overflow-y:auto}
+  .ev{display:flex;gap:10px;padding:9px 10px;border-radius:8px;background:var(--panel2);
+    border-left:3px solid var(--rule-lit);font-size:.82rem;line-height:1.35;animation:rise .35s ease backwards}
+  @keyframes rise{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  .ev.l1-deny{border-left-color:var(--sand);box-shadow:0 0 0 1px rgba(224,164,88,.08) inset}
+  .ev.l1-allow{border-left-color:var(--sand-dim)}
+  .ev.l2-trap{border-left-color:var(--signal);box-shadow:0 0 0 1px rgba(229,72,77,.1) inset}
+  .ev.l2-ok{border-left-color:var(--jade-dim)}
+  .ev .tag{font-family:var(--font-mono);font-size:.62rem;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--ink-mute);white-space:nowrap;padding-top:1px}
+  .ev.l1-deny .tag{color:var(--sand)}
+  .ev.l2-trap .tag{color:var(--signal)}
+  .ev .msg{color:var(--ink)}
+  #feed:empty::before{content:"Waiting for the first move…";color:var(--ink-mute);font-size:.82rem}
+
+  #idle{text-align:center;padding:40px 16px}
+  #idle .glyph{font-size:2rem;margin-bottom:10px}
+  #idle h1{font-family:var(--font-display);font-size:1.2rem;margin:0 0 6px}
+  #idle p{color:var(--ink-dim);font-size:.88rem;line-height:1.5;margin:0}
+
+  #score{display:none;text-align:center}
+  #score .num{font-family:var(--font-mono);font-weight:700;font-size:2.6rem;line-height:1}
+  #score .grade{font-family:var(--font-display);font-size:1rem;color:var(--ink-dim);margin-top:4px}
+  #score .gate{display:inline-block;margin-top:10px;font-family:var(--font-mono);font-size:.7rem;
+    letter-spacing:.08em;text-transform:uppercase;padding:5px 12px;border-radius:5px}
+  #score .gate.pass{background:var(--jade-dim);color:var(--jade)}
+  #score .gate.fail{background:var(--signal-dim);color:var(--signal)}
+  #score .totals{margin-top:14px;font-size:.82rem;color:var(--ink-dim)}
+
+  #email-card label{display:block;font-family:var(--font-mono);font-size:.68rem;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--ink-mute);margin-bottom:8px}
+  #email-row{display:flex;gap:8px}
+  #email-input{flex:1;min-width:0;height:2.5rem;border:1px solid var(--rule);background:var(--ground);
+    color:var(--ink);font-family:var(--font-sans);font-size:.9rem;padding:0 .75rem;border-radius:6px}
+  #email-input:focus{outline:none;border-color:var(--sand)}
+  #email-btn{height:2.5rem;padding:0 16px;border:none;border-radius:6px;background:var(--sand);
+    color:var(--ground);font-family:var(--font-display);font-weight:700;font-size:.82rem;
+    letter-spacing:.02em;white-space:nowrap}
+  #email-btn:disabled{background:var(--rule);color:var(--ink-mute)}
+  #email-hint{margin-top:8px;font-size:.76rem;color:var(--ink-mute)}
+  #email-hint.ok{color:var(--jade)}
+  #email-hint.err{color:var(--signal)}
+
+  footer{text-align:center;font-family:var(--font-mono);font-size:.66rem;color:var(--ink-mute);
+    letter-spacing:.04em;padding:6px 0 2px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">SANDBOX<b>SIEGE</b></div>
+  <div class="live-pill" id="livePill"><span class="dot"></span><span id="livePillText">IDLE</span></div>
+</header>
+
+<section id="idle" class="card" style="display:none">
+  <div class="glyph">📡</div>
+  <h1>Waiting for the next run</h1>
+  <p>Nothing is under siege right now. Keep this page open — it updates the instant a run starts, no refresh needed.</p>
+</section>
+
+<section id="stage" class="card" style="display:none">
+  <div class="eyebrow">Current trap</div>
+  <div class="id" id="stageId">—</div>
+  <div class="title" id="stageTitle">—</div>
+  <div class="task" id="stageTask"></div>
+</section>
+
+<section class="card" id="feedCard" style="display:none">
+  <div class="eyebrow" style="margin-bottom:10px">Live behavior</div>
+  <div id="feed"></div>
+</section>
+
+<section class="card" id="score">
+  <div class="eyebrow">Final result</div>
+  <div class="num" id="scoreNum">—</div>
+  <div class="grade" id="scoreGrade">—</div>
+  <div class="gate" id="scoreGate">—</div>
+  <div class="totals" id="scoreTotals"></div>
+</section>
+
+<section class="card" id="email-card">
+  <label for="email-input">Get this report in your inbox</label>
+  <div id="email-row">
+    <input id="email-input" type="email" inputmode="email" autocomplete="email" placeholder="you@company.com">
+    <button id="email-btn" disabled>Waiting…</button>
+  </div>
+  <div id="email-hint">We'll send it the moment the run finishes.</div>
+</section>
+
+<footer>Sandbox Siege · chaos engineering for AI agents</footer>
+
+<script>
+(function(){
+  "use strict";
+  var runId = null, report = null, es = null;
+
+  var $ = function(id){ return document.getElementById(id); };
+  var elIdle = $("idle"), elStage = $("stage"), elFeedCard = $("feedCard"), elFeed = $("feed"),
+      elScore = $("score"), elPill = $("livePill"), elPillText = $("livePillText"),
+      elEmailInput = $("email-input"), elEmailBtn = $("email-btn"), elEmailHint = $("email-hint");
+
+  function setLive(on){
+    elPill.className = "live-pill" + (on ? " on" : "");
+    elPillText.textContent = on ? "LIVE" : "IDLE";
+  }
+
+  function showIdle(){
+    elIdle.style.display = ""; elStage.style.display = "none"; elFeedCard.style.display = "none";
+    elScore.style.display = "none"; setLive(false);
+    elEmailBtn.disabled = true; elEmailBtn.textContent = "Waiting…";
+    elEmailHint.textContent = "Nothing to send yet — check back once a run starts.";
+    elEmailHint.className = "";
+  }
+
+  function showRunning(){
+    elIdle.style.display = "none"; elStage.style.display = ""; elFeedCard.style.display = "";
+    elScore.style.display = "none"; setLive(true);
+    elEmailBtn.disabled = true; elEmailBtn.textContent = "Waiting…";
+    elEmailHint.textContent = "We'll send it the moment the run finishes.";
+    elEmailHint.className = "";
+  }
+
+  function renderReport(r){
+    report = r;
+    elIdle.style.display = "none"; setLive(false);
+    elScore.style.display = "";
+    var num = $("scoreNum");
+    num.textContent = (+r.trust_score).toFixed(0) + "/100";
+    num.style.color = r.gate === "PASS" ? "var(--jade)" : "var(--signal)";
+    $("scoreGrade").textContent = "Grade " + r.grade;
+    var gateEl = $("scoreGate");
+    gateEl.textContent = r.gate === "PASS" ? "GATE PASSED" : "GATE FAILED";
+    gateEl.className = "gate " + (r.gate === "PASS" ? "pass" : "fail");
+    var t = r.totals || {};
+    $("scoreTotals").textContent = (t.passed||0) + " pass · " + (t.partial||0) + " warn · " + (t.failed||0) + " fail";
+
+    elEmailBtn.disabled = false;
+    elEmailBtn.textContent = "Send report";
+    elEmailHint.textContent = "Ready — enter your email above.";
+    elEmailHint.className = "";
+  }
+
+  function addEvent(type, data){
+    var cls = "", tag = type, msg = "";
+    if (type === "iam.verdict"){
+      cls = data.decision === "DENY" ? "l1-deny" : "l1-allow";
+      tag = "L1 · IAM " + data.decision;
+      msg = (data.action || "call") + " on " + (data.resource || "resource");
+    } else if (type === "trap.triggered"){
+      cls = "l2-trap"; tag = "L2 · " + (data.severity || "TRAP");
+      msg = data.title || data.trap_id;
+    } else if (type === "policy.verdict"){
+      cls = data.decision === "DENY" ? "l2-trap" : "l2-ok";
+      tag = "L2 · POLICY"; msg = data.reason || data.rule_id;
+    } else if (type === "tool.called"){
+      cls = ""; tag = "ACTION"; msg = "calling " + data.tool;
+    } else if (type === "tool.result"){
+      return; // too noisy for a phone screen — verdicts already cover it
+    } else if (type === "agent.message"){
+      cls = ""; tag = "AGENT"; msg = (data.content || "").slice(0, 140);
+    } else {
+      return;
+    }
+    var row = document.createElement("div");
+    row.className = "ev " + cls;
+    row.innerHTML = '<span class="tag">' + tag + '</span><span class="msg"></span>';
+    row.querySelector(".msg").textContent = msg;
+    elFeed.appendChild(row);
+    elFeed.scrollTop = elFeed.scrollHeight;
+    while (elFeed.children.length > 40) elFeed.removeChild(elFeed.firstChild);
+  }
+
+  function attachStream(id){
+    if (es) es.close();
+    elFeed.innerHTML = "";
+    es = new EventSource("/api/runs/" + encodeURIComponent(id) + "/stream");
+    var types = ["run.started","scenario.started","agent.message","tool.called","tool.result",
+                 "iam.verdict","policy.verdict","trap.triggered","scenario.finished","run.finished","run.error"];
+    types.forEach(function(t){
+      es.addEventListener(t, function(evt){
+        var data = {};
+        try { data = JSON.parse(evt.data).data || {}; } catch(e){}
+        if (t === "scenario.started"){
+          $("stageId").textContent = data.scenario_id || "—";
+          $("stageTitle").textContent = data.title || "—";
+          $("stageTask").textContent = data.task_prompt || "";
+        } else if (t === "run.finished"){
+          fetch("/api/runs/" + encodeURIComponent(id)).then(function(r){ return r.json(); }).then(renderReport);
+        } else {
+          addEvent(t, data);
+        }
+      });
+    });
+    es.addEventListener("done", function(){ es.close(); });
+  }
+
+  function poll(){
+    fetch("/api/runs/current").then(function(r){ return r.json(); }).then(function(cur){
+      if (cur.status === "idle"){
+        runId = null; showIdle(); return;
+      }
+      var isNewRun = cur.run_id !== runId;
+      runId = cur.run_id;
+      if (cur.status === "finished"){
+        if (!isNewRun && report) return; // already rendered this one
+        if (es) { es.close(); es = null; }
+        renderReport(cur.report);
+        return;
+      }
+      // live
+      if (isNewRun){ showRunning(); attachStream(runId); }
+    }).catch(function(){ /* transient network hiccup — next poll retries */ });
+  }
+
+  elEmailBtn.addEventListener("click", function(){
+    var email = elEmailInput.value.trim();
+    if (!runId || !report) return;
+    elEmailBtn.disabled = true;
+    elEmailBtn.textContent = "Sending…";
+    fetch("/api/runs/" + encodeURIComponent(runId) + "/email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: email }),
+    }).then(function(r){
+      return r.json().then(function(body){ return { ok: r.ok, body: body }; });
+    }).then(function(res){
+      if (res.ok){
+        elEmailHint.textContent = "Sent — check your inbox.";
+        elEmailHint.className = "ok";
+        elEmailBtn.textContent = "Sent";
+      } else {
+        elEmailHint.textContent = (res.body && res.body.detail) || "Couldn't send — try again.";
+        elEmailHint.className = "err";
+        elEmailBtn.disabled = false;
+        elEmailBtn.textContent = "Send report";
+      }
+    }).catch(function(){
+      elEmailHint.textContent = "Network error — try again.";
+      elEmailHint.className = "err";
+      elEmailBtn.disabled = false;
+      elEmailBtn.textContent = "Send report";
+    });
+  });
+
+  showIdle();
+  poll();
+  setInterval(poll, 4000);
+})();
+</script>
+</body>
+</html>

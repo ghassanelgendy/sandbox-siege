@@ -98,6 +98,10 @@ class EventBus:
     def get(self, run_id: str) -> RunChannel | None:
         return self._channels.get(run_id)
 
+    def active_ids(self) -> list[str]:
+        """Run ids with an open channel, oldest first (dicts preserve insertion order)."""
+        return list(self._channels)
+
     def drop(self, run_id: str) -> None:
         self._channels.pop(run_id, None)
 

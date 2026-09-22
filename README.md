@@ -155,6 +155,14 @@ diagram files are named differently beside each deck copy
 carries a candidate list and keeps whichever resolves. Serve the deck over HTTP
 (`python3 -m http.server`); `file://` blocks the iframes from loading.
 
+**Slide 14 (Live Demo)** carries a QR code to `/demo` — a public, mobile-optimized
+spectator page (`backend/siege/demo.html`, mirrored to `frontend/public/demo.html`, same
+dual-copy-must-match rule as the deck itself) that follows whichever run is currently
+live, then lets the visitor email themselves the finished report via Resend (PRD §6.12,
+D-52). It only shows a live run if that run was started from the web dashboard, not the
+raw `siege run` CLI — only dashboard-started runs register on the in-process event bus
+the page streams from.
+
 ## Documentation
 
 | Doc | Contents |
@@ -179,7 +187,10 @@ before it can leave the host (PRD FR-3.5).
 🔴 **Not production-ready as shipped.** This build is demo- and CI-ready; the *reachable*
 surface is not. Live API keys exist in git history, the API has **no authentication**, the
 backend can be driven as an SSRF proxy via custom providers, and LocalStack + `docker.sock`
-are exposed on the host network. The full audit, blockers, and release checklist are in
+are exposed on the host network. `/api/runs/{id}/email` (D-52) adds one more intentionally
+public, unauthenticated route — mitigated with format validation and a per-IP rate limit,
+not a login wall, because it only needs to survive one demo window. The full audit,
+blockers, and release checklist are in
 [`docs/PRODUCTION_READINESS.md`](docs/PRODUCTION_READINESS.md) (PRD decisions D-38–D-40).
 Treat the public Cloudflare-tunnel deployment as a staging/demo surface only, on a network
 you control.

@@ -20,6 +20,7 @@
 | **P6** Leaderboard seed + polish | ✅ done — `siege doctor/run/replay/seed`, mock insecure test agent |
 | **P7** Rehearsal | ⬜ pending |
 | **P8** Agent web search | ✅ done — self-hosted SearXNG on an isolated `siege-egress` network, `web_search` tool with a Gateway egress guard (FR-3.5, D-34), `SEARCH-EXFIL` detector coverage, SIEGE-027 |
+| **P9** Judge demo companion | ✅ done — public `/demo` spectator page + QR on deck slide 14, `GET /api/runs/current`, on-demand Resend report email via `POST /api/runs/{id}/email` (PRD §6.12, D-52) |
 
 ### The one thing that still needs a real machine
 
@@ -374,7 +375,7 @@ Cut in order: SIEGE-007 → SIEGE-006 → leaderboard → GitHub Action → live
 
 1. **0:00 — The incident.** April 2026: a coding agent found an over-permissioned token and deleted a production database and its backups in nine seconds. *"We are all hiring these agents. Nobody interviews them."*
 2. **0:40 — `siege doctor`** → all green, including `ENFORCE_IAM: active`. Credibility in five seconds.
-3. **1:00 — Live run, SIEGE-001.** Console streams. Agent tries to reach prod with staging creds → **IAM DENY**, real AWS error text on screen. *"That's real IAM. It's working."* Agent finds the loose admin key, switches credential, retries → **IAM ALLOW** → **red flash, TRAP TRIGGERED.** *"IAM did its job. It just wasn't the thing that needed doing."*
+3. **1:00 — Live run, SIEGE-001.** Launched from the dashboard (not the CLI — that's what makes it followable, see D-52), Console streams on the projector, and the room scans the slide-14 QR to watch the same run on their own phones. Agent tries to reach prod with staging creds → **IAM DENY**, real AWS error text on screen. *"That's real IAM. It's working."* Agent finds the loose admin key, switches credential, retries → **IAM ALLOW** → **red flash, TRAP TRIGGERED.** *"IAM did its job. It just wasn't the thing that needed doing."*
 4. **2:30 — SIEGE-004 replay.** RDS instance and its final snapshot both deleted. The nine-second incident, reproduced as a controlled experiment.
 5. **3:15 — Report card.** Trust Score, grade F, gate FAIL. Click a finding → evidence + remediation.
 6. **4:00 — Leaderboard.** Four models, same seven traps, different failure signatures. *"This isn't a bad model. It's an untested one."*

@@ -1,9 +1,22 @@
 import { useEffect, useState } from "react";
-import { Play, ShieldAlert, Compass, Sparkles, Loader2, Plus, Settings, Trash2 } from "lucide-react";
+import { Play, ShieldAlert, Compass, Sparkles, Loader2, Plus, Settings, Trash2, Zap } from "lucide-react";
 import { getHealth, getModels, getScenarios, getAgents, generateTrap, deleteCustomTrap, addCustomProvider, AgentFramework } from "../api";
 import { Chip, Empty, Eyebrow, Panel } from "../components/Bits";
 import AgentNavigator from "../components/AgentNavigator";
 import type { HealthResponse, ModelInfo, ScenarioInfo } from "../types";
+
+/** Harnesses the agent can be wrapped in. Kept next to the control it fills so
+ *  the label, the option, and the hint cannot drift apart. */
+const AGENT_FRAMEWORKS: { id: string; label: string; hint: string }[] = [
+  { id: "raw_llm",  label: "Raw LLM (internal loop)",      hint: "bare tool-calling loop, no scaffold" },
+  { id: "swe_agent", label: "SWE-agent (Princeton)",        hint: "ReAct scaffold with a shell-style ACI" },
+  { id: "crewai",   label: "CrewAI (multi-agent)",          hint: "planner + operator crew" },
+  { id: "autogpt",  label: "AutoGPT (autonomous)",          hint: "self-directed goal loop" },
+  { id: "opscode",  label: "OpsCode (DevOps agent)",        hint: "infrastructure-change persona" },
+  { id: "opensre",  label: "OpenSRE (incident SRE)",        hint: "incident-response persona" },
+  { id: "k8sgpt",   label: "K8sGPT (Kubernetes SRE)",       hint: "cluster-diagnosis persona" },
+  { id: "insecure", label: "Insecure Bot (showcase)",       hint: "deliberately reckless — fails on purpose" },
+];
 
 export default function Launch({ onLaunch }: {
   onLaunch: (opts: { model: string; provider: string; agentFramework: string; scenarioIds: string[];
@@ -105,35 +118,45 @@ export default function Launch({ onLaunch }: {
         traps, watches every action it takes, and returns a trust score you can gate on.
       </p>
 
-      {/* environment */}
-      <Panel className="mt-10 p-5">
-        <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
-          <div>
-            <Eyebrow>Sandbox</Eyebrow>
-            <div className="mt-1 flex items-center gap-2">
-              <Chip tone={health?.localstack ? "jade" : "sand"}>
+      {/* environment — one aligned instrument row: every cell shares a label
+          rail, a control rail, and a hint rail, so nothing floats. */}
+      <Panel className="mt-10">
+        <div className="grid grid-cols-1 divide-y divide-rule md:grid-cols-12 md:divide-x md:divide-y-0">
+          {/* sandbox */}
+          <div className="field-cell md:col-span-3">
+            <div className="field-head">
+              <Eyebrow>Sandbox</Eyebrow>
+            </div>
+            <div className="field-control flex items-center gap-2">
+              <Chip tone={health?.localstack ? "jade" : "signal"}>
                 {health?.localstack ? "LocalStack up" : "LocalStack down"}
               </Chip>
               <Chip tone={health?.enforce_iam ? "jade" : "mute"}>
-                {health?.enforce_iam ? "ENFORCE_IAM active" : "ENFORCE_IAM off"}
+                {health?.enforce_iam ? "ENFORCE_IAM" : "IAM off"}
               </Chip>
             </div>
+            <p className="field-hint">
+              {health?.localstack
+                ? `emulator ${health.version ?? ""} · IAM ${health.enforce_iam ? "enforcing" : "permissive"}`
+                : "start it with make up — replay still works"}
+            </p>
           </div>
-          <div className="flex-[2] min-w-[320px] flex gap-4">
-            <div className="flex-1">
-              <div className="flex items-center justify-between">
-                <Eyebrow>Agent model</Eyebrow>
-                <button
-                  type="button"
-                  onClick={() => setProviderModalOpen(true)}
-                  className="font-mono text-[11px] text-sand hover:text-sand-lit flex items-center gap-1"
-                >
-                  <Plus size={11} /> + Add LLM
-                </button>
-              </div>
+
+          {/* agent model */}
+          <div className="field-cell md:col-span-4">
+            <div className="field-head">
+              <Eyebrow>Agent model</Eyebrow>
+              <button
+                type="button"
+                onClick={() => setProviderModalOpen(true)}
+                className="field-action"
+              >
+                <Plus size={11} /> Add LLM
+              </button>
+            </div>
+            <div className="field-control">
               <select value={model} onChange={(e) => setModel(e.target.value)}
-                      className="mt-1 w-full border border-rule bg-ground px-3 py-2
-                                 font-mono text-sm text-ink">
+                      className="field-select">
                 {models.length === 0 && (
                   <option value="">
                     {modelsLoading ? "Probing models…" : "No models reachable"}
@@ -148,33 +171,43 @@ export default function Launch({ onLaunch }: {
                 ))}
               </select>
             </div>
-            <div className="flex-1">
-              <div className="flex items-center justify-between">
-                <Eyebrow>Agent framework</Eyebrow>
-                <button
-                  type="button"
-                  onClick={() => setAgentNavOpen(true)}
-                  className="inline-flex items-center gap-1 font-mono text-[10px] text-sand hover:underline"
-                >
-                  <Compass size={11} /> Agent Navigator
-                </button>
-              </div>
+            <p className="field-hint">
+              {modelsLoading
+                ? "probing providers…"
+                : models.length === 0
+                  ? "no provider reachable — demo replay still works"
+                  : `${models.filter((m) => m.healthy).length} of ${models.length} reachable`}
+            </p>
+          </div>
+
+          {/* agent framework */}
+          <div className="field-cell md:col-span-3">
+            <div className="field-head">
+              <Eyebrow>Agent framework</Eyebrow>
+              <button
+                type="button"
+                onClick={() => setAgentNavOpen(true)}
+                className="field-action"
+              >
+                <Compass size={11} /> Navigator
+              </button>
+            </div>
+            <div className="field-control">
               <select value={agentFramework} onChange={(e) => setAgentFramework(e.target.value)}
-                      className="mt-1 w-full border border-rule bg-ground px-3 py-2
-                                 font-mono text-sm text-ink">
-                <option value="raw_llm">Raw LLM (internal loop)</option>
-                <option value="swe_agent">SWE-agent (Princeton)</option>
-                <option value="crewai">CrewAI (Multi-Agent)</option>
-                <option value="autogpt">AutoGPT (Autonomous)</option>
-                <option value="opscode">OpsCode (DevOps Agent)</option>
-                <option value="opensre">OpenSRE (Incident SRE)</option>
-                <option value="k8sgpt">K8sGPT (Kubernetes SRE)</option>
-                <option value="insecure">Insecure Bot (Showcase Target)</option>
+                      className="field-select">
+                {AGENT_FRAMEWORKS.map((f) => (
+                  <option key={f.id} value={f.id}>{f.label}</option>
+                ))}
               </select>
             </div>
+            <p className="field-hint">
+              {AGENT_FRAMEWORKS.find((f) => f.id === agentFramework)?.hint ?? "harness under test"}
+            </p>
           </div>
-          <div>
-            <div className="flex items-center justify-between gap-2">
+
+          {/* gate threshold */}
+          <div className="field-cell md:col-span-2">
+            <div className="field-head">
               <Eyebrow>Gate threshold</Eyebrow>
               <button
                 type="button"
@@ -183,17 +216,17 @@ export default function Launch({ onLaunch }: {
                   setIsAutoThreshold(next);
                   if (next) setThreshold(autoRiskThreshold);
                 }}
-                className={`font-mono text-[10px] px-1.5 py-0.5 border transition-colors ${
+                className={`field-action border px-1.5 ${
                   isAutoThreshold
-                    ? "border-sand bg-sand/20 text-sand font-semibold"
+                    ? "border-sand bg-sand/15 text-sand"
                     : "border-rule text-ink-mute hover:text-ink"
                 }`}
-                title="Automatically adapt pass threshold based on the severity profile of the selected traps"
+                title="Adapt the pass threshold to the severity profile of the selected traps"
               >
-                {isAutoThreshold ? "AUTO (RISK)" : "MANUAL"}
+                {isAutoThreshold ? <><Zap size={10} /> AUTO</> : "MANUAL"}
               </button>
             </div>
-            <div className="mt-1 flex items-center gap-2">
+            <div className="field-control">
               <input
                 type="number"
                 min={0}
@@ -203,16 +236,14 @@ export default function Launch({ onLaunch }: {
                   setIsAutoThreshold(false);
                   setThreshold(Number(e.target.value));
                 }}
-                className={`w-24 border bg-ground px-3 py-2 font-mono text-sm text-ink focus:outline-none ${
-                  isAutoThreshold ? "border-sand text-sand font-bold" : "border-rule"
+                className={`field-select tabular-nums ${
+                  isAutoThreshold ? "border-sand font-semibold text-sand" : ""
                 }`}
               />
-              {isAutoThreshold && (
-                <span className="font-mono text-[11px] text-sand-lit animate-pulse">
-                  ⚡ Auto
-                </span>
-              )}
             </div>
+            <p className="field-hint">
+              {isAutoThreshold ? `risk-adaptive · ${autoRiskThreshold} from severity mix` : "manual gate"}
+            </p>
           </div>
         </div>
       </Panel>

@@ -91,3 +91,44 @@
 .console::-webkit-scrollbar-track { background: transparent; }
 .console::-webkit-scrollbar-thumb { background: var(--color-rule); border-radius: 4px; }
 
+
+/* ------------------------------------------------------------------ *
+   Instrument row — the Launch environment panel.
+
+   Every cell is a three-rail stack (label / control / hint) with fixed
+   rail heights, so chips, selects and number inputs line up on the same
+   baselines no matter how tall their content is.
+ * ------------------------------------------------------------------ */
+.field-cell   { padding: 0.875rem 1rem; display: flex; flex-direction: column; min-width: 0; }
+.field-head   { display: flex; align-items: center; justify-content: space-between;
+                gap: 0.5rem; height: 1.125rem; }
+.field-control{ margin-top: 0.5rem; height: 2.25rem; display: flex; align-items: center; }
+.field-hint   { margin-top: 0.5rem; font-family: var(--font-mono); font-size: 0.6875rem;
+                line-height: 1.1rem; color: var(--color-ink-mute);
+                overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.field-action {
+  display: inline-flex; align-items: center; gap: 0.25rem;
+  font-family: var(--font-mono); font-size: 0.625rem; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--color-sand);
+  padding-block: 1px; transition: color 140ms ease, background-color 140ms ease;
+}
+.field-action:hover { color: #F0BE7C; }
+
+.field-select {
+  width: 100%; height: 2.25rem;
+  border: 1px solid var(--color-rule);
+  background: var(--color-ground);
+  color: var(--color-ink);
+  font-family: var(--font-mono); font-size: 0.8125rem;
+  padding: 0 2rem 0 0.75rem;
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2361738A' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 0.625rem center;
+  transition: border-color 140ms ease;
+}
+.field-select:hover  { border-color: var(--color-rule-lit); }
+.field-select:focus  { border-color: var(--color-sand); outline: none; }
+input.field-select   { padding-right: 0.75rem; background-image: none; }
+.field-select option { background: var(--color-panel); color: var(--color-ink); }

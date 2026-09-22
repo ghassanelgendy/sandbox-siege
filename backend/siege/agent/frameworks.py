@@ -10,6 +10,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+from ..tools.registry import all_tool_names
+
 
 @dataclass(frozen=True)
 class AgentFrameworkInfo:

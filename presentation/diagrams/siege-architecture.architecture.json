@@ -4,526 +4,67 @@
   "meta": {
     "title": "Sandbox Siege — System Architecture",
     "output": "presentation/siege-architecture.html",
-    "viewBox": [
-      1690,
-      936
-    ],
+    "viewBox": [1370, 854],
     "animation": "trace",
     "quality_profile": "showcase",
     "views": [
-      {
-        "id": "invariant",
-        "label": "Interception invariant",
-        "focus": [
-          "agent",
-          "providers",
-          "runner",
-          "gateway",
-          "localstack"
-        ],
-        "note": "The agent under test never reaches the sandbox except through the Gateway."
-      },
-      {
-        "id": "dual_verdict",
-        "label": "L1 IAM vs L2 detectors",
-        "focus": [
-          "gateway",
-          "localstack",
-          "detectors",
-          "eventbus"
-        ],
-        "note": "Two verdicts per action: was it permitted, and was it wise?"
-      },
-      {
-        "id": "judge",
-        "label": "Jev advisory judge",
-        "focus": [
-          "detectors",
-          "jev_sidecar",
-          "ai_gateway"
-        ],
-        "note": "A typed, calibrated second opinion that never changes the deterministic gate."
-      },
-      {
-        "id": "egress",
-        "label": "Egress guard",
-        "focus": [
-          "gateway",
-          "searxng"
-        ],
-        "note": "The only real outbound hop, screened for canaries before it leaves the host."
-      },
-      {
-        "id": "verdict",
-        "label": "Score, gate, replay",
-        "focus": [
-          "eventbus",
-          "scoring",
-          "artifacts",
-          "dashboard",
-          "ci_gate"
-        ],
-        "note": "Events become a trust score, a report card, and a CI exit code."
-      }
+      { "id": "invariant", "label": "Interception invariant", "focus": ["agent", "providers", "runner", "gateway", "localstack"], "note": "The agent under test reaches the sandbox only through the Gateway." },
+      { "id": "dual_verdict", "label": "L1 IAM vs L2 detectors", "focus": ["gateway", "localstack", "detectors", "eventbus"], "note": "Two verdicts per action: was it permitted, and was it wise?" },
+      { "id": "judge", "label": "Jev advisory judge", "focus": ["detectors", "jev_sidecar", "ai_gateway"], "note": "A typed, calibrated second opinion that never changes the deterministic gate." },
+      { "id": "egress", "label": "Egress guard", "focus": ["gateway", "searxng"], "note": "The only real outbound hop, screened for canaries before it leaves the host." },
+      { "id": "verdict", "label": "Score, gate, replay", "focus": ["eventbus", "scoring", "artifacts", "dashboard", "ci_gate"], "note": "Events become a trust score, a report card, and a CI exit code." }
     ]
   },
   "components": [
-    {
-      "id": "ci_gate",
-      "type": "external",
-      "label": "GitHub Actions Gate",
-      "sublabel": "siege-gate.yml · Resend email",
-      "tag": "exit code blocks the merge",
-      "pos": [
-        40,
-        60
-      ],
-      "size": [
-        170,
-        88
-      ]
-    },
-    {
-      "id": "cli",
-      "type": "frontend",
-      "label": "Siege CLI",
-      "sublabel": "run · doctor · replay · seed",
-      "tag": "Typer + Rich",
-      "pos": [
-        40,
-        230
-      ],
-      "size": [
-        170,
-        84
-      ]
-    },
-    {
-      "id": "tunnel",
-      "type": "security",
-      "label": "Cloudflare Tunnel",
-      "sublabel": "zero-trust ingress",
-      "tag": "no open ports",
-      "pos": [
-        40,
-        410
-      ],
-      "size": [
-        170,
-        84
-      ]
-    },
-    {
-      "id": "dashboard",
-      "type": "frontend",
-      "label": "React Dashboard",
-      "sublabel": "console · report · board",
-      "tag": "Vite · Tailwind",
-      "pos": [
-        320,
-        410
-      ],
-      "size": [
-        170,
-        84
-      ]
-    },
-    {
-      "id": "artifacts",
-      "type": "database",
-      "label": "Run Artifacts",
-      "sublabel": "report.json + events.jsonl",
-      "tag": "replay · leaderboard",
-      "pos": [
-        320,
-        790
-      ],
-      "size": [
-        170,
-        92
-      ]
-    },
-    {
-      "id": "agent",
-      "type": "external",
-      "label": "Agent Under Test",
-      "sublabel": "autonomous DevOps agent",
-      "tag": "never told it is tested",
-      "pos": [
-        600,
-        60
-      ],
-      "size": [
-        170,
-        88
-      ]
-    },
-    {
-      "id": "api",
-      "type": "backend",
-      "label": "FastAPI Orchestrator",
-      "sublabel": "POST /api/runs",
-      "tag": "Python 3.13",
-      "pos": [
-        600,
-        410
-      ],
-      "size": [
-        170,
-        84
-      ]
-    },
-    {
-      "id": "scoring",
-      "type": "backend",
-      "label": "Scoring Engine",
-      "sublabel": "trust score · grade",
-      "tag": "dynamic gate 70–95%",
-      "pos": [
-        600,
-        790
-      ],
-      "size": [
-        170,
-        92
-      ]
-    },
-    {
-      "id": "providers",
-      "type": "external",
-      "label": "Provider Cascade",
-      "sublabel": "Groq · Dahl · Bynara",
-      "tag": "429 backoff failover",
-      "pos": [
-        880,
-        60
-      ],
-      "size": [
-        170,
-        88
-      ]
-    },
-    {
-      "id": "runner",
-      "type": "backend",
-      "label": "Agent Runner",
-      "sublabel": "tool-use loop · 24 tools",
-      "tag": "step cap 25",
-      "pos": [
-        880,
-        410
-      ],
-      "size": [
-        170,
-        84
-      ]
-    },
-    {
-      "id": "eventbus",
-      "type": "messagebus",
-      "label": "Event Bus",
-      "sublabel": "SSE + events.jsonl",
-      "tag": "the replay tape",
-      "pos": [
-        880,
-        790
-      ],
-      "size": [
-        170,
-        92
-      ]
-    },
-    {
-      "id": "scenarios",
-      "type": "backend",
-      "label": "Scenario Loader",
-      "sublabel": "26 traps + AI generator",
-      "tag": "CVE / CVSS catalog",
-      "pos": [
-        1170,
-        60
-      ],
-      "size": [
-        170,
-        88
-      ]
-    },
-    {
-      "id": "gateway",
-      "type": "security",
-      "label": "SIEGE GATEWAY",
-      "sublabel": "record → detect → forward",
-      "tag": "the only path in",
-      "pos": [
-        1160,
-        397
-      ],
-      "size": [
-        190,
-        110
-      ]
-    },
-    {
-      "id": "searxng",
-      "type": "external",
-      "label": "SearXNG",
-      "sublabel": "self-hosted search",
-      "tag": "only real egress",
-      "pos": [
-        1170,
-        790
-      ],
-      "size": [
-        170,
-        92
-      ]
-    },
-    {
-      "id": "localstack",
-      "type": "cloud",
-      "label": "LocalStack Pro",
-      "sublabel": "s3 · rds · ec2 · iam",
-      "tag": "L1 — ENFORCE_IAM=1",
-      "pos": [
-        1440,
-        230
-      ],
-      "size": [
-        190,
-        92
-      ]
-    },
-    {
-      "id": "detectors",
-      "type": "backend",
-      "label": "L2 Detectors",
-      "sublabel": "pure functions · traps",
-      "tag": "L2 — judgement",
-      "pos": [
-        1440,
-        410
-      ],
-      "size": [
-        190,
-        92
-      ]
-    },
-    {
-      "id": "jev_sidecar",
-      "type": "backend",
-      "label": "Jev Sidecar",
-      "sublabel": "Node 22 · /v1/judge",
-      "tag": "advisory (D-43)",
-      "pos": [
-        1440,
-        610
-      ],
-      "size": [
-        190,
-        92
-      ]
-    },
-    {
-      "id": "ai_gateway",
-      "type": "external",
-      "label": "Vercel AI Gateway",
-      "sublabel": "typesafe-ai/jev",
-      "tag": "calibrated, advisory",
-      "pos": [
-        1440,
-        790
-      ],
-      "size": [
-        190,
-        92
-      ]
-    }
+    { "id": "ci_gate", "type": "external", "label": "CI Gate", "sublabel": "GitHub Actions", "tag": "blocks the merge", "pos": [40, 60], "size": [150, 80] },
+    { "id": "cli", "type": "frontend", "label": "Siege CLI", "sublabel": "run · doctor · replay", "tag": "Typer + Rich", "pos": [40, 215], "size": [150, 80] },
+    { "id": "tunnel", "type": "security", "label": "Cloudflare Tunnel", "sublabel": "zero-trust ingress", "tag": "no open ports", "pos": [40, 380], "size": [150, 80] },
+    { "id": "dashboard", "type": "frontend", "label": "React Dashboard", "sublabel": "console · report card", "tag": "Vite + Tailwind", "pos": [265, 380], "size": [150, 80] },
+    { "id": "artifacts", "type": "database", "label": "Run Artifacts", "sublabel": "report.json · events.jsonl", "tag": "replay tape", "pos": [265, 720], "size": [150, 84] },
+    { "id": "agent", "type": "external", "label": "Agent Under Test", "sublabel": "autonomous DevOps agent", "tag": "not told it is tested", "pos": [490, 60], "size": [150, 80] },
+    { "id": "api", "type": "backend", "label": "FastAPI API", "sublabel": "POST /api/runs", "tag": "orchestrator", "pos": [490, 380], "size": [150, 80] },
+    { "id": "scoring", "type": "backend", "label": "Scoring Engine", "sublabel": "trust score · grade", "tag": "gate 70–95%", "pos": [490, 720], "size": [150, 84] },
+    { "id": "providers", "type": "external", "label": "Provider Cascade", "sublabel": "Groq · Dahl · Bynara", "tag": "429 failover", "pos": [715, 60], "size": [150, 80] },
+    { "id": "runner", "type": "backend", "label": "Agent Runner", "sublabel": "tool-use loop · 24 tools", "tag": "step cap 25", "pos": [715, 380], "size": [150, 80] },
+    { "id": "eventbus", "type": "messagebus", "label": "Event Bus", "sublabel": "SSE + events.jsonl", "tag": "replay source", "pos": [715, 720], "size": [150, 84] },
+    { "id": "scenarios", "type": "backend", "label": "Scenario Loader", "sublabel": "26 traps + AI generator", "tag": "CVE / CVSS", "pos": [940, 60], "size": [150, 80] },
+    { "id": "gateway", "type": "security", "label": "SIEGE GATEWAY", "sublabel": "record → detect → forward", "tag": "the only path in", "pos": [935, 372], "size": [160, 96] },
+    { "id": "searxng", "type": "external", "label": "SearXNG", "sublabel": "self-hosted search", "tag": "only real egress", "pos": [940, 720], "size": [150, 84] },
+    { "id": "localstack", "type": "cloud", "label": "LocalStack Pro", "sublabel": "s3 · rds · ec2 · iam", "tag": "L1 · ENFORCE_IAM=1", "pos": [1165, 215], "size": [150, 80] },
+    { "id": "detectors", "type": "backend", "label": "L2 Detectors", "sublabel": "pure functions · traps", "tag": "L2 · judgement", "pos": [1165, 380], "size": [150, 80] },
+    { "id": "jev_sidecar", "type": "backend", "label": "Jev Sidecar", "sublabel": "Node 22 · /v1/judge", "tag": "advisory (D-43)", "pos": [1165, 555], "size": [150, 80] },
+    { "id": "ai_gateway", "type": "external", "label": "Vercel AI Gateway", "sublabel": "typesafe-ai/jev", "tag": "calibrated", "pos": [1165, 720], "size": [150, 84] }
   ],
   "boundaries": [
-    {
-      "kind": "region",
-      "label": "Sandbox (L1) — real AWS IAM semantics",
-      "wraps": [
-        "localstack"
-      ],
-      "pad": 18
-    },
-    {
-      "kind": "security-group",
-      "label": "egress-guarded — cannot reach LocalStack",
-      "wraps": [
-        "searxng",
-        "jev_sidecar",
-        "ai_gateway"
-      ],
-      "pad": 20
-    }
+    { "kind": "region", "label": "Sandbox (L1) — real AWS IAM", "wraps": ["localstack"], "pad": 18 },
+    { "kind": "security-group", "label": "egress-guarded — cannot reach LocalStack", "wraps": ["searxng", "jev_sidecar", "ai_gateway"], "pad": 20 }
   ],
   "connections": [
-    {
-      "from": "ci_gate",
-      "to": "cli",
-      "label": "siege run --all --threshold",
-      "labelDy": 34
-    },
-    {
-      "from": "tunnel",
-      "to": "dashboard",
-      "label": "HTTPS",
-      "variant": "security"
-    },
-    {
-      "from": "cli",
-      "to": "api",
-      "label": "run request"
-    },
-    {
-      "from": "dashboard",
-      "to": "api",
-      "label": "launch run",
-      "variant": "emphasis",
-      "labelAt": [
-        622,
-        392
-      ]
-    },
-    {
-      "from": "api",
-      "to": "dashboard",
-      "label": "SSE console",
-      "labelAt": [
-        545,
-        528
-      ]
-    },
-    {
-      "from": "scenarios",
-      "to": "localstack",
-      "label": "seeds traps"
-    },
-    {
-      "from": "scenarios",
-      "to": "gateway",
-      "label": "detector rules + canary",
-      "labelDy": 60
-    },
-    {
-      "from": "api",
-      "to": "runner",
-      "label": "execute",
-      "variant": "emphasis"
-    },
-    {
-      "from": "runner",
-      "to": "providers",
-      "label": "chat + 24 tool schemas",
-      "variant": "emphasis",
-      "labelDx": -96
-    },
-    {
-      "from": "providers",
-      "to": "runner",
-      "label": "tool_calls proposed",
-      "variant": "dashed",
-      "labelDy": 46,
-      "labelDx": 96
-    },
-    {
-      "from": "providers",
-      "to": "agent",
-      "label": "serves",
-      "variant": "dashed"
-    },
-    {
-      "from": "runner",
-      "to": "gateway",
-      "label": "every tool call",
-      "variant": "emphasis"
-    },
-    {
-      "from": "gateway",
-      "to": "localstack",
-      "label": "ALLOW / DENY",
-      "variant": "emphasis"
-    },
-    {
-      "from": "gateway",
-      "to": "detectors",
-      "label": "was this wise?",
-      "variant": "security",
-      "labelDy": 46
-    },
-    {
-      "from": "gateway",
-      "to": "searxng",
-      "label": "canary-stripped query",
-      "variant": "security",
-      "labelDy": 80
-    },
-    {
-      "from": "detectors",
-      "to": "jev_sidecar",
-      "label": "typed question, redacted",
-      "variant": "dashed",
-      "labelDy": 34
-    },
-    {
-      "from": "jev_sidecar",
-      "to": "ai_gateway",
-      "label": "evaluate",
-      "variant": "dashed",
-      "labelDy": 40
-    },
-    {
-      "from": "gateway",
-      "to": "eventbus",
-      "label": "record every verdict",
-      "variant": "emphasis"
-    },
-    {
-      "from": "eventbus",
-      "to": "scoring",
-      "label": "run events"
-    },
-    {
-      "from": "scoring",
-      "to": "artifacts",
-      "label": "score + gate"
-    },
-    {
-      "from": "artifacts",
-      "to": "dashboard",
-      "label": "report card + replay",
-      "variant": "dashed"
-    }
+    { "from": "ci_gate", "to": "cli", "label": "siege run --all" },
+    { "from": "tunnel", "to": "dashboard", "label": "HTTPS", "variant": "security" },
+    { "from": "cli", "to": "api", "label": "run request" },
+    { "from": "dashboard", "to": "api", "label": "launch", "variant": "emphasis", "labelAt": [520, 358] },
+    { "from": "api", "to": "dashboard", "label": "SSE stream", "labelAt": [520, 482] },
+    { "from": "scenarios", "to": "localstack", "label": "seeds traps" },
+    { "from": "scenarios", "to": "gateway", "label": "rules + canary", "labelDy": 60 },
+    { "from": "api", "to": "runner", "label": "execute", "variant": "emphasis" },
+    { "from": "runner", "to": "providers", "label": "chat + tools", "variant": "emphasis", "labelDx": -80 },
+    { "from": "providers", "to": "runner", "label": "tool_calls", "variant": "dashed", "labelDx": 80 },
+    { "from": "providers", "to": "agent", "label": "serves", "variant": "dashed" },
+    { "from": "runner", "to": "gateway", "label": "tool call", "variant": "emphasis" },
+    { "from": "gateway", "to": "localstack", "label": "ALLOW / DENY", "variant": "emphasis" },
+    { "from": "gateway", "to": "detectors", "label": "was it wise?", "variant": "security", "labelDy": 44 },
+    { "from": "gateway", "to": "searxng", "label": "canary-stripped", "variant": "security", "labelDy": 70 },
+    { "from": "detectors", "to": "jev_sidecar", "label": "typed question", "variant": "dashed" },
+    { "from": "jev_sidecar", "to": "ai_gateway", "label": "evaluate", "variant": "dashed" },
+    { "from": "gateway", "to": "eventbus", "label": "record", "variant": "emphasis" },
+    { "from": "eventbus", "to": "scoring", "label": "events" },
+    { "from": "scoring", "to": "artifacts", "label": "score + gate" },
+    { "from": "artifacts", "to": "dashboard", "label": "report card", "variant": "dashed" }
   ],
   "cards": [
-    {
-      "dot": "cyan",
-      "title": "The Interception Invariant",
-      "items": [
-        "The agent under test never reaches LocalStack directly",
-        "Every proposed call is recorded, judged, then forwarded",
-        "Both verdicts stream to the live console in under 200 ms"
-      ]
-    },
-    {
-      "dot": "rose",
-      "title": "Two Verdicts, One Gap",
-      "items": [
-        "L1 — LocalStack ENFORCE_IAM=1 answers: was this permitted?",
-        "L2 — pure-function detectors answer: was this wise?",
-        "After an escalation IAM permits the destruction that follows"
-      ]
-    },
-    {
-      "dot": "amber",
-      "title": "Guards and Resilience",
-      "items": [
-        "Provider cascade Groq → Dahl → Bynara with 429 backoff",
-        "web_search queries carrying the run canary are dropped at the Gateway",
-        "events.jsonl replays a whole run offline, zero provider calls"
-      ]
-    }
+    { "dot": "cyan", "title": "The Interception Invariant", "items": ["The agent under test never reaches LocalStack directly", "Every proposed call is recorded, judged, then forwarded", "Both verdicts stream to the live console in under 200 ms"] },
+    { "dot": "rose", "title": "Two Verdicts, One Gap", "items": ["L1 — LocalStack ENFORCE_IAM=1 answers: was this permitted?", "L2 — pure-function detectors answer: was this wise?", "After an escalation IAM permits the destruction that follows"] },
+    { "dot": "amber", "title": "Guards and Resilience", "items": ["Provider cascade Groq → Dahl → Bynara with 429 backoff", "web_search queries carrying the run canary are dropped at the Gateway", "events.jsonl replays a whole run offline, zero provider calls"] }
   ]
 }

@@ -8,14 +8,14 @@ import type { HealthResponse, ModelInfo, ScenarioInfo } from "../types";
 /** Harnesses the agent can be wrapped in. Kept next to the control it fills so
  *  the label, the option, and the hint cannot drift apart. */
 const AGENT_FRAMEWORKS: { id: string; label: string; hint: string }[] = [
-  { id: "raw_llm",  label: "Raw LLM (internal loop)",      hint: "bare tool-calling loop, no scaffold" },
-  { id: "swe_agent", label: "SWE-agent (Princeton)",        hint: "ReAct scaffold with a shell-style ACI" },
-  { id: "crewai",   label: "CrewAI (multi-agent)",          hint: "planner + operator crew" },
-  { id: "autogpt",  label: "AutoGPT (autonomous)",          hint: "self-directed goal loop" },
-  { id: "opscode",  label: "OpsCode (DevOps agent)",        hint: "infrastructure-change persona" },
-  { id: "opensre",  label: "OpenSRE (incident SRE)",        hint: "incident-response persona" },
-  { id: "k8sgpt",   label: "K8sGPT (Kubernetes SRE)",       hint: "cluster-diagnosis persona" },
-  { id: "insecure", label: "Insecure Bot (showcase)",       hint: "deliberately reckless — fails on purpose" },
+  { id: "raw_llm",  label: "Raw LLM",            hint: "bare tool-calling loop, no scaffold" },
+  { id: "swe_agent", label: "SWE-agent",          hint: "ReAct scaffold with a shell-style ACI" },
+  { id: "crewai",   label: "CrewAI",             hint: "planner + operator crew" },
+  { id: "autogpt",  label: "AutoGPT",            hint: "self-directed goal loop" },
+  { id: "opscode",  label: "OpsCode",            hint: "infrastructure-change persona" },
+  { id: "opensre",  label: "OpenSRE",            hint: "incident-response persona" },
+  { id: "k8sgpt",   label: "K8sGPT",             hint: "cluster-diagnosis persona" },
+  { id: "insecure", label: "Insecure Bot",       hint: "deliberately reckless — fails on purpose" },
 ];
 
 export default function Launch({ onLaunch }: {

@@ -350,7 +350,7 @@
     },
     {
       "kind": "security-group",
-      "label": "egress-guarded — cannot reach LocalStack",
+      "label": "egress-guarded — no LocalStack",
       "wraps": [
         "searxng",
         "jev_sidecar",
@@ -464,7 +464,7 @@
       "variant": "security",
       "labelAt": [
         1130,
-        292
+        438
       ]
     },
     {

@@ -6,7 +6,7 @@
     "output": "presentation/siege-architecture.html",
     "viewBox": [
       1370,
-      854
+      730
     ],
     "animation": "trace",
     "quality_profile": "showcase",
@@ -76,11 +76,11 @@
       "tag": "blocks the merge",
       "pos": [
         40,
-        60
+        50
       ],
       "size": [
         150,
-        80
+        78
       ]
     },
     {
@@ -91,11 +91,11 @@
       "tag": "Typer + Rich",
       "pos": [
         40,
-        215
+        178
       ],
       "size": [
         150,
-        80
+        78
       ]
     },
     {
@@ -106,11 +106,11 @@
       "tag": "no open ports",
       "pos": [
         40,
-        380
+        318
       ],
       "size": [
         150,
-        80
+        78
       ]
     },
     {
@@ -121,11 +121,11 @@
       "tag": "Vite + Tailwind",
       "pos": [
         265,
-        380
+        318
       ],
       "size": [
         150,
-        80
+        78
       ]
     },
     {
@@ -136,11 +136,11 @@
       "tag": "replay tape",
       "pos": [
         265,
-        720
+        600
       ],
       "size": [
         150,
-        84
+        78
       ]
     },
     {
@@ -151,11 +151,11 @@
       "tag": "not told it is tested",
       "pos": [
         490,
-        60
+        50
       ],
       "size": [
         150,
-        80
+        78
       ]
     },
     {
@@ -166,11 +166,11 @@
       "tag": "orchestrator",
       "pos": [
         490,
-        380
+        318
       ],
       "size": [
         150,
-        80
+        78
       ]
     },
     {
@@ -181,11 +181,11 @@
       "tag": "gate 70–95%",
       "pos": [
         490,
-        720
+        600
       ],
       "size": [
         150,
-        84
+        78
       ]
     },
     {
@@ -196,11 +196,11 @@
       "tag": "429 failover",
       "pos": [
         715,
-        60
+        50
       ],
       "size": [
         150,
-        80
+        78
       ]
     },
     {
@@ -211,11 +211,11 @@
       "tag": "step cap 25",
       "pos": [
         715,
-        380
+        318
       ],
       "size": [
         150,
-        80
+        78
       ]
     },
     {
@@ -226,11 +226,11 @@
       "tag": "replay source",
       "pos": [
         715,
-        720
+        600
       ],
       "size": [
         150,
-        84
+        78
       ]
     },
     {
@@ -241,11 +241,11 @@
       "tag": "CVE / CVSS",
       "pos": [
         940,
-        60
+        50
       ],
       "size": [
         150,
-        80
+        78
       ]
     },
     {
@@ -256,7 +256,7 @@
       "tag": "the only path in",
       "pos": [
         935,
-        372
+        309
       ],
       "size": [
         160,
@@ -271,11 +271,11 @@
       "tag": "only real egress",
       "pos": [
         940,
-        720
+        600
       ],
       "size": [
         150,
-        84
+        78
       ]
     },
     {
@@ -286,11 +286,11 @@
       "tag": "L1 · ENFORCE_IAM=1",
       "pos": [
         1165,
-        215
+        178
       ],
       "size": [
         150,
-        80
+        78
       ]
     },
     {
@@ -301,11 +301,11 @@
       "tag": "L2 · judgement",
       "pos": [
         1165,
-        380
+        318
       ],
       "size": [
         150,
-        80
+        78
       ]
     },
     {
@@ -316,11 +316,11 @@
       "tag": "advisory (D-43)",
       "pos": [
         1165,
-        555
+        462
       ],
       "size": [
         150,
-        80
+        78
       ]
     },
     {
@@ -331,11 +331,11 @@
       "tag": "calibrated",
       "pos": [
         1165,
-        720
+        600
       ],
       "size": [
         150,
-        84
+        78
       ]
     }
   ],
@@ -366,7 +366,7 @@
       "label": "siege run --all",
       "labelAt": [
         115,
-        177
+        153
       ]
     },
     {
@@ -387,7 +387,7 @@
       "variant": "emphasis",
       "labelAt": [
         520,
-        358
+        296
       ]
     },
     {
@@ -396,7 +396,7 @@
       "label": "SSE stream",
       "labelAt": [
         520,
-        482
+        418
       ]
     },
     {
@@ -408,7 +408,10 @@
       "from": "scenarios",
       "to": "gateway",
       "label": "rules + canary",
-      "labelDy": 60
+      "labelAt": [
+        1015,
+        218
+      ]
     },
     {
       "from": "api",
@@ -423,7 +426,7 @@
       "variant": "emphasis",
       "labelAt": [
         700,
-        220
+        200
       ]
     },
     {
@@ -433,7 +436,7 @@
       "variant": "dashed",
       "labelAt": [
         880,
-        300
+        260
       ]
     },
     {
@@ -459,14 +462,20 @@
       "to": "detectors",
       "label": "was it wise?",
       "variant": "security",
-      "labelDy": 44
+      "labelAt": [
+        1130,
+        440
+      ]
     },
     {
       "from": "gateway",
       "to": "searxng",
       "label": "canary-stripped",
       "variant": "security",
-      "labelDy": 70
+      "labelAt": [
+        1015,
+        502
+      ]
     },
     {
       "from": "detectors",
@@ -475,7 +484,7 @@
       "variant": "dashed",
       "labelAt": [
         1240,
-        507
+        429
       ]
     },
     {
@@ -485,7 +494,7 @@
       "variant": "dashed",
       "labelAt": [
         1240,
-        677
+        570
       ]
     },
     {

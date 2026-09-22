@@ -138,9 +138,13 @@ a{color:var(--sand)}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:24px}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:24px}
 .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:24px}
-.chiprow{display:flex;gap:14px;flex-wrap:wrap;margin-top:30px}
+/* Chips sit directly under a .grid4 of cards, so they share its measure:
+   equal columns spanning the full slide-inner width, same gutter as the grid.
+   auto-fit keeps it honest for any chip count. */
+.chiprow{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));
+  gap:16px;margin-top:30px}
 .chip{border:1px solid var(--rule-lit);background:var(--panel);padding:13px 16px;border-radius:3px;
-  font-size:.85rem;color:var(--ink-dim);max-width:280px;line-height:1.45;}
+  font-size:.85rem;color:var(--ink-dim);line-height:1.45;}
 .chip b{display:block;color:var(--ink);font-family:var(--font-display);font-size:.72rem;
   letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;}
 figure{margin:20px 0 0}
@@ -173,7 +177,18 @@ figcaption strong{color:var(--ink-dim)}
 
 /* ============ slide 1 title ============ */
 #s1{padding-top:44px}
-.title-wrap{display:grid;grid-template-columns:1fr;gap:30px;align-items:center}
+.title-wrap{display:grid;grid-template-columns:minmax(0,1fr) clamp(240px,26vw,400px);
+  gap:clamp(24px,4vw,64px);align-items:center}
+
+/* Slowly rotating Cube.glb, level with the wordmark. The canvas is square and
+   transparent; if the model is missing the viewer draws a wireframe stand-in
+   rather than leaving a hole in the title slide. */
+.cube-stage{position:relative;width:100%;aspect-ratio:1;max-height:min(46vh,420px);
+  justify-self:center}
+.cube-stage::before{content:"";position:absolute;inset:8%;border-radius:50%;
+  background:radial-gradient(circle at 50% 50%,rgba(224,164,88,.16),transparent 68%);
+  filter:blur(22px);pointer-events:none}
+.cube-stage canvas{position:relative;width:100%;height:100%;display:block}
 .title-eyebrow{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.1em;
   color:var(--ink-mute);text-transform:uppercase;margin-bottom:26px;}
 .wordmark{font-family:var(--font-display);font-weight:700;
@@ -386,7 +401,7 @@ figcaption strong{color:var(--ink-dim)}
 
 /* ============ responsive ============ */
 @media (max-width:1000px){
-  .grid2,.grid3,.grid4,.pipegrid,.attr-flow,.roadcols,.impactgrid,.progrid,.archrow{grid-template-columns:1fr;gap:14px}
+  .grid2,.grid3,.grid4,.chiprow,.pipegrid,.attr-flow,.roadcols,.impactgrid,.progrid,.archrow{grid-template-columns:1fr;gap:14px}
   .trapgrid,.incgrid{grid-template-columns:1fr 1fr}
   .title-wrap{grid-template-columns:1fr}
   .cast{order:-1}.cast-stage{height:230px}
@@ -426,7 +441,7 @@ figcaption strong{color:var(--ink-dim)}
 <section class="slide" id="s1" data-label="TITLE">
   <div class="slide-inner">
     <div class="title-wrap">
-      <div>
+      <div class="title-copy">
         <div class="title-eyebrow">DevOpsDays Cairo 2026 · Track 1 — Automate Deployment &amp; Operations</div>
         <h1 class="wordmark">Sandbox<br><span class="siege">Siege</span></h1>
         <p class="title-sub">Chaos engineering for AI agents — the pre-production harness that answers whether your autonomous DevOps agent can be trusted, before it ever touches production.</p>
@@ -437,6 +452,7 @@ figcaption strong{color:var(--ink-dim)}
           <div><b>Repo</b><span class="mono">github.com/ghassanelgendy/sandbox-siege</span></div>
         </div>
       </div>
+      <div class="cube-stage" id="cube-stage" aria-hidden="true"></div>
     </div>
   </div>
 </section>

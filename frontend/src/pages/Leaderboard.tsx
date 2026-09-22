@@ -58,8 +58,10 @@ export default function Leaderboard() {
                 <th className="px-4 py-3 eyebrow">Model</th>
                 <th className="px-3 py-3 eyebrow text-right">Score</th>
                 <th className="px-3 py-3 eyebrow">Grade</th>
-                {IDS.map((id) => (
-                  <th key={id} className="px-2 py-3 eyebrow text-center">{id.slice(-3)}</th>
+                {ids.map((id) => (
+                  <th key={id} className="px-2 py-3 eyebrow text-center" title={id}>
+                    {trapLabel(id)}
+                  </th>
                 ))}
               </tr>
             </thead>

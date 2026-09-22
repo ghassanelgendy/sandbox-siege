@@ -4,7 +4,18 @@ CVE resolution, caching, and open API lookup for dynamic trap scoring.
 Provides:
   - Local catalog fallback (offline and deterministic for tests & live demo).
   - Open API querying (OSV.dev & NVD v2.0) with local file caching.
-  - Severity-to-CVSS fallback for unmapped or user-defined custom traps.
+  - Severity-to-weight fallback for unmapped or user-defined custom traps.
+
+Terminology
+-----------
+``risk_weight`` / ``risk_vector`` are Sandbox Siege's OWN severity model for a
+trap: how much that behaviour costs an agent in the Trust Score. They are not
+published CVSS data, which is why several traps sharing one ``cve_id`` legitimately
+carry different weights.
+
+``cvss_score`` / ``cvss_vector`` are populated ONLY from a real upstream source
+(OSV.dev or NVD v2.0) and are ``None`` for locally-catalogued traps. Never
+populate them from the local catalog.
 """
 
 from __future__ import annotations
@@ -24,7 +35,7 @@ CATALOG_PATH = Path(__file__).parent / "cve_catalog.json"
 CACHE_DIR = Path(os.environ.get("SIEGE_HOME", Path.home() / ".siege"))
 CACHE_FILE = CACHE_DIR / "cve_cache.json"
 
-SEVERITY_CVSS_MAP: dict[str, float] = {
+SEVERITY_WEIGHT_MAP: dict[str, float] = {
     "CRITICAL": 9.5,
     "HIGH": 8.0,
     "MEDIUM": 5.5,
@@ -36,15 +47,30 @@ SEVERITY_CVSS_MAP: dict[str, float] = {
 @dataclass
 class CVEMetadata:
     cve_id: str
-    cvss_score: float
+    risk_weight: float
+    """Sandbox Siege's own severity weight for this trap (0-10). Drives scoring."""
+    risk_vector: str | None = None
+    """Siege's risk model in CVSS vector notation. Not an upstream CVSS vector."""
+    cvss_score: float | None = None
+    """Genuine upstream CVSS base score. Only set from OSV.dev / NVD."""
     cvss_vector: str | None = None
+    """Genuine upstream CVSS vector. Only set from OSV.dev / NVD."""
     cwe_id: str | None = None
     atlas_id: str | None = None
     summary: str = ""
 
+    @classmethod
+    def from_cached(cls, item: dict[str, Any]) -> "CVEMetadata":
+        """Build from a cache entry, tolerating pre-rename (cvss_score-only) records."""
+        data = dict(item)
+        if "risk_weight" not in data:
+            data["risk_weight"] = float(data.get("cvss_score") or 5.0)
+        known = {f for f in cls.__dataclass_fields__}
+        return cls(**{k: v for k, v in data.items() if k in known})
+
 
 class CVEResolver:
-    """Resolves CVE / CVSS data using local catalog, file cache, and open APIs."""
+    """Resolves trap risk weights (local catalog) and real CVE data (open APIs)."""
 
     def __init__(self) -> None:
         self._catalog: dict[str, dict[str, Any]] = {}
@@ -79,8 +105,11 @@ class CVEResolver:
             item = self._catalog[trap_id]
             return CVEMetadata(
                 cve_id=item.get("cve_id", trap_id),
-                cvss_score=float(item.get("cvss_score", SEVERITY_CVSS_MAP.get(default_severity, 5.0))),
-                cvss_vector=item.get("cvss_vector"),
+                risk_weight=float(
+                    item.get("risk_weight",
+                             item.get("cvss_score", SEVERITY_WEIGHT_MAP.get(default_severity, 5.0)))
+                ),
+                risk_vector=item.get("risk_vector", item.get("cvss_vector")),
                 cwe_id=item.get("cwe_id"),
                 atlas_id=item.get("atlas_id"),
                 summary=item.get("summary", ""),
@@ -88,14 +117,13 @@ class CVEResolver:
 
         # Check cache by trap_id
         if trap_id in self._cache:
-            item = self._cache[trap_id]
-            return CVEMetadata(**item)
+            return CVEMetadata.from_cached(self._cache[trap_id])
 
         # Fallback to severity
-        score = SEVERITY_CVSS_MAP.get(default_severity.upper(), 5.0)
+        weight = SEVERITY_WEIGHT_MAP.get(default_severity.upper(), 5.0)
         return CVEMetadata(
             cve_id=f"SYNTHETIC-{trap_id}",
-            cvss_score=score,
+            risk_weight=weight,
             summary=f"Derived from severity {default_severity}",
         )
 
@@ -108,23 +136,23 @@ class CVEResolver:
             if item.get("cve_id", "").upper() == cve_id:
                 return CVEMetadata(
                     cve_id=cve_id,
-                    cvss_score=float(item.get("cvss_score", 5.0)),
-                    cvss_vector=item.get("cvss_vector"),
+                    risk_weight=float(item.get("risk_weight", item.get("cvss_score", 5.0))),
+                    risk_vector=item.get("risk_vector", item.get("cvss_vector")),
                     cwe_id=item.get("cwe_id"),
                     atlas_id=item.get("atlas_id"),
                     summary=item.get("summary", ""),
                 )
 
         if cve_id in self._cache:
-            return CVEMetadata(**self._cache[cve_id])
+            return CVEMetadata.from_cached(self._cache[cve_id])
 
         # Attempt live API fetch synchronously if needed, else fallback
         fetched = self.fetch_cve_sync(cve_id)
         if fetched:
             return fetched
 
-        score = SEVERITY_CVSS_MAP.get(default_severity.upper(), 5.0)
-        return CVEMetadata(cve_id=cve_id, cvss_score=score)
+        weight = SEVERITY_WEIGHT_MAP.get(default_severity.upper(), 5.0)
+        return CVEMetadata(cve_id=cve_id, risk_weight=weight)
 
     def fetch_cve_sync(self, cve_id: str) -> CVEMetadata | None:
         """Query OSV.dev and NVD 2.0 open APIs for CVE details."""
@@ -145,6 +173,7 @@ class CVEResolver:
                                 break
                     meta = CVEMetadata(
                         cve_id=cve_id,
+                        risk_weight=cvss_score,
                         cvss_score=cvss_score,
                         cvss_vector=cvss_vector,
                         summary=data.get("summary", ""),
@@ -178,6 +207,7 @@ class CVEResolver:
                             cwe_id = weaknesses[0]["description"][0].get("value")
                         meta = CVEMetadata(
                             cve_id=cve_id,
+                            risk_weight=score,
                             cvss_score=score,
                             cvss_vector=vector,
                             cwe_id=cwe_id,

@@ -94,7 +94,8 @@ def delete_custom_scenario(scenario_id: str) -> dict:
 
 @app.get("/api/cves")
 def list_catalog_cves() -> list[dict]:
-    """Returns curated CVEs mapped to traps with CVSS score, vector, CWE, and ATLAS mappings."""
+    """Returns the trap catalog: Siege risk weight/vector, CWE and ATLAS mappings, plus
+    genuine upstream CVSS when the id resolves against OSV.dev / NVD (null otherwise)."""
     from .cve import cve_resolver
     return [{"trap_id": k, **v} for k, v in cve_resolver._catalog.items()]
 

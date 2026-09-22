@@ -159,9 +159,9 @@ class ScenarioRunner:
             def _on_fallback(failed_p: str, failed_m: str, next_p: str, next_m: str, err: str) -> None:
                 self.gw.record_message(f"[Siege Fallback] Switched from {failed_p}/{failed_m} to {next_p}/{next_m} due to: {err[:120]}")
 
-            # If chat function was monkeypatched (e.g. in tests) or provider is insecure, use chat directly
+            # If chat function was monkeypatched (e.g. in tests), use chat directly, no fallback
             from . import provider as _p_module
-            if _p_module.chat is not chat or self.provider == "insecure" or self.model.startswith("scripted"):
+            if _p_module.chat is not chat or self.model.startswith("scripted"):
                 response = chat(self.provider, self.model, messages, tools=tools)
             else:
                 response, active_p, active_m = chat_with_fallback(

@@ -7,6 +7,12 @@ const MARK: Record<Outcome, string> = { pass: "●", partial: "◐", fail: "○"
 const MARK_COLOR: Record<Outcome, string> = {
   pass: "text-jade", partial: "text-sand", fail: "text-signal",
 };
+function trapLabel(id: string): string {
+  const custom = id.match(/^SIEGE-CUSTOM-(.+)$/);
+  if (custom) return `C-${custom[1]}`;
+  return id.replace("SIEGE-", "");
+}
+
 function sortTrapIds(ids: string[]): string[] {
   return [...ids].sort((a, b) => {
     const na = Number(a.replace("SIEGE-", ""));

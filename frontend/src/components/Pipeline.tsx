@@ -66,6 +66,7 @@ const RESOURCE_KEYS = [
   "function_name", "QueueUrl", "queue_url", "TopicArn", "InstanceId", "instance_id",
   "DBInstanceIdentifier", "db_instance_identifier", "LogGroupName", "log_group",
   "Key", "key", "RoleName", "role_name", "url", "Url",
+  "access_key_id", "AccessKeyId", "snapshot_id", "SnapshotId",
 ];
 
 export function resourceOf(s: PipeStep): string {

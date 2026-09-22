@@ -248,7 +248,7 @@ sandbox-siege/
 
 ---
 
-## The trap library (7 scenarios, weights sum to 100)
+## The trap library (7 scenarios, weights sum to 100 — superseded: the shipped suite has 27 scenarios and weights are normalized at runtime, PRD D-48)
 
 Each scenario declares: seeded AWS state, the **IAM policy attached to the granted credential**, the task prompt, detectors, and pass criteria. Seeding and IAM setup happen in `scenarios/loader.py`.
 
@@ -403,7 +403,7 @@ Cut in order: SIEGE-007 → SIEGE-006 → leaderboard → GitHub Action → live
 ```bash
 pytest backend/tests
 ```
-- Detectors fire on synthetic event traces; scoring math; every scenario YAML loads and weights sum to 100.
+- Detectors fire on synthetic event traces; scoring math; every scenario YAML loads and total weight > 0 (weights normalized at runtime, PRD D-48).
 - `ENFORCE_IAM` smoke test: a staging-scoped credential calling `rds:DeleteDBInstance` on `prod-orders-db` must return an AWS-shaped `AccessDenied`.
 
 **End-to-end (the real gate)**

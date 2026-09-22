@@ -930,5 +930,73 @@ figcaption strong{color:var(--ink-dim)}
   setActive(0);
 })();
 </script>
+
+<!-- Wires the embedded Archify diagrams (slides 06/07): restyles them to the
+     deck's own palette, strips their editor chrome, and gates the authored
+     signal-flow trace behind a click instead of letting it autoplay. -->
+<script>
+(function(){
+  try { localStorage.setItem('archify-motion', 'still'); } catch (_) {}
+
+  var DIAGRAM_THEME_CSS = [
+    ':root,[data-theme="dark"]{',
+    '--bg:#0B1016;--grid:#1E2A36;--text:#E4EAF0;--text-muted:#96A6B8;--text-dim:#61738A;--text-faint:#61738A;',
+    '--panel:rgba(18,26,35,.55);--panel-border:#2C3D4E;--lane-fill:rgba(18,26,35,.32);--lane-stroke:#2C3D4E;',
+    '--arrow:#96A6B8;--arrow-emphasis:#6FD3A6;--mask:#0B1016;',
+    '--frontend-fill:rgba(224,164,88,.12);--frontend-stroke:#E0A458;',
+    '--backend-fill:rgba(111,211,166,.14);--backend-stroke:#6FD3A6;',
+    '--database-fill:rgba(139,127,212,.16);--database-stroke:#8B7FD4;',
+    '--cloud-fill:rgba(224,164,88,.10);--cloud-stroke:#C98A44;',
+    '--security-fill:rgba(229,72,77,.14);--security-stroke:#E5484D;',
+    '--messagebus-fill:rgba(150,166,184,.12);--messagebus-stroke:#96A6B8;',
+    '--external-fill:rgba(97,115,138,.14);--external-stroke:#61738A;',
+    '--toolbar-bg:#121A23;--toolbar-border:#2C3D4E;--toolbar-text:#E4EAF0;--toolbar-hover:#18232F;--toolbar-menu-bg:#121A23;',
+    '}',
+    '.toolbar,.header,.cards,.diagram-nav,.overview-map,.focus-chip,.route-probe,.semantic-lens,.diagram-guide,.node-finder,.guided-views,.share-chapter-cue{display:none!important}',
+    'html,body{height:100%;margin:0;overflow:hidden}',
+    'body{padding:0!important;background:var(--bg)!important;font-family:"IBM Plex Mono",ui-monospace,monospace!important}',
+    '.container{max-width:none!important;width:100%;height:100%;margin:0;display:flex;align-items:center;justify-content:center}',
+    '.diagram-container{border:0!important;border-radius:0!important;box-shadow:none!important;background:transparent!important;width:100%;height:100%;padding:1.75rem!important;display:flex;align-items:center;justify-content:center}',
+    'svg{width:auto!important;height:auto!important;max-width:100%;max-height:100%;min-width:0!important}',
+    '[data-node-id],[data-edge-from],[data-legend-hit]{pointer-events:none!important}'
+  ].join('\n');
+
+  function governor(iframe){
+    try {
+      var win = iframe.contentWindow;
+      var gov = win && win.Archify && win.Archify.motionGovernor;
+      return (gov && gov.capable) ? gov : null;
+    } catch (_) { return null; }
+  }
+
+  [].slice.call(document.querySelectorAll('.diagram-embed')).forEach(function(wrap){
+    var iframe = wrap.querySelector('iframe');
+    var chip = wrap.querySelector('.trigger');
+    if (!iframe) return;
+
+    iframe.addEventListener('load', function(){
+      try {
+        var doc = iframe.contentDocument;
+        var style = doc.createElement('style');
+        style.textContent = DIAGRAM_THEME_CSS;
+        doc.head.appendChild(style);
+      } catch (_) {}
+      var gov = governor(iframe);
+      if (gov) gov.setMode('still', {persist: false});
+    });
+
+    if (chip) {
+      chip.addEventListener('click', function(){
+        var gov = governor(iframe);
+        if (!gov) return;
+        gov.setMode('still', {persist: false});
+        requestAnimationFrame(function(){
+          requestAnimationFrame(function(){ gov.setMode('live', {persist: false}); });
+        });
+      });
+    }
+  });
+})();
+</script>
 </body>
 </html>

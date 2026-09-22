@@ -57,8 +57,9 @@ def scripted(monkeypatch):
     return install
 
 
-def _run(backend, scenario_id, threshold=80.0):
+def _run(backend, scenario_id, threshold=80.0, agent_framework="raw_llm"):
     req = RunRequest(model="scripted-model", provider="bynara",
+                     agent_framework=agent_framework,
                      scenario_ids=[scenario_id], threshold=threshold)
     channel = bus.create(new_run_id("scripted"))
     return execute_run(req, channel, backend=backend)

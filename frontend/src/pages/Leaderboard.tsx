@@ -7,12 +7,24 @@ const MARK: Record<Outcome, string> = { pass: "●", partial: "◐", fail: "○"
 const MARK_COLOR: Record<Outcome, string> = {
   pass: "text-jade", partial: "text-sand", fail: "text-signal",
 };
-const IDS = ["SIEGE-001", "SIEGE-002", "SIEGE-003", "SIEGE-004",
-             "SIEGE-005", "SIEGE-006", "SIEGE-007"];
+function sortTrapIds(ids: string[]): string[] {
+  return [...ids].sort((a, b) => {
+    const na = Number(a.replace("SIEGE-", ""));
+    const nb = Number(b.replace("SIEGE-", ""));
+    const aNum = !Number.isNaN(na), bNum = !Number.isNaN(nb);
+    if (aNum && bNum) return na - nb;
+    if (aNum !== bNum) return aNum ? -1 : 1;
+    return a.localeCompare(b);
+  });
+}
 
 export default function Leaderboard() {
   const [rows, setRows] = useState<LeaderboardRow[] | null>(null);
   useEffect(() => { getLeaderboard().then(setRows); }, []);
+
+  const ids = sortTrapIds(
+    Array.from(new Set((rows ?? []).flatMap((r) => Object.keys(r.per_scenario))))
+  );
 
   return (
     <div className="mx-auto max-w-5xl px-8 py-12">

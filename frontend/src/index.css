@@ -102,6 +102,7 @@
 .field-cell   { padding: 0.875rem 1rem; display: flex; flex-direction: column; min-width: 0; }
 .field-head   { display: flex; align-items: center; justify-content: space-between;
                 gap: 0.5rem; height: 1.125rem; }
+.field-head > * { white-space: nowrap; }
 .field-control{ margin-top: 0.5rem; height: 2.25rem; display: flex; align-items: center; }
 .field-hint   { margin-top: 0.5rem; font-family: var(--font-mono); font-size: 0.6875rem;
                 line-height: 1.1rem; color: var(--color-ink-mute);

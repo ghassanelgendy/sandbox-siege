@@ -147,9 +147,25 @@ figure{margin:20px 0 0}
 figure svg{width:100%;height:auto;display:block;
   max-width:min(var(--figw,900px), calc(42vh * var(--ar,2)))}
 figcaption{margin-top:12px;font-size:.82rem;color:var(--ink-mute);max-width:76ch;line-height:1.55}
-.diagram-embed iframe{width:100%;height:56vh;min-height:420px;max-height:640px;border:1px solid var(--rule-lit);border-radius:4px;background:#0B1016;display:block}
-.diagram-embed .open-full{display:inline-block;margin-top:10px;font-family:var(--font-mono);font-size:.78rem;letter-spacing:.03em;color:var(--sand);text-decoration:none;border-bottom:1px solid var(--sand-dim)}
-.diagram-embed .open-full:hover{border-bottom-color:var(--sand)}
+
+/* ============ full-screen diagram slides ============ */
+.slide.diagram-slide{padding:64px clamp(16px,3vw,56px) 36px}
+.slide.diagram-slide .slide-inner{max-width:none;width:100%;flex:1 1 auto;min-height:0;
+  display:flex;flex-direction:column}
+.slide.diagram-slide h2{margin-bottom:0}
+.slide.diagram-slide .diagram-hint{display:inline-block;margin-left:10px;font-family:var(--font-mono);
+  font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-mute);
+  vertical-align:middle;font-weight:400}
+.diagram-embed{position:relative;flex:1 1 auto;min-height:0;margin-top:18px;
+  border:1px solid var(--rule-lit);border-radius:6px;overflow:hidden;background:#0B1016;
+  display:flex}
+.diagram-embed iframe{flex:1 1 auto;width:100%;height:100%;border:0;display:block;background:#0B1016}
+.diagram-embed .trigger{position:absolute;right:18px;bottom:18px;z-index:5;
+  font-family:var(--font-mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--sand);background:rgba(11,16,22,.88);border:1px solid var(--sand-dim);
+  border-radius:20px;padding:8px 18px;cursor:pointer;transition:background .2s ease,border-color .2s ease;}
+.diagram-embed .trigger:hover{background:rgba(224,164,88,.14);border-color:var(--sand)}
+.diagram-embed .trigger::before{content:"▶";margin-right:8px;font-size:.6rem}
 figcaption strong{color:var(--ink-dim)}
 .kicker{margin-top:26px;font-family:var(--font-display);font-weight:600;font-size:1.15rem;
   color:var(--ink);border-top:1px solid var(--rule);padding-top:20px;max-width:64ch;}

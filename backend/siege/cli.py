@@ -11,6 +11,7 @@ from rich.console import Console
 from rich.table import Table
 
 from . import __version__
+from .agent.frameworks_acme import register as _register_acme
 from .agent.provider import PROVIDERS, discover_models, health_check_model
 from .agent.replay import replay_run
 from .cloud import LocalStackBackend
@@ -27,11 +28,16 @@ console = Console()
 OUTCOME_STYLE = {"pass": ("PASS", "green"), "partial": ("WARN", "yellow"), "fail": ("FAIL", "red")}
 GRADE_STYLE = {"A": "green", "B": "green", "C": "yellow", "D": "yellow", "F": "red"}
 
+# Acme overlay: make acme_secure / acme_insecure frameworks (and the hooking
+# runner) available to every command.
+_register_acme()
+
 
 def _print_report(report: Report) -> None:
     console.print()
     console.rule(f"[bold]SANDBOX SIEGE[/bold] — {report.run_id}")
     console.print(f"Model: [cyan]{report.model}[/cyan] ({report.provider})   "
+                  f"Framework: [cyan]{report.agent_framework}[/cyan]   "
                   f"Backend: {report.backend}   Mode: {report.mode}")
     console.print()
 
@@ -145,16 +151,51 @@ def models(provider: str = typer.Option("", help="Limit to one provider"),
     console.print(table)
 
 
+def _load_framework_file(path: str) -> str:
+    """Load a python file that defines a `framework` dict and register it."""
+    import importlib.util
+
+    from .agent.frameworks import AgentFrameworkInfo, FRAMEWORKS
+
+    spec = importlib.util.spec_from_file_location("siege_custom_framework", path)
+    mod = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(mod)
+    md = getattr(mod, "framework", None)
+    if not isinstance(md, dict) or not md.get("id"):
+        raise ValueError(
+            f"--framework-file {path}: the module must define `framework = "
+            "{'id': ..., 'system_prompt': ..., ...}`")
+    fid = str(md["id"])
+    FRAMEWORKS[fid] = AgentFrameworkInfo(
+        id=fid,
+        name=str(md.get("name", fid)),
+        description=str(md.get("description", "")),
+        github_url=str(md.get("github_url", "")),
+        tools=list(md.get("tools") or []),
+        system_prompt=str(md.get("system_prompt", "")),
+    )
+    console.print(f"[dim]loaded framework '{fid}' from {path}[/dim]")
+    return fid
+
+
 @app.command()
 def run(model: str = typer.Option(..., help="Model id, e.g. deepseek-v4-pro-free"),
         provider: str = typer.Option("bynara", help="bynara | dahl | groq"),
+        framework: str = typer.Option("raw_llm", "--framework", "-fw",
+                                       help="Agent framework id (raw_llm | acme_secure | acme_insecure)"),
+        framework_file: str = typer.Option(None, "--framework-file",
+                                           help="Load a python module defining `framework` dict"),
         scenario: list[str] = typer.Option([], help="Scenario id (repeatable)"),
         all_scenarios: bool = typer.Option(False, "--all", help="Run every scenario"),
         threshold: float = typer.Option(None, help="Gate threshold (0-100, or omit/0 for dynamic severity-risk-adaptive)"),
         format: str = typer.Option("text", "--format", "-f", help="Output format: text | json")) -> None:
     """Run the siege. Exits non-zero if the gate fails (FR-11.1)."""
     ids = [] if all_scenarios else list(scenario)
+    if framework_file:
+        framework = _load_framework_file(framework_file)
     req = RunRequest(model=model, provider=provider, scenario_ids=ids,
+                     agent_framework=framework,
                      threshold=threshold if threshold is not None and threshold > 0 else None)
     run_id = new_run_id(model)
     channel = bus.create(run_id)

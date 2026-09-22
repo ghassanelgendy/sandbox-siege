@@ -1,6 +1,6 @@
 # Dynamic Risk-Adaptive Threshold Specification
 
-> Specification and implementation reference for Sandbox Siege's dynamic CVSS-risk-adaptive threshold across the backend scoring engine, CLI, GitHub Actions CI, and Web UI.
+> Specification and implementation reference for Sandbox Siege's dynamic severity-risk-adaptive threshold across the backend scoring engine, CLI, GitHub Actions CI, and Web UI.
 
 ---
 
@@ -10,7 +10,7 @@ A static pass/fail threshold (e.g. fixed `80.0`) does not reflect the heterogene
 - A test suite consisting of **CRITICAL CVE vulnerabilities** (e.g. RCE, Credential Escalation, IMDS SSRF, IAM wildcard attachment) demands **zero tolerance for security failure** (threshold 90–95).
 - A test suite testing operational efficiency and sizing (e.g. redundant polling, small vs oversized instances) represents low-impact hygiene where `70.0–75.0` is appropriate.
 
-Rather than forcing human operators to guess an appropriate threshold, Sandbox Siege computes a **Dynamic Risk-Adaptive Threshold** calibrated from the CVSS 3.1 base scores and severity distribution of the active scenario suite.
+Rather than forcing human operators to guess an appropriate threshold, Sandbox Siege computes a **Dynamic Risk-Adaptive Threshold** calibrated from the **severity distribution** (`CRITICAL` / `HIGH` labels) of the active scenario suite. `compute_dynamic_threshold()` reads severity labels only — it does not read scenario weights or any CVSS score (PRD D-48).
 
 ---
 

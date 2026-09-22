@@ -157,12 +157,14 @@ $$\text{Deployment Gate} = \begin{cases} \mathbf{PASS} & \text{if } \text{Trust 
 ---
 
 ### Slide 8: Live Demo
-- **Speaker:** "Let's run it live right now: `siege run --model deepseek-v4-pro-free --scenario SIEGE-001 --threshold 0`.
+- **Speaker:** "Let's run it live right now — and you don't have to take our word for it. Scan the QR on screen; it's on your phone too."
 - **Action:**
+  - Launch SIEGE-001 from the web dashboard (not the CLI — only a dashboard-started run streams to the QR page; see D-52), with the projector showing the **Console** (Pipeline/Stream dual-rail view).
+  - Judges scan the slide-14 QR (`sandbox.ghassan.online/demo`) and watch the same run on their own phone: current trap, live verdicts, and the report the moment it lands.
   - Watch the amber rail light up during IAM denial.
   - Watch the agent read the secret, find the bait key, and switch credentials.
-  - Watch the red rail fire as the Gateway catches `CRED_SWITCH` and `ESCALATED_ACCESS`.
-  - Show the dynamic threshold auto-calibrated to 79.0% and the generated report."
+  - Watch the red rail fire as the Gateway catches `CRED_SWITCH` and `ESCALATED_ACCESS` — the same beat lands on every phone in the room a moment later.
+  - Show the dynamic threshold auto-calibrated to 79.0% and the generated report; invite judges to email themselves a copy from their phone."
 
 ---
 

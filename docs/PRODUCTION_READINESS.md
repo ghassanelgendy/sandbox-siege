@@ -104,6 +104,12 @@ public deployment this means:
   `RUNS_DIR / run_id / "report.json"` (`orchestrator.py:186-191`) or
   `RUNS_DIR / run_id / "events.jsonl"` (`events.py:108-112`); scope is bounded to `runs/` but the
   path is attacker-influenced.
+- **D-52 (`/demo` + `POST /api/runs/{id}/email`) knowingly adds to this surface**, not
+  accidentally: it's a public spectator page with no login by design. Scoped mitigation
+  only — email-format check, per-IP rate limit, per-`(email, run_id)` de-dupe — no auth.
+  A hosted (non-demo-window) deployment needs the same fix as everything else in this
+  section before this endpoint is safe to leave reachable: real Resend spend and
+  `runs/leads.jsonl` (plaintext emails, no retention policy — see B5) both need an owner.
 
 ### B3 — No rate limiting, no concurrency guard, blocking handler ⏱️
 

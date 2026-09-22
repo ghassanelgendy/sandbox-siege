@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { GitBranch, List } from "lucide-react";
 import { EV, type Report, type SiegeEvent } from "../types";
 import { getReport, stopRun, streamFixture, streamRun } from "../api";
 import EventRow from "../components/EventRow";
+import Pipeline, { foldEvents } from "../components/Pipeline";
 import { Chip, Eyebrow } from "../components/Bits";
 
 interface Props {
@@ -12,10 +14,13 @@ interface Props {
   onViewReport: () => void;
 }
 
+type ViewMode = "pipeline" | "stream";
+
 export default function Console({ runId, demo, onFinished, report, onViewReport }: Props) {
   const [events, setEvents] = useState<SiegeEvent[]>([]);
   const [live, setLive] = useState(true);
   const [pinned, setPinned] = useState(true);
+  const [mode, setMode] = useState<ViewMode>("pipeline");
   const endRef = useRef<HTMLDivElement>(null);
   const boxRef = useRef<HTMLDivElement>(null);
 
@@ -44,11 +49,13 @@ export default function Console({ runId, demo, onFinished, report, onViewReport 
   const denies = events.filter((e) => e.type === EV.IAM_VERDICT && e.data.decision === "DENY");
   const current = [...events].reverse().find((e) => e.type === EV.SCENARIO_STARTED);
   const finished = events.filter((e) => e.type === EV.SCENARIO_FINISHED);
+  const stages = useMemo(() => foldEvents(events), [events]);
+  const actions = stages.reduce((n, s) => n + s.steps.length, 0);
 
   return (
     <div className="flex h-[calc(100vh-3.5rem)]">
       {/* left: what the two rails mean, and where we are */}
-      <aside className="hidden w-72 shrink-0 border-r border-rule p-6 lg:block">
+      <aside className="hidden w-72 shrink-0 overflow-y-auto border-r border-rule p-6 lg:block">
         <Eyebrow>Reading the rails</Eyebrow>
         <dl className="mt-3 space-y-4 text-sm">
           <div className="flex gap-3">
@@ -93,7 +100,7 @@ export default function Console({ runId, demo, onFinished, report, onViewReport 
 
       {/* centre: the console */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center justify-between border-b border-rule px-6 py-3">
+        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-rule px-6 py-3">
           <div className="flex items-center gap-3">
             <span className={`h-2 w-2 rounded-full ${live ? "bg-sand rail-live" : "bg-ink-mute"}`} />
             <span className="font-display text-sm tracking-wide text-ink">
@@ -115,26 +122,42 @@ export default function Console({ runId, demo, onFinished, report, onViewReport 
             )}
           </div>
           <div className="flex items-center gap-5 font-mono text-[11px] text-ink-mute">
-            <span>{events.length} events</span>
+            <span>{stages.length} stages</span>
+            <span>{actions} actions</span>
             <span className="text-sand">{denies.length} IAM denied</span>
             <span className="text-signal">
               {traps.length} {traps.length === 1 ? "trap" : "traps"}
             </span>
+            {/* view switch — pipeline is the operator's read, the rail stream the raw chronology */}
+            <div className="flex border border-rule">
+              {([["pipeline", "Pipeline", GitBranch], ["stream", "Stream", List]] as const).map(
+                ([id, label, Icon]) => (
+                  <button key={id} onClick={() => setMode(id)}
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 transition-colors
+                            ${mode === id ? "bg-sand/15 text-sand" : "text-ink-mute hover:text-ink"}`}>
+                    <Icon size={11} /> {label}
+                  </button>
+                ))}
+            </div>
           </div>
         </header>
 
-        <div ref={boxRef} onScroll={onScroll} className="console flex-1 overflow-y-auto py-4">
-          {/* The rails only read as a pair when they bracket a column the eye can
-              span in one go. Left unconstrained they drift to the screen edges. */}
-          <div className="mx-auto w-full max-w-4xl">
-            {events.length === 0 && (
-              <p className="px-6 py-16 text-center font-mono text-sm text-ink-mute">
-                waiting for the first action…
-              </p>
-            )}
-            {events.map((e) => <EventRow key={`${e.seq}-${e.type}`} e={e} />)}
-            <div ref={endRef} />
-          </div>
+        <div ref={boxRef} onScroll={onScroll} className="console flex-1 overflow-y-auto">
+          {mode === "pipeline" ? (
+            <Pipeline events={events} live={live} />
+          ) : (
+            /* The rails only read as a pair when they bracket a column the eye can
+               span in one go. Left unconstrained they drift to the screen edges. */
+            <div className="mx-auto w-full max-w-4xl py-4">
+              {events.length === 0 && (
+                <p className="px-6 py-16 text-center font-mono text-sm text-ink-mute">
+                  waiting for the first action…
+                </p>
+              )}
+              {events.map((e) => <EventRow key={`${e.seq}-${e.type}`} e={e} />)}
+            </div>
+          )}
+          <div ref={endRef} />
         </div>
 
         {!pinned && live && (

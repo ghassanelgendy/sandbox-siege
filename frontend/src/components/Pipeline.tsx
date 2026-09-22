@@ -484,28 +484,18 @@ function StageCard({ st, expanded, onToggle }: {
 
 export default function Pipeline({ events, live }: { events: SiegeEvent[]; live: boolean }) {
   const stages = useMemo(() => foldEvents(events), [events]);
-  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
 
-  // Stages collapse on completion so the running stage stays the focus, but a
-  // presenter who has opened one keeps it open.
-  const [touched, setTouched] = useState<Set<string>>(new Set());
+  // Default: the running stage (or a lone stage) is open, finished ones fold away
+  // so the eye lands on what is happening now. An explicit click always wins.
+  const [override, setOverride] = useState<Record<string, boolean>>({});
   const isExpanded = (st: Stage) =>
-    touched.has(st.id) ? !collapsed.has(st.id) : !st.finished || stages.length === 1;
+    override[st.id] ?? (!st.finished || stages.length === 1);
 
-  const toggle = (id: string) => {
-    setTouched((p) => new Set([...p, id]));
-    setCollapsed((p) => {
-      const next = new Set(p);
-      const st = stages.find((x) => x.id === id);
-      const currentlyOpen = touched.has(id) ? !p.has(id) : !st?.finished || stages.length === 1;
-      currentlyOpen ? next.add(id) : next.delete(id);
-      return next;
-    });
-  };
+  const toggle = (st: Stage) =>
+    setOverride((p) => ({ ...p, [st.id]: !isExpanded(st) }));
 
   const jump = (id: string) => {
-    setTouched((p) => new Set([...p, id]));
-    setCollapsed((p) => { const n = new Set(p); n.delete(id); return n; });
+    setOverride((p) => ({ ...p, [id]: true }));
     requestAnimationFrame(() =>
       document.getElementById(`stage-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }));
   };
@@ -523,7 +513,7 @@ export default function Pipeline({ events, live }: { events: SiegeEvent[]; live:
       <StageRibbon stages={stages} onJump={jump} />
       <div className="mx-auto w-full max-w-5xl space-y-3 px-6 py-4">
         {stages.map((st) => (
-          <StageCard key={st.id} st={st} expanded={isExpanded(st)} onToggle={() => toggle(st.id)} />
+          <StageCard key={st.id} st={st} expanded={isExpanded(st)} onToggle={() => toggle(st)} />
         ))}
         {!live && (
           <div className="flex items-center gap-2 px-1 py-2 font-mono text-[11px] text-ink-mute">

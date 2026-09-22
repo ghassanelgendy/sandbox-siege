@@ -547,25 +547,16 @@ figcaption strong{color:var(--ink-dim)}
 </section>
 
 <!-- ===================== 07 ARCHITECTURE ===================== -->
-<section class="slide" id="s7" data-label="ARCHITECTURE">
+<section class="slide diagram-slide" id="s7" data-label="ARCHITECTURE">
   <div class="slide-inner">
     <div class="eyebrow">High-level architecture</div>
-    <h2>One gateway. Every action passes through it.</h2>
-    <div class="archrow">
-      <figure class="diagram-embed">
-        <iframe src="architecture.html" title="Sandbox Siege system architecture — every layer and tool in one frame" loading="lazy"></iframe>
-        <a class="open-full" href="architecture.html" target="_blank" rel="noopener">Open full interactive architecture diagram ↗</a>
-      </figure>
-      <div class="side">
-        <p style="font-size:.86rem;line-height:1.55;margin:0"><strong>The invariant:</strong> the agent never talks to LocalStack directly. Every action is proposed to the Gateway, recorded, judged behaviourally, then forwarded — where IAM independently permits or denies. Both verdicts stream to the UI. If the gateway is bypassed, the run is invalid by construction.</p>
-        <div class="chip" style="max-width:none">
-      <b>No external agent harness required</b>
-      Sandbox Siege <em>is</em> the agent runner. It prompts the model directly with the system prompt, task and tool schemas, then loops on whatever tool call comes back — through the Gateway — until the agent stops or hits the step cap. Bring any OpenAI-compatible model.
+    <h2>One gateway. Every action passes through it.<span class="diagram-hint">click the diagram to trace the signal flow</span></h2>
+    <div class="diagram-embed" data-diagram="architecture">
+      <iframe src="architecture.html?theme=dark" title="Sandbox Siege system architecture — every layer and tool in one frame" loading="lazy"></iframe>
+      <button class="trigger" type="button">Trace the signal flow</button>
     </div>
   </div>
-      </div>
-    </div>
-  </section>
+</section>
 
 <!-- ===================== 08 TRAP LIBRARY ===================== -->
 <section class="slide" id="s8" data-label="TRAP LIBRARY">

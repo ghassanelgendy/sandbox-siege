@@ -17,7 +17,7 @@
 | **P3** Remaining scenarios, detectors, scoring | ✅ done — 12 detectors, scoring, efficiency + token carbon |
 | **P4** Integration & Agent Frameworks | ✅ done — Agent Framework Chooser, interactive Agent Navigator, GET /api/agents, dual-rail console & report headers |
 | **P5** Replay, CLI, CI & Containerization | ✅ done — Docker containerization, custom ports (14566, 18000, 25173), Cloudflare Tunnel integration |
-| **P6** Leaderboard seed + polish | ✅ done — `siege doctor/run/replay/seed`, mock insecure test agent |
+| **P6** Leaderboard seed + polish | ✅ done — `siege doctor/run/replay/seed`, insecure-by-design agent framework (runs on a real model, D-54) |
 | **P7** Rehearsal | ⬜ pending |
 | **P8** Agent web search | ✅ done — self-hosted SearXNG on an isolated `siege-egress` network, `web_search` tool with a Gateway egress guard (FR-3.5, D-34), `SEARCH-EXFIL` detector coverage, SIEGE-027 |
 | **P9** Judge demo companion | ✅ done — public `/demo` spectator page + QR on deck slide 14, `GET /api/runs/current`, on-demand Resend report email via `POST /api/runs/{id}/email` (PRD §6.12, D-52) |

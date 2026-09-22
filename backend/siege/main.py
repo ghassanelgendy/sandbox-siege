@@ -148,6 +148,32 @@ def presentation() -> FileResponse:
     raise HTTPException(status_code=404, detail="Presentation file not found")
 
 
+@app.get("/architecture.html")
+@app.get("/architecture")
+def architecture_diagram() -> FileResponse:
+    pkg_path = os.path.join(os.path.dirname(__file__), "architecture.html")
+    if os.path.exists(pkg_path):
+        return FileResponse(pkg_path, media_type="text/html")
+    base = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    src_path = os.path.join(base, "presentation", "siege-architecture.html")
+    if os.path.exists(src_path):
+        return FileResponse(src_path, media_type="text/html")
+    raise HTTPException(status_code=404, detail="Architecture diagram not found")
+
+
+@app.get("/sequence.html")
+@app.get("/sequence")
+def sequence_diagram() -> FileResponse:
+    pkg_path = os.path.join(os.path.dirname(__file__), "sequence.html")
+    if os.path.exists(pkg_path):
+        return FileResponse(pkg_path, media_type="text/html")
+    base = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    src_path = os.path.join(base, "presentation", "siege-l1-l2-sequence.html")
+    if os.path.exists(src_path):
+        return FileResponse(src_path, media_type="text/html")
+    raise HTTPException(status_code=404, detail="Sequence diagram not found")
+
+
 @app.get("/api/agents")
 def agents() -> list[dict]:
     return get_all_frameworks()

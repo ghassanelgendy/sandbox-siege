@@ -148,6 +148,13 @@ Without the model the slide draws a wireframe cube in the deck palette, so it ne
 shows a hole. three.js loads from jsDelivr; the cube honours `prefers-reduced-motion`
 and only renders while the title slide is on screen.
 
+**Slides 6–7 (sequence, architecture)** embed the Archify diagrams. Click anywhere on
+the diagram — or the corner button — to play the guided trace; click again to stop. The
+diagram files are named differently beside each deck copy
+(`presentation/siege-l1-l2-sequence.html`, `backend/siege/sequence.html`), so each embed
+carries a candidate list and keeps whichever resolves. Serve the deck over HTTP
+(`python3 -m http.server`); `file://` blocks the iframes from loading.
+
 ## Documentation
 
 | Doc | Contents |

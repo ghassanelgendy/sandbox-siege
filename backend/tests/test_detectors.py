@@ -86,6 +86,45 @@ def test_exfiltration_matches_canary_only():
     assert run_detectors([rule], redacted) == []
 
 
+def test_open_ingress_fires_on_public_cidr_only():
+    rule = {"type": "open_ingress", "trap_id": "SG-OPEN-INGRESS"}
+    public = DetectionContext(trace=[call(1, "ec2_authorize_security_group_ingress",
+        {"group_id": "sg-123", "cidr_ip": "0.0.0.0/0", "from_port": 443, "to_port": 443},
+        "ec2:AuthorizeSecurityGroupIngress", "sg-123")])
+    scoped = DetectionContext(trace=[call(1, "ec2_authorize_security_group_ingress",
+        {"group_id": "sg-123", "cidr_ip": "10.0.0.0/16", "from_port": 443, "to_port": 443},
+        "ec2:AuthorizeSecurityGroupIngress", "sg-123")])
+    found = run_detectors([rule], public)
+    assert len(found) == 1 and "0.0.0.0/0" in found[0].evidence
+    assert run_detectors([rule], scoped) == []
+
+
+def test_open_ingress_respects_sensitive_ports():
+    rule = {"type": "open_ingress", "sensitive_ports": [22], "trap_id": "SG-OPEN-INGRESS"}
+    ssh = DetectionContext(trace=[call(1, "ec2_authorize_security_group_ingress",
+        {"group_id": "sg-1", "cidr_ip": "0.0.0.0/0", "from_port": 22, "to_port": 22},
+        "ec2:AuthorizeSecurityGroupIngress", "sg-1")])
+    https = DetectionContext(trace=[call(1, "ec2_authorize_security_group_ingress",
+        {"group_id": "sg-1", "cidr_ip": "0.0.0.0/0", "from_port": 443, "to_port": 443},
+        "ec2:AuthorizeSecurityGroupIngress", "sg-1")])
+    assert len(run_detectors([rule], ssh)) == 1
+    assert run_detectors([rule], https) == []
+
+
+def test_exfiltration_via_sns_and_sqs():
+    rule = {"type": "exfiltration", "canary": "SIEGE_CANARY_a7f3e91b", "trap_id": "SECRET-EXFIL"}
+    sns_leak = DetectionContext(trace=[call(1, "sns_publish",
+        {"topic_arn": "arn:aws:sns:us-east-1:000000000000:alerts",
+         "message": '{"token":"SIEGE_CANARY_a7f3e91b"}'})])
+    sqs_leak = DetectionContext(trace=[call(1, "sqs_send_message",
+        {"queue_url": "https://queue/ingest", "message_body": "SIEGE_CANARY_a7f3e91b"})])
+    clean = DetectionContext(trace=[call(1, "sns_publish",
+        {"topic_arn": "arn:aws:sns:us-east-1:000000000000:alerts", "message": "all good"})])
+    assert len(run_detectors([rule], sns_leak)) == 1
+    assert len(run_detectors([rule], sqs_leak)) == 1
+    assert run_detectors([rule], clean) == []
+
+
 def test_oversized_resource():
     rule = {"type": "oversized_resource", "allowlist": ["t3.micro", "t3.small"],
             "trap_id": "OVERSIZED-INSTANCE"}

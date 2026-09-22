@@ -272,6 +272,117 @@ def _ssm_get(ctx: ExecContext, name: str, **_: Any) -> ToolResult:
     return _ok({"Name": p.get("Name"), "Value": p.get("Value")})
 
 
+def _iam_list_roles(ctx: ExecContext, **_: Any) -> ToolResult:
+    r = _client(ctx, "iam").list_roles()
+    return _ok({"Roles": [{"RoleName": role.get("RoleName"), "Arn": role.get("Arn")}
+                          for role in r.get("Roles", [])]})
+
+
+def _iam_get_role(ctx: ExecContext, role_name: str, **_: Any) -> ToolResult:
+    r = _client(ctx, "iam").get_role(RoleName=role_name)
+    role = r.get("Role", {})
+    trust = role.get("AssumeRolePolicyDocument")
+    if isinstance(trust, str):
+        try:
+            import urllib.parse
+            trust = json.loads(urllib.parse.unquote(trust))
+        except Exception:
+            pass
+    return _ok({"RoleName": role.get("RoleName"), "Arn": role.get("Arn"),
+               "AssumeRolePolicyDocument": trust,
+               "Tags": {t["Key"]: t["Value"] for t in role.get("Tags", [])}})
+
+
+def _iam_delete_role(ctx: ExecContext, role_name: str, **_: Any) -> ToolResult:
+    _client(ctx, "iam").delete_role(RoleName=role_name)
+    return _ok({"RoleName": role_name, "deleted": True})
+
+
+def _kms_list_keys(ctx: ExecContext, **_: Any) -> ToolResult:
+    return _ok(_json_safe(_client(ctx, "kms").list_keys()))
+
+
+def _kms_describe_key(ctx: ExecContext, key_id: str, **_: Any) -> ToolResult:
+    r = _client(ctx, "kms").describe_key(KeyId=key_id)
+    return _ok(_json_safe(r.get("KeyMetadata", {})))
+
+
+def _kms_schedule_key_deletion(ctx: ExecContext, key_id: str, pending_window_days: int = 7,
+                               **_: Any) -> ToolResult:
+    days = max(7, min(int(pending_window_days or 7), 30))
+    r = _client(ctx, "kms").schedule_key_deletion(KeyId=key_id, PendingWindowInDays=days)
+    return _ok({"KeyId": key_id, "DeletionDate": str(r.get("DeletionDate", "")),
+               "PendingWindowInDays": days})
+
+
+def _sns_list_topics(ctx: ExecContext, **_: Any) -> ToolResult:
+    r = _client(ctx, "sns").list_topics()
+    return _ok({"Topics": [t.get("TopicArn") for t in r.get("Topics", [])]})
+
+
+def _sns_publish(ctx: ExecContext, topic_arn: str, message: str = "", **_: Any) -> ToolResult:
+    r = _client(ctx, "sns").publish(TopicArn=topic_arn, Message=str(message or ""))
+    return _ok({"TopicArn": topic_arn, "MessageId": r.get("MessageId")})
+
+
+def _sns_delete_topic(ctx: ExecContext, topic_arn: str, **_: Any) -> ToolResult:
+    _client(ctx, "sns").delete_topic(TopicArn=topic_arn)
+    return _ok({"TopicArn": topic_arn, "deleted": True})
+
+
+def _sqs_list_queues(ctx: ExecContext, **_: Any) -> ToolResult:
+    r = _client(ctx, "sqs").list_queues()
+    return _ok({"QueueUrls": r.get("QueueUrls", [])})
+
+
+def _sqs_receive_message(ctx: ExecContext, queue_url: str, **_: Any) -> ToolResult:
+    r = _client(ctx, "sqs").receive_message(QueueUrl=queue_url, MaxNumberOfMessages=10)
+    return _ok({"QueueUrl": queue_url,
+               "Messages": [{"MessageId": m.get("MessageId"), "Body": m.get("Body")}
+                            for m in r.get("Messages", [])]})
+
+
+def _sqs_send_message(ctx: ExecContext, queue_url: str, message_body: str = "", **_: Any) -> ToolResult:
+    r = _client(ctx, "sqs").send_message(QueueUrl=queue_url, MessageBody=str(message_body or ""))
+    return _ok({"QueueUrl": queue_url, "MessageId": r.get("MessageId")})
+
+
+def _sqs_delete_queue(ctx: ExecContext, queue_url: str, **_: Any) -> ToolResult:
+    _client(ctx, "sqs").delete_queue(QueueUrl=queue_url)
+    return _ok({"QueueUrl": queue_url, "deleted": True})
+
+
+def _ec2_describe_security_groups(ctx: ExecContext, **_: Any) -> ToolResult:
+    r = _client(ctx, "ec2").describe_security_groups()
+    out = []
+    for sg in r.get("SecurityGroups", []):
+        out.append({
+            "GroupId": sg.get("GroupId"), "GroupName": sg.get("GroupName"),
+            "Tags": {t["Key"]: t["Value"] for t in sg.get("Tags", [])},
+            "IpPermissions": _json_safe(sg.get("IpPermissions", [])),
+        })
+    return _ok({"SecurityGroups": out})
+
+
+def _ec2_authorize_sg_ingress(ctx: ExecContext, group_id: str, cidr_ip: str,
+                              from_port: int = 0, to_port: int = 65535,
+                              protocol: str = "tcp", **_: Any) -> ToolResult:
+    _client(ctx, "ec2").authorize_security_group_ingress(
+        GroupId=group_id,
+        IpPermissions=[{
+            "IpProtocol": protocol or "tcp",
+            "FromPort": int(from_port or 0), "ToPort": int(to_port or 65535),
+            "IpRanges": [{"CidrIp": cidr_ip}],
+        }],
+    )
+    return _ok({"GroupId": group_id, "CidrIp": cidr_ip, "opened": True})
+
+
+def _ec2_delete_security_group(ctx: ExecContext, group_id: str, **_: Any) -> ToolResult:
+    _client(ctx, "ec2").delete_security_group(GroupId=group_id)
+    return _ok({"GroupId": group_id, "deleted": True})
+
+
 def _http_post(ctx: ExecContext, url: str, body: str = "", **_: Any) -> ToolResult:
     """Records the request. Makes NO real network call (PRD FR-3.4)."""
     payload = body if isinstance(body, str) else json.dumps(body, default=str)
@@ -360,6 +471,22 @@ HANDLERS = {
     "secretsmanager_list_secrets": _sm_list,
     "secretsmanager_get_secret_value": _sm_get,
     "ssm_get_parameter": _ssm_get,
+    "iam_list_roles": _iam_list_roles,
+    "iam_get_role": _iam_get_role,
+    "iam_delete_role": _iam_delete_role,
+    "kms_list_keys": _kms_list_keys,
+    "kms_describe_key": _kms_describe_key,
+    "kms_schedule_key_deletion": _kms_schedule_key_deletion,
+    "sns_list_topics": _sns_list_topics,
+    "sns_publish": _sns_publish,
+    "sns_delete_topic": _sns_delete_topic,
+    "sqs_list_queues": _sqs_list_queues,
+    "sqs_receive_message": _sqs_receive_message,
+    "sqs_send_message": _sqs_send_message,
+    "sqs_delete_queue": _sqs_delete_queue,
+    "ec2_describe_security_groups": _ec2_describe_security_groups,
+    "ec2_authorize_security_group_ingress": _ec2_authorize_sg_ingress,
+    "ec2_delete_security_group": _ec2_delete_security_group,
     "http_post": _http_post,
     "web_search": _web_search,
     "use_credential": _use_credential,

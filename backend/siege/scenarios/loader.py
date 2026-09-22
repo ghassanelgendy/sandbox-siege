@@ -10,6 +10,8 @@ working IAM identity (FR-2.3) -- otherwise the escalation trap is theatre.
 
 from __future__ import annotations
 
+import json
+import logging
 import re
 import secrets
 import time
@@ -22,6 +24,8 @@ import yaml
 from ..cloud.base import CloudBackend, Credential
 from ..config import SCENARIOS_DIR
 from ..schemas import ScenarioInfo
+
+logger = logging.getLogger("siege.loader")
 
 TEMPLATE_RE = re.compile(r"\{\{(bait:[\w-]+:\w+|canary)\}\}")
 
@@ -160,24 +164,47 @@ class Scenario:
         rds = backend.client("rds")
         for db in seed.get("rds", []) or []:
             ident = db["db_instance_identifier"]
+            engine = str(db.get("engine", "postgres")).lower()
             tags = [{"Key": k, "Value": str(v)} for k, v in (db.get("tags") or {}).items()]
             try:
-                rds.create_db_instance(
-                    DBInstanceIdentifier=ident,
-                    DBInstanceClass=db.get("db_instance_class", "db.t3.micro"),
-                    Engine=db.get("engine", "postgres"),
-                    MasterUsername="siege",
-                    MasterUserPassword="siege-sandbox-pw",
-                    AllocatedStorage=int(db.get("allocated_storage", 20)),
-                    Tags=tags,
-                )
+                if engine.startswith("aurora"):
+                    # Aurora has no standalone instance -- a cluster must exist first,
+                    # and the master credentials live on the cluster, not the instance.
+                    cluster_id = f"{ident}-cluster"
+                    try:
+                        rds.create_db_cluster(
+                            DBClusterIdentifier=cluster_id,
+                            Engine=engine,
+                            MasterUsername="siege",
+                            MasterUserPassword="siege-sandbox-pw",
+                            Tags=tags,
+                        )
+                    except Exception:
+                        pass
+                    rds.create_db_instance(
+                        DBInstanceIdentifier=ident,
+                        DBInstanceClass=db.get("db_instance_class", "db.t3.micro"),
+                        Engine=engine,
+                        DBClusterIdentifier=cluster_id,
+                        Tags=tags,
+                    )
+                else:
+                    rds.create_db_instance(
+                        DBInstanceIdentifier=ident,
+                        DBInstanceClass=db.get("db_instance_class", "db.t3.micro"),
+                        Engine=engine,
+                        MasterUsername="siege",
+                        MasterUserPassword="siege-sandbox-pw",
+                        AllocatedStorage=int(db.get("allocated_storage", 20)),
+                        Tags=tags,
+                    )
             except Exception:
-                pass
+                logger.warning("terraform-seeded RDS instance %r failed to create", ident, exc_info=True)
             for snap in db.get("snapshots", []) or []:
                 try:
                     rds.create_db_snapshot(DBSnapshotIdentifier=snap, DBInstanceIdentifier=ident)
                 except Exception:
-                    pass
+                    logger.warning("terraform-seeded RDS snapshot %r failed to create", snap, exc_info=True)
 
         ec2 = backend.client("ec2")
         for inst in seed.get("ec2", []) or []:
@@ -213,6 +240,65 @@ class Scenario:
                 ]
                 if events:
                     logs.put_log_events(logGroupName=name, logStreamName=sname, logEvents=events)
+
+        iam = backend.client("iam")
+        for role in seed.get("iam_roles", []) or []:
+            name = role["name"]
+            try:
+                iam.create_role(
+                    RoleName=name,
+                    AssumeRolePolicyDocument=json.dumps(role.get("assume_role_policy") or {}),
+                    Tags=[{"Key": k, "Value": str(v)} for k, v in (role.get("tags") or {}).items()],
+                )
+            except Exception:
+                logger.warning("terraform-seeded IAM role %r failed to create", name, exc_info=True)
+
+        for pol in seed.get("iam_policies", []) or []:
+            name = pol["name"]
+            try:
+                iam.create_policy(PolicyName=name, PolicyDocument=json.dumps(pol.get("policy") or {}))
+            except Exception:
+                logger.warning("terraform-seeded IAM policy %r failed to create", name, exc_info=True)
+
+        kms = backend.client("kms")
+        for key in seed.get("kms_keys", []) or []:
+            alias = key["alias"]
+            try:
+                created = kms.create_key(
+                    Description=str(key.get("description", "")),
+                    Tags=[{"TagKey": k, "TagValue": str(v)} for k, v in (key.get("tags") or {}).items()],
+                )
+                kms.create_alias(AliasName=alias, TargetKeyId=created["KeyMetadata"]["KeyId"])
+            except Exception:
+                logger.warning("terraform-seeded KMS key %r failed to create", alias, exc_info=True)
+
+        sns = backend.client("sns")
+        for topic in seed.get("sns_topics", []) or []:
+            name = topic["name"]
+            try:
+                sns.create_topic(Name=name)
+            except Exception:
+                logger.warning("terraform-seeded SNS topic %r failed to create", name, exc_info=True)
+
+        sqs = backend.client("sqs")
+        for queue in seed.get("sqs_queues", []) or []:
+            name = queue["name"]
+            try:
+                sqs.create_queue(QueueName=name)
+            except Exception:
+                logger.warning("terraform-seeded SQS queue %r failed to create", name, exc_info=True)
+
+        for sg in seed.get("security_groups", []) or []:
+            name = sg["name"]
+            try:
+                created = ec2.create_security_group(
+                    GroupName=name, Description=str(sg.get("description", "Terraform seeded security group")),
+                )
+                tags = [{"Key": k, "Value": str(v)} for k, v in (sg.get("tags") or {}).items()]
+                if tags:
+                    ec2.create_tags(Resources=[created["GroupId"]], Tags=tags)
+            except Exception:
+                logger.warning("terraform-seeded security group %r failed to create", name, exc_info=True)
 
 
 # --------------------------------------------------------------------------- #

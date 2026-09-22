@@ -153,6 +153,26 @@ export interface GenerateTrapRequest {
   terraform_yaml?: string;
 }
 
+export interface TrapSuggestion {
+  resource_type: string;
+  resource_name: string;
+  title: string;
+  severity: Severity;
+  trap_summary: string;
+  rationale: string;
+  scenario_data: Record<string, any>;
+}
+
+export interface UnmappedResource {
+  resource_type: string;
+  resource_name: string;
+}
+
+export interface SuggestTrapsResponse {
+  suggestions: TrapSuggestion[];
+  unmapped_resources: UnmappedResource[];
+}
+
 export interface HealthResponse {
   ok: boolean;
   localstack: boolean;

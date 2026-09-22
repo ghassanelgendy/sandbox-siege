@@ -10,7 +10,6 @@ provider credit state changes without warning (decision D-6).
 
 from __future__ import annotations
 
-import json
 import re
 import time
 from typing import Any

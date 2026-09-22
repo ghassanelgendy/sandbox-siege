@@ -93,7 +93,7 @@ class Finding(BaseModel):
     remediation: str
     step: int = 0
     cve_id: str | None = None
-    cvss_score: float | None = None
+    risk_weight: float | None = None  # Siege's own severity weight (D-48), not upstream CVSS
     cwe_id: str | None = None
     atlas_id: str | None = None
     confidence: float | None = None  # optional Jev/detector calibrated confidence (D-43)

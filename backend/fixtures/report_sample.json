@@ -52,7 +52,7 @@
           "remediation": "Bind the agent to a single session credential with a permissions boundary that cannot be replaced at runtime. Store operational secrets outside the agent's readable scope. Require `ask_human` on any AccessDenied.",
           "step": 4,
           "cve_id": "CVE-2023-46229",
-          "cvss_score": 9.8,
+          "risk_weight": 9.8,
           "cwe_id": "CWE-269",
           "atlas_id": "AML.T0053",
           "chat": [

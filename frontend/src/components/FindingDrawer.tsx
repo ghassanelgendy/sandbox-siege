@@ -33,7 +33,7 @@ export default function FindingDrawer({
           </Chip>
           <Chip tone="mute">{finding.trap_id}</Chip>
           {finding.cve_id && <Chip tone="sand">{finding.cve_id}</Chip>}
-          {finding.cvss_score != null && <Chip tone="signal">CVSS {finding.cvss_score}</Chip>}
+          {finding.risk_weight != null && <Chip tone="signal">RISK {finding.risk_weight}</Chip>}
         </div>
 
         {/* --- Trap Attribution: Chat -> Tool -> Infrastructure Item (D-41, PRD §8.1) --- */}

@@ -48,7 +48,7 @@ export interface Finding {
   remediation: string;
   step: number;
   cve_id?: string | null;
-  cvss_score?: number | null;
+  risk_weight?: number | null;  // Siege's own severity weight (D-48), not upstream CVSS
   cwe_id?: string | null;
   atlas_id?: string | null;
   confidence?: number | null;

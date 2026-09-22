@@ -72,18 +72,18 @@
   ],
   "segments": [
     {
-      "from": 160,
-      "to": 300,
+      "from": 158,
+      "to": 286,
       "label": "The boundary holds"
     },
     {
-      "from": 318,
-      "to": 500,
+      "from": 300,
+      "to": 470,
       "label": "The bait is taken"
     },
     {
-      "from": 518,
-      "to": 660,
+      "from": 484,
+      "to": 614,
       "label": "Same call, now permitted"
     }
   ],
@@ -92,7 +92,7 @@
       "id": "probe",
       "from": "agent",
       "to": "gateway",
-      "y": 175,
+      "y": 170,
       "label": "rds_describe_db_instances",
       "variant": "emphasis"
     },
@@ -100,7 +100,7 @@
       "id": "forward-probe",
       "from": "gateway",
       "to": "iam",
-      "y": 210,
+      "y": 202,
       "label": "forward via boto3",
       "variant": "default"
     },
@@ -108,7 +108,7 @@
       "id": "deny",
       "from": "iam",
       "to": "gateway",
-      "y": 245,
+      "y": 234,
       "label": "DENY · AccessDenied",
       "variant": "security"
     },
@@ -116,7 +116,7 @@
       "id": "deny-back",
       "from": "gateway",
       "to": "agent",
-      "y": 280,
+      "y": 266,
       "label": "not authorized",
       "variant": "return"
     },
@@ -124,7 +124,7 @@
       "id": "read-secret",
       "from": "agent",
       "to": "gateway",
-      "y": 330,
+      "y": 312,
       "label": "read staging/db-migrator",
       "variant": "default"
     },
@@ -132,7 +132,7 @@
       "id": "secret-back",
       "from": "gateway",
       "to": "agent",
-      "y": 365,
+      "y": 344,
       "label": "admin key in plaintext",
       "variant": "return"
     },
@@ -140,7 +140,7 @@
       "id": "escalate",
       "from": "agent",
       "to": "gateway",
-      "y": 415,
+      "y": 390,
       "label": "use_credential(AKIA…ADMIN)",
       "variant": "emphasis"
     },
@@ -148,7 +148,7 @@
       "id": "evaluate",
       "from": "gateway",
       "to": "detectors",
-      "y": 450,
+      "y": 422,
       "label": "re-run rules over the trace",
       "variant": "security"
     },
@@ -156,7 +156,7 @@
       "id": "trap",
       "from": "detectors",
       "to": "gateway",
-      "y": 485,
+      "y": 454,
       "label": "trap CRED-ESCALATE",
       "variant": "security"
     },
@@ -164,7 +164,7 @@
       "id": "retry",
       "from": "agent",
       "to": "gateway",
-      "y": 535,
+      "y": 500,
       "label": "rds_describe_db_instances",
       "variant": "emphasis"
     },
@@ -172,7 +172,7 @@
       "id": "forward-retry",
       "from": "gateway",
       "to": "iam",
-      "y": 570,
+      "y": 532,
       "label": "same call, new identity",
       "variant": "default"
     },
@@ -180,7 +180,7 @@
       "id": "allow",
       "from": "iam",
       "to": "gateway",
-      "y": 605,
+      "y": 564,
       "label": "ALLOW",
       "variant": "security"
     },
@@ -188,7 +188,7 @@
       "id": "rows-back",
       "from": "gateway",
       "to": "agent",
-      "y": 640,
+      "y": 596,
       "label": "prod-orders-db",
       "variant": "return"
     }
@@ -196,26 +196,26 @@
   "activations": [
     {
       "participant": "gateway",
-      "from": 170,
-      "to": 645,
+      "from": 165,
+      "to": 601,
       "type": "security"
     },
     {
       "participant": "iam",
-      "from": 205,
-      "to": 250,
+      "from": 197,
+      "to": 239,
       "type": "cloud"
     },
     {
       "participant": "detectors",
-      "from": 445,
-      "to": 490,
+      "from": 417,
+      "to": 459,
       "type": "backend"
     },
     {
       "participant": "iam",
-      "from": 565,
-      "to": 610,
+      "from": 527,
+      "to": 569,
       "type": "cloud"
     }
   ],

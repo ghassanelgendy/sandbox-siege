@@ -35,42 +35,6 @@ _PROBE_TOOL = [{
 }]
 
 
-class SimpleFunction:
-    def __init__(self, name: str, arguments: str) -> None:
-        self.name = name
-        self.arguments = arguments
-
-
-class SimpleToolCall:
-    def __init__(self, call_id: str, name: str, arguments: dict[str, Any]) -> None:
-        self.id = call_id
-        self.type = "function"
-        self.function = SimpleFunction(name, json.dumps(arguments))
-
-
-class SimpleMessage:
-    def __init__(self, content: str, tool_calls: list[SimpleToolCall] | None = None) -> None:
-        self.content = content
-        self.tool_calls = tool_calls
-
-
-class SimpleChoice:
-    def __init__(self, content: str, tool_calls: list[SimpleToolCall] | None = None) -> None:
-        self.message = SimpleMessage(content, tool_calls)
-
-
-class SimpleUsage:
-    def __init__(self) -> None:
-        self.prompt_tokens = 100
-        self.completion_tokens = 20
-
-
-class SimpleResponse:
-    def __init__(self, content: str, tool_calls: list[SimpleToolCall] | None = None) -> None:
-        self.choices = [SimpleChoice(content, tool_calls)]
-        self.usage = SimpleUsage()
-
-
 class ProviderError(RuntimeError):
     def __init__(self, message: str, fatal: bool = False) -> None:
         super().__init__(message)

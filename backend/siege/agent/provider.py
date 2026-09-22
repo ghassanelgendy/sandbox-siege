@@ -227,8 +227,6 @@ def health_check_model(provider: str, model: str) -> dict[str, Any]:
     Returns {healthy, supports_tools, error}. A model that answers but cannot
     emit tool_calls is still usable via the text-protocol fallback (FR-4.3).
     """
-    if provider == "insecure":
-        return {"healthy": True, "supports_tools": True, "error": None}
     try:
         resp = chat(provider, model,
                     [{"role": "user", "content": "List the S3 buckets. Use the tool."}],

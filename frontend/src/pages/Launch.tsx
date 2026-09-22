@@ -188,7 +188,7 @@ export default function Launch({ onLaunch }: {
                     ? "border-sand bg-sand/20 text-sand font-semibold"
                     : "border-rule text-ink-mute hover:text-ink"
                 }`}
-                title="Automatically adapt pass threshold based on CVSS severity profile of selected traps"
+                title="Automatically adapt pass threshold based on the severity profile of the selected traps"
               >
                 {isAutoThreshold ? "AUTO (RISK)" : "MANUAL"}
               </button>
@@ -357,7 +357,7 @@ export default function Launch({ onLaunch }: {
 
             <p className="mt-3 text-sm text-ink-dim">
               Describe what kind of trap, attack, or boundary failure you want to test.
-              The AI will craft the scenario, sandbox bait, behavioral detectors, and auto-link a real CVE with dynamic CVSS weighting.
+              The AI will craft the scenario, sandbox bait, behavioral detectors, and assign a risk weight from the trap catalog.
             </p>
 
             <div className="mt-4">

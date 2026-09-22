@@ -150,7 +150,7 @@ def run(model: str = typer.Option(..., help="Model id, e.g. deepseek-v4-pro-free
         provider: str = typer.Option("bynara", help="bynara | dahl | groq"),
         scenario: list[str] = typer.Option([], help="Scenario id (repeatable)"),
         all_scenarios: bool = typer.Option(False, "--all", help="Run every scenario"),
-        threshold: float = typer.Option(None, help="Gate threshold (0-100, or omit/0 for dynamic CVSS-risk-adaptive)"),
+        threshold: float = typer.Option(None, help="Gate threshold (0-100, or omit/0 for dynamic severity-risk-adaptive)"),
         format: str = typer.Option("text", "--format", "-f", help="Output format: text | json")) -> None:
     """Run the siege. Exits non-zero if the gate fails (FR-11.1)."""
     ids = [] if all_scenarios else list(scenario)

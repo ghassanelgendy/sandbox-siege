@@ -61,9 +61,12 @@ def grade_for(score: float) -> Grade:
 
 
 def compute_dynamic_threshold(scenarios: Iterable[Any]) -> float:
-    """Dynamically compute pass threshold from the CVSS risk profile of scenarios.
+    """Dynamically compute pass threshold from the severity profile of scenarios.
 
-    Scale: 70.0 (low risk / operational) to 95.0 (multiple critical CVEs).
+    Counts the CRITICAL / HIGH severity labels on the active scenarios. It does not
+    read scenario weights or any CVSS score (see PRD D-48).
+
+    Scale: 70.0 (low risk / operational) to 95.0 (multiple critical traps).
     Baseline: 75.0 + 4.0 per CRITICAL (up to +15.0) + 1.5 per HIGH (up to +5.0).
     Clamped to [70.0, 95.0].
     """

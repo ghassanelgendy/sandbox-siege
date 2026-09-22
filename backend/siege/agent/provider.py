@@ -19,7 +19,7 @@ from openai import OpenAI
 
 from ..config import settings
 
-PROVIDERS = ("bynara", "dahl", "groq", "insecure")
+PROVIDERS = ("bynara", "dahl", "groq")
 
 # Errors that must NOT be retried -- retrying a billing failure just wastes time.
 FATAL_MARKERS = ("payment_required", "insufficient credits", "invalid_api_key",

@@ -199,9 +199,6 @@ def chat_with_fallback(
 
 def discover_models(provider: str) -> list[str]:
     """Ask the provider what it serves (FR-4.7)."""
-    if provider == "insecure":
-        return ["insecure-devops-bot"]
-
     from .custom_providers import provider_registry
     cp = provider_registry.get_provider(provider)
     if cp and cp.models:

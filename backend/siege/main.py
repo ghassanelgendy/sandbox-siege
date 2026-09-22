@@ -106,6 +106,10 @@ def get_cve_details(cve_id: str) -> dict:
     meta = cve_resolver.resolve_for_cve_id(cve_id)
     return {
         "cve_id": meta.cve_id,
+        # Siege's own severity model for the trap class:
+        "risk_weight": meta.risk_weight,
+        "risk_vector": meta.risk_vector,
+        # Genuine upstream CVSS — null unless resolved from OSV.dev / NVD:
         "cvss_score": meta.cvss_score,
         "cvss_vector": meta.cvss_vector,
         "cwe_id": meta.cwe_id,

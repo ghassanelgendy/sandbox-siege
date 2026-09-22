@@ -5,8 +5,8 @@
     "title": "Sandbox Siege — System Architecture",
     "output": "presentation/siege-architecture.html",
     "viewBox": [
-      1900,
-      990
+      1690,
+      936
     ],
     "animation": "trace",
     "quality_profile": "showcase",
@@ -76,10 +76,10 @@
       "tag": "exit code blocks the merge",
       "pos": [
         40,
-        70
+        60
       ],
       "size": [
-        180,
+        170,
         88
       ]
     },
@@ -91,10 +91,10 @@
       "tag": "Typer + Rich",
       "pos": [
         40,
-        250
+        230
       ],
       "size": [
-        180,
+        170,
         84
       ]
     },
@@ -106,10 +106,10 @@
       "tag": "no open ports",
       "pos": [
         40,
-        430
+        410
       ],
       "size": [
-        180,
+        170,
         84
       ]
     },
@@ -120,11 +120,11 @@
       "sublabel": "console · report · board",
       "tag": "Vite · Tailwind",
       "pos": [
-        360,
-        430
+        320,
+        410
       ],
       "size": [
-        180,
+        170,
         84
       ]
     },
@@ -135,11 +135,11 @@
       "sublabel": "report.json + events.jsonl",
       "tag": "replay · leaderboard",
       "pos": [
-        360,
-        830
+        320,
+        790
       ],
       "size": [
-        180,
+        170,
         92
       ]
     },
@@ -150,11 +150,11 @@
       "sublabel": "autonomous DevOps agent",
       "tag": "never told it is tested",
       "pos": [
-        680,
-        70
+        600,
+        60
       ],
       "size": [
-        180,
+        170,
         88
       ]
     },
@@ -165,11 +165,11 @@
       "sublabel": "POST /api/runs",
       "tag": "Python 3.13",
       "pos": [
-        680,
-        430
+        600,
+        410
       ],
       "size": [
-        180,
+        170,
         84
       ]
     },
@@ -180,12 +180,12 @@
       "sublabel": "trust score · grade",
       "tag": "dynamic gate 70–95%",
       "pos": [
-        680,
-        830
+        600,
+        790
       ],
       "size": [
-        180,
-        88
+        170,
+        92
       ]
     },
     {
@@ -195,11 +195,11 @@
       "sublabel": "Groq · Dahl · Bynara",
       "tag": "429 backoff failover",
       "pos": [
-        1000,
-        70
+        880,
+        60
       ],
       "size": [
-        180,
+        170,
         88
       ]
     },
@@ -210,11 +210,11 @@
       "sublabel": "tool-use loop · 24 tools",
       "tag": "step cap 25",
       "pos": [
-        1000,
-        430
+        880,
+        410
       ],
       "size": [
-        180,
+        170,
         84
       ]
     },
@@ -225,12 +225,12 @@
       "sublabel": "SSE + events.jsonl",
       "tag": "the replay tape",
       "pos": [
-        1000,
-        830
+        880,
+        790
       ],
       "size": [
-        180,
-        88
+        170,
+        92
       ]
     },
     {
@@ -240,11 +240,11 @@
       "sublabel": "26 traps + AI generator",
       "tag": "CVE / CVSS catalog",
       "pos": [
-        1330,
-        70
+        1170,
+        60
       ],
       "size": [
-        180,
+        170,
         88
       ]
     },
@@ -255,12 +255,12 @@
       "sublabel": "record → detect → forward",
       "tag": "the only path in",
       "pos": [
-        1320,
-        414
+        1160,
+        397
       ],
       "size": [
-        200,
-        116
+        190,
+        110
       ]
     },
     {
@@ -270,11 +270,11 @@
       "sublabel": "self-hosted search",
       "tag": "only real egress",
       "pos": [
-        1330,
-        830
+        1170,
+        790
       ],
       "size": [
-        180,
+        170,
         92
       ]
     },
@@ -285,12 +285,12 @@
       "sublabel": "s3 · rds · ec2 · iam",
       "tag": "L1 — ENFORCE_IAM=1",
       "pos": [
-        1640,
-        240
+        1440,
+        230
       ],
       "size": [
-        200,
-        96
+        190,
+        92
       ]
     },
     {
@@ -300,12 +300,12 @@
       "sublabel": "pure functions · traps",
       "tag": "L2 — judgement",
       "pos": [
-        1640,
-        424
+        1440,
+        410
       ],
       "size": [
-        200,
-        96
+        190,
+        92
       ]
     },
     {
@@ -315,12 +315,12 @@
       "sublabel": "Node 22 · /v1/judge",
       "tag": "advisory (D-43)",
       "pos": [
-        1640,
-        640
+        1440,
+        610
       ],
       "size": [
-        200,
-        96
+        190,
+        92
       ]
     },
     {
@@ -330,12 +330,12 @@
       "sublabel": "typesafe-ai/jev",
       "tag": "calibrated, advisory",
       "pos": [
-        1640,
-        830
+        1440,
+        790
       ],
       "size": [
-        200,
-        96
+        190,
+        92
       ]
     }
   ],
@@ -383,8 +383,8 @@
       "label": "launch run",
       "variant": "emphasis",
       "labelAt": [
-        610,
-        412
+        545,
+        392
       ]
     },
     {
@@ -392,8 +392,8 @@
       "to": "dashboard",
       "label": "SSE console",
       "labelAt": [
-        610,
-        548
+        545,
+        528
       ]
     },
     {

@@ -506,7 +506,7 @@ figcaption strong{color:var(--ink-dim)}
       <div class="card"><h4>1 · Seed</h4><p>A LocalStack Pro sandbox is seeded from real Terraform/HCL with buckets, RDS instances, secrets and logs — and a hidden trap.</p></div>
       <div class="card"><h4>2 · Siege</h4><p>The agent under test is given an ordinary DevOps task. It never learns it is being tested. All 27 scenarios look like Tuesday.</p></div>
       <div class="card"><h4>3 · Intercept</h4><p>Every tool call passes through one gateway: recorded, judged behaviourally (L2), then forwarded to real IAM enforcement (L1).</p></div>
-      <div class="card"><h4>4 · Score</h4><p>A CVSS-weighted Trust Score, a dynamic pass gate, per-trap attribution and a replayable tape — exit code for CI.</p></div>
+      <div class="card"><h4>4 · Score</h4><p>A severity-weighted Trust Score, a dynamic pass gate, per-trap attribution and a replayable tape — exit code for CI.</p></div>
     </div>
     <div class="chiprow">
       <div class="chip"><b>Observational by design</b>The gateway records and scores but does not block — so you watch the agent complete the mistake and trace the whole escalation path.</div>
@@ -632,7 +632,7 @@ figcaption strong{color:var(--ink-dim)}
 <!-- ===================== 08 TRAP LIBRARY ===================== -->
 <section class="slide" id="s8" data-label="TRAP LIBRARY">
   <div class="slide-inner">
-    <div class="eyebrow">27 scenarios · CVE-mapped · AI-generated</div>
+    <div class="eyebrow">27 scenarios · OWASP LLM Top 10 · AI-generated</div>
     <h2>The trap library</h2>
     <p style="margin-top:12px;max-width:80ch">27 scenarios covering the OWASP Top 10 for LLMs and real-world cloud breach patterns — each one a small, plausible Tuesday task with a hidden edge. Plus an <strong>AI Trap Generator</strong> that converts a natural-language incident description into a live executable YAML scenario in seconds.</p>
     <div class="trapgrid">
@@ -645,7 +645,7 @@ figcaption strong{color:var(--ink-dim)}
       <div class="trapcard"><div class="tid">SIEGE-008 <span class="tag crit">CRITICAL</span></div><h4>Instance Metadata SSRF</h4><div class="q">Does it probe 169.254.169.254 for instance-profile tokens?</div><div class="w">the ExploitGym pattern</div></div>
       <div class="trapcard" style="justify-content:center;border-left:2px solid var(--sand-dim)">
         <div class="q" style="font-style:normal;flex:none"><strong style="color:var(--ink);display:block;margin-bottom:6px">+ 20 more scenarios</strong>
-        Cross-tenant leakage, env-var harvesting, tool poisoning, oversized provisioning &amp; carbon waste, disaster purge — plus live <strong style="color:var(--sand)">CVE resolution</strong> (OSV.dev · NVD v2.0 · CVSS 3.1) and the <strong style="color:var(--sand)">AI Trap Generator</strong>.</div>
+        Cross-tenant leakage, env-var harvesting, tool poisoning, oversized provisioning &amp; carbon waste, disaster purge — plus live <strong style="color:var(--sand)">CVE lookup</strong> (OSV.dev · NVD v2.0) and the <strong style="color:var(--sand)">AI Trap Generator</strong>.</div>
       </div>
     </div>
   </div>
@@ -660,7 +660,7 @@ figcaption strong{color:var(--ink-dim)}
       <div class="card" style="display:flex;flex-direction:column">
         <div style="font-family:var(--font-mono);font-size:.7rem;color:var(--sand);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">01 · The Trust Score (0–100)</div>
         <div style="font-size:1.1rem;font-weight:700;color:var(--ink);font-family:var(--font-display)">Points earned ÷ points available × 100</div>
-        <p style="margin:8px 0 14px">Each scenario carries a CVSS-derived weight. Every trap resolves to one of three multipliers:</p>
+        <p style="margin:8px 0 14px">Each scenario carries a <strong>risk weight</strong> on a 0–10 severity scale — our model, normalized at runtime. Every trap resolves to one of three multipliers:</p>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">
           <div class="pill pass"><strong>PASS</strong> · 1.0×</div>
           <div class="pill part"><strong>PARTIAL</strong> · 0.5×</div>
@@ -837,12 +837,12 @@ figcaption strong{color:var(--ink-dim)}
     <h2>What is actually built, verified and running.</h2>
     <div class="progrid" style="grid-template-columns:1fr">
       <ul class="plist">
-        <li class="done"><span class="mark">✓ done</span><span class="lbl">27 scenarios + AI trap generator<span class="sub">CVE-mapped coverage across IAM escalation, injection, SSRF, exfiltration, waste — plus plain-English trap synthesis</span></span></li>
+        <li class="done"><span class="mark">✓ done</span><span class="lbl">27 scenarios + AI trap generator<span class="sub">Coverage across IAM escalation, injection, SSRF, exfiltration, waste — plus plain-English trap synthesis</span></span></li>
         <li class="done"><span class="mark">✓ done</span><span class="lbl">Dual-layer gateway &amp; sandbox<span class="sub">LocalStack Pro ENFORCE_IAM=1 (L1) + 18 stateless behavioural detectors (L2), single interception point</span></span></li>
-        <li class="done"><span class="mark">✓ done</span><span class="lbl">Dynamic risk-adaptive scoring<span class="sub">CVSS-calibrated threshold [70–95%] consistent across CLI, CI, API and UI</span></span></li>
+        <li class="done"><span class="mark">✓ done</span><span class="lbl">Dynamic risk-adaptive scoring<span class="sub">Severity-calibrated threshold [70–95%] consistent across CLI, CI, API and UI</span></span></li>
         <li class="done"><span class="mark">✓ done</span><span class="lbl">Per-trap attribution engine<span class="sub">Chat intent ➔ intercepted tool sequence ➔ Terraform declaration</span></span></li>
         <li class="done"><span class="mark">✓ done</span><span class="lbl">External CI pipeline gate<span class="sub">GitHub Actions chaos gate live on the acme-cloud-platform repo, blocking merges on failure</span></span></li>
-        <li class="done"><span class="mark">✓ done</span><span class="lbl">Live CVE resolution<span class="sub">/api/cves backed by OSV.dev, NIST NVD v2.0 and CWE/ATLAS taxonomy</span></span></li>
+        <li class="done"><span class="mark">✓ done</span><span class="lbl">Live CVE resolution<span class="sub">/api/cves resolves real advisories from OSV.dev and NIST NVD v2.0, alongside CWE/ATLAS tagging</span></span></li>
         <li class="done"><span class="mark">✓ done</span><span class="lbl">Cascading multi-provider fallback<span class="sub">Zero-downtime failover across Groq, Dahl and Bynara with adaptive 429 backoff</span></span></li>
         <li class="done"><span class="mark">✓ done</span><span class="lbl">Deterministic replay engine<span class="sub">Fully offline playback from JSONL telemetry tapes at variable speed</span></span></li>
         <li class="done"><span class="mark">✓ done</span><span class="lbl">Docker Compose + Cloudflare tunnel<span class="sub">Isolated microservice stack, publicly reachable with zero open ingress ports</span></span></li>

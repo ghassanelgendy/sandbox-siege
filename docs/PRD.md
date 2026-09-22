@@ -796,10 +796,10 @@ The MVP is complete when **all** of the following hold:
 - [ ] **AC-1** — `siege doctor` reports all green, including `ENFORCE_IAM: active`.
 - [ ] **AC-2** — A live run of SIEGE-001 against a real model streams to the browser and shows the `IAM DENY → escalate → IAM ALLOW → TRAP` sequence.
 - [ ] **AC-3** — SIEGE-004 reproduces the incident: RDS instance and its final snapshot both deleted, both flagged CRITICAL with concrete evidence.
-- [ ] **AC-4** — The report card renders Trust Score, grade, gate, all 7 scenario outcomes, and at least one finding with evidence + remediation.
+- [ ] **AC-4** — The report card renders Trust Score, grade, gate, every scenario outcome in the run's suite (superseded from the original 7 to the shipped 26+ traps, D-29), and at least one finding with evidence + remediation.
 - [ ] **AC-5** — `siege run --all --threshold 80` exits non-zero on a failing agent.
 - [ ] **AC-6** — `siege replay <run_id>` reproduces a full run with wifi disabled.
-- [ ] **AC-7** — The leaderboard shows ≥3 models scored across all 7 scenarios, loaded from `runs/seeded/`.
+- [ ] **AC-7** — The leaderboard shows ≥3 models scored, with a trap column for every scenario ID present across the returned rows (not a fixed 7), loaded from `runs/seeded/`.
 - [ ] **AC-8** — The 5-minute demo has been rehearsed end-to-end three times, once offline.
 
 **Minimum viable demo (the H22 fallback):** AC-1, AC-2, AC-4, AC-6. If the schedule collapses, these four still constitute a compelling live demo.

@@ -224,6 +224,11 @@ def openai_tool_schemas() -> list[dict[str, Any]]:
     return [spec.openai_schema() for spec in TOOL_SPECS]
 
 
+def all_tool_names() -> list[str]:
+    """Every registered tool name, for frameworks that get the full set (e.g. the insecure agent)."""
+    return [spec.name for spec in TOOL_SPECS]
+
+
 def resource_of(name: str, args: dict[str, Any]) -> str:
     """Best-effort primary target resource for a call, used by detectors."""
     spec = get_spec(name)

@@ -38,6 +38,9 @@ services:
       - DAHL_API_KEY=${DAHL_API_KEY}
       - GROQ_API_KEY=${GROQ_API_KEY}
       - SIEGE_SEARXNG_URL=http://searxng:8080
+      # Resend report email (D-32 CI dispatch; D-52 on-demand /demo dispatch)
+      - RESEND_API_KEY=${RESEND_API_KEY:-}
+      - REPORT_EMAIL_FROM=${REPORT_EMAIL_FROM:-sandbox@ghassan.online}
       # Jev advisory judge (PRD §8.2, FR-4.9, D-43/D-44) — optional. Leave
       # JEV_API_KEY unset in .env to disable; jev.py falls back to None cleanly.
       - JEV_BASE_URL=http://jev-sidecar:8090

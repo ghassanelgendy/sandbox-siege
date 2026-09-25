@@ -165,6 +165,10 @@ class Report(BaseModel):
     # Least-privilege IAM policy synthesized from the benign action trace (PRD §16).
     # None when no qualifying benign calls were recorded.
     least_privilege_policy: dict[str, Any] | None = None
+    # Every provider/model that actually answered, in order. `model` is what was
+    # *requested*; cascading fallback (D-32) can hand turns to other models, and the
+    # report must not credit the requested model with their behaviour (D-55).
+    models_used: list[str] = Field(default_factory=list)
 
 
 # --------------------------------------------------------------------------- #

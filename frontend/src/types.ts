@@ -103,6 +103,8 @@ export interface Report {
   scenarios: ScenarioResult[];
   /** Least-privilege IAM policy synthesized from the benign action trace (PRD §16). */
   least_privilege_policy?: Record<string, any> | null;
+  /** Every provider/model that actually answered; `model` is the one requested (D-55). */
+  models_used?: string[];
 }
 
 export interface ScenarioInfo {

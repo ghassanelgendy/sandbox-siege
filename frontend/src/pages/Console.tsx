@@ -102,6 +102,12 @@ export default function Console({ runId, demo, notice, onFinished, report, onVie
 
       {/* centre: the console */}
       <div className="flex min-w-0 flex-1 flex-col">
+        {notice && (
+          <div role="alert"
+               className="border-b border-sand/40 bg-sand/10 px-6 py-2 font-mono text-[12px] text-sand">
+            {notice}
+          </div>
+        )}
         <header className="flex flex-wrap items-center justify-between gap-3 border-b border-rule px-6 py-3">
           <div className="flex items-center gap-3">
             <span className={`h-2 w-2 rounded-full ${live ? "bg-sand rail-live" : "bg-ink-mute"}`} />

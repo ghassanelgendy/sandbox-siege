@@ -35,7 +35,9 @@ make doctor                   # verify every precondition
 ```
 
 ```bash
-cd backend && .venv/bin/siege run --model deepseek-v4-pro-free --all
+cd backend && .venv/bin/siege run --model openai/gpt-oss-120b --provider groq --all
+# deepseek-v4-pro-free returns 404 on Bynara as of 2026-09-24; if a model falls back,
+# the report says so under "Answered by" (Report.models_used, PRD D-55)
 ```
 
 ```bash

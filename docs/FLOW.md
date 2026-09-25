@@ -552,7 +552,7 @@ exit 1
   run: siege run --model ${{ matrix.model }} --all --threshold 80
 ```
 
-A failing Trust Score fails the check and blocks the merge — the agent-safety equivalent of a failing test suite.
+A failing Trust Score fails the check and blocks the merge — the agent-safety equivalent of a failing test suite. The workflow records `siege run`'s exit code under `set +e` and a final *Enforce gate* step fails the job on exit 1, on a crash, or when no code was recorded; the report, artifacts and email are still published first (D-55).
 
 ---
 

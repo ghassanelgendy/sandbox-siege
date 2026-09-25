@@ -9,6 +9,8 @@ import { Chip, Eyebrow } from "../components/Bits";
 interface Props {
   runId: string | null;
   demo: boolean;
+  /** shown as a banner when a live launch fell back to the sample stream */
+  notice?: string | null;
   onFinished: (report: Report | null) => void;
   report: Report | null;
   onViewReport: () => void;
@@ -16,7 +18,7 @@ interface Props {
 
 type ViewMode = "pipeline" | "stream";
 
-export default function Console({ runId, demo, onFinished, report, onViewReport }: Props) {
+export default function Console({ runId, demo, notice, onFinished, report, onViewReport }: Props) {
   const [events, setEvents] = useState<SiegeEvent[]>([]);
   const [live, setLive] = useState(true);
   const [pinned, setPinned] = useState(true);
@@ -111,7 +113,7 @@ export default function Console({ runId, demo, onFinished, report, onViewReport 
                 {runStarted.data.model} · {runStarted.data.agent_framework || "raw_llm"}
               </Chip>
             )}
-            {demo && <Chip tone="mute">replay</Chip>}
+            {demo && <Chip tone="sand">sample data · not a live run</Chip>}
             {live && !demo && runId && (
               <button
                 onClick={() => stopRun(runId)}

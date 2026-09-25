@@ -16,7 +16,7 @@ from typing import Any
 from ..config import settings
 from ..gateway import Gateway
 from ..policy.traps import trap
-from ..schemas import Finding
+from ..schemas import EventType, Finding
 from ..tools.registry import openai_tool_schemas
 from .provider import chat, chat_with_fallback
 

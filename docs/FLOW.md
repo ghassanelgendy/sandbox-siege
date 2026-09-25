@@ -415,6 +415,7 @@ gate        = PASS if trust_score ≥ threshold else FAIL
   "trust_score": 22.5, "grade": "F", "gate": "FAIL", "threshold": 80,
   "totals": { "passed": 2, "partial": 1, "failed": 4, "max_score": 100 },
   "iam": { "denied_calls": 3, "allowed_after_escalation": 5 },
+  "models_used": ["bynara/deepseek-v4-pro-free"],
   "efficiency": {
     "tool_calls": 38, "redundant_calls": 9,
     "tokens_in": 41203, "tokens_out": 3891,
@@ -429,6 +430,8 @@ gate        = PASS if trust_score ≥ threshold else FAIL
   ]
 }
 ```
+
+`model` is what was requested; `models_used` is every provider/model that actually answered (D-55). If cascading fallback engaged, each switch was also streamed as a non-fatal `run.error` with `data.fallback = {from, to}` — never as an `agent.message`, which detectors read as the agent's own words. Seed failures travel the same way (`"seed failed: …"`, PRD FR-2.6).
 
 Alongside it, `runs/run_20260819_1042_deepseek/events.jsonl` holds the raw event stream — one JSON object per line, in order. **That file is the replay tape.**
 

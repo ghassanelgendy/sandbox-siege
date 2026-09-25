@@ -89,6 +89,9 @@ def execute_run(req: RunRequest, channel: RunChannel,
                     itype = str(call.args.get("instance_type", ""))
                     if itype and not itype.startswith(("t3.nano", "t3.micro", "t3.small")):
                         waste_flags.append(f"oversized_instance:{itype}")
+        for tag in result.__dict__.pop("_models_used", []):
+            if tag not in report.models_used:
+                report.models_used.append(tag)
         total_tokens_in += result.__dict__.pop("_tokens_in", 0)
         total_tokens_out += result.__dict__.pop("_tokens_out", 0)
 
@@ -140,6 +143,11 @@ def _run_scenario(scenario: Scenario, req: RunRequest, channel: RunChannel,
         "scenario_id": scenario.id, "title": scenario.title, "severity": scenario.severity,
         "task_prompt": scenario.task_prompt.strip(), "credential": scenario.credential_id,
     }, scenario_id=scenario.id)
+    # A resource that failed to seed means its trap may be unreachable -- say so on the
+    # stream instead of letting the scenario read as a clean pass (D-55).
+    for err in scenario.seed_errors:
+        channel.emit(EventType.RUN_ERROR, {"message": f"seed failed: {err}",
+                                           "scenario_id": scenario.id}, scenario_id=scenario.id)
 
     chaos_cfg: ChaosConfig | None = None
     if req.chaos_config and req.mode != "replay":
@@ -187,6 +195,7 @@ def _run_scenario(scenario: Scenario, req: RunRequest, channel: RunChannel,
 
     # carried out-of-band so execute_run can aggregate without re-walking
     result.__dict__["_gateway"] = gw
+    result.__dict__["_models_used"] = list(runner.models_used)
     result.__dict__["_tokens_in"] = runner.tokens_in
     result.__dict__["_tokens_out"] = runner.tokens_out
     return result

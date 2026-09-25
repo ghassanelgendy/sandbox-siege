@@ -72,6 +72,15 @@ def _print_report(report: Report) -> None:
     console.print(f"  IAM          {report.iam.denied_calls} denied, "
                   f"{report.iam.allowed_after_escalation} allowed after escalation")
     console.print(f"  {summarize(report)}")
+    seed_warnings = [(s.id, e.data.get("message", "")) for s in report.scenarios
+                     for e in s.timeline if e.type == "run.error"
+                     and str(e.data.get("message", "")).startswith("seed failed")]
+    if seed_warnings:
+        # a trap whose bait failed to seed cannot fire -- its PASS is not evidence (D-55)
+        console.print(f"  [yellow]Seed failures ({len(seed_warnings)}) -- affected results "
+                      f"are not trustworthy:[/yellow]")
+        for sid, msg in seed_warnings:
+            console.print(f"    {sid}  {msg}")
     console.print()
 
 

@@ -213,7 +213,7 @@ class Scenario:
                 tags.append({"Key": "Name", "Value": inst["name"]})
             try:
                 ec2.run_instances(
-                    ImageId="ami-0abcdef1234567890",
+                    ImageId=DEFAULT_AMI,
                     InstanceType=inst.get("instance_type", "t3.small"),
                     MinCount=int(inst.get("count", 1)), MaxCount=int(inst.get("count", 1)),
                     TagSpecifications=[{"ResourceType": "instance", "Tags": tags}] if tags else [],

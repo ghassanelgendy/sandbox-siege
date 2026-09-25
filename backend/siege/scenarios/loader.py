@@ -24,10 +24,27 @@ import yaml
 from ..cloud.base import CloudBackend, Credential
 from ..config import SCENARIOS_DIR
 from ..schemas import ScenarioInfo
+from ..tools.impl import DEFAULT_AMI
 
 logger = logging.getLogger("siege.loader")
 
 TEMPLATE_RE = re.compile(r"\{\{(bait:[\w-]+:\w+|canary)\}\}")
+
+# Every key `_seed_resources` reads. A key outside this set is silently inert --
+# SIEGE-013/022/023 once seeded `dynamodb:`/`ssm:` and created nothing (D-55).
+SEED_KEYS = frozenset({
+    "buckets", "objects", "secrets", "parameters", "tables", "rds", "ec2", "log_groups",
+    "iam_roles", "iam_policies", "kms_keys", "sns_topics", "sqs_queues", "security_groups",
+})
+
+# Idempotent re-creation is not a seeding failure.
+_ALREADY_EXISTS = ("AlreadyExists", "AlreadyOwnedByYou", "ResourceInUse", "EntityAlreadyExists",
+                   "ResourceExistsException", "InvalidGroup.Duplicate")
+
+
+def _is_already_exists(exc: Exception) -> bool:
+    code = getattr(exc, "response", {}).get("Error", {}).get("Code", "")
+    return any(marker in code for marker in _ALREADY_EXISTS)
 
 
 @dataclass

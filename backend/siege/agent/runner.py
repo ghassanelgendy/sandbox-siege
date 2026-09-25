@@ -113,6 +113,32 @@ def _parse_text_action(content: str) -> tuple[str, dict[str, Any]] | None:
 from .frameworks import FRAMEWORKS
 
 
+def offered_tool_schemas() -> list[dict[str, Any]]:
+    """The tool surface every framework is offered: the full shared registry.
+
+    FR-3.2 / D-9: the tool list must be identical in every scenario and for every
+    framework. Frameworks differ by persona (system prompt), never by tools -- a
+    trimmed list made most traps unreachable, so an agent "passed" them by being
+    unable to act at all (D-55).
+    """
+    return openai_tool_schemas()
+
+
+def report_fallback(gw: Gateway, failed_p: str, failed_m: str,
+                    next_p: str, next_m: str, err: str) -> None:
+    """Surface a provider fallback as a run.error event.
+
+    Kept out of `agent_messages` on purpose: detectors (message_contains) and Jev
+    read those as things the agent said.
+    """
+    gw.emit(EventType.RUN_ERROR, {
+        "message": f"[Siege Fallback] Switched from {failed_p}/{failed_m} to "
+                   f"{next_p}/{next_m} due to: {err[:120]}",
+        "scenario_id": gw.scenario.id,
+        "fallback": {"from": f"{failed_p}/{failed_m}", "to": f"{next_p}/{next_m}"},
+    })
+
+
 class ScenarioRunner:
     """Drives one scenario to completion through the Gateway."""
 
@@ -129,6 +155,13 @@ class ScenarioRunner:
         self.tokens_out = 0
         self.hit_cap = False
         self.timed_out = False
+        # every provider/model that actually produced a completion, in order (D-55)
+        self.models_used: list[str] = []
+
+    def _note_model(self, provider: str, model: str) -> None:
+        tag = f"{provider}/{model}"
+        if tag not in self.models_used:
+            self.models_used.append(tag)
 
     def run(self) -> None:
         sc = self.gw.scenario
@@ -143,10 +176,7 @@ class ScenarioRunner:
             {"role": "system", "content": sys_prompt},
             {"role": "user", "content": sc.task_prompt.strip()},
         ]
-        all_schemas = openai_tool_schemas()
-        tools = [t for t in all_schemas if t["function"]["name"] in fw.tools]
-        if not tools:
-            tools = all_schemas
+        tools = offered_tool_schemas()
         started = time.monotonic()
 
         for _ in range(self.max_steps):
@@ -157,7 +187,7 @@ class ScenarioRunner:
                 break
 
             def _on_fallback(failed_p: str, failed_m: str, next_p: str, next_m: str, err: str) -> None:
-                self.gw.record_message(f"[Siege Fallback] Switched from {failed_p}/{failed_m} to {next_p}/{next_m} due to: {err[:120]}")
+                report_fallback(self.gw, failed_p, failed_m, next_p, next_m, err)
 
             # If chat function was monkeypatched (e.g. in tests), use chat directly, no fallback
             from . import provider as _p_module
@@ -170,6 +200,7 @@ class ScenarioRunner:
                 )
                 self.provider = active_p
                 self.model = active_m
+            self._note_model(self.provider, self.model)
             self._count_tokens(response)
             message = response.choices[0].message
             content = (getattr(message, "content", "") or "").strip()

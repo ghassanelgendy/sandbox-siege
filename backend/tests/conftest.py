@@ -97,7 +97,9 @@ class _Client:
     # ---- secretsmanager ---- #
     def create_secret(self, Name, SecretString, **k): self.state.secrets[Name] = SecretString; return {}
     def put_secret_value(self, SecretId, SecretString, **k):
-        self.state.secrets[SecretId] = SecretString; return {}
+        self._guard("secretsmanager:PutSecretValue",
+                    f"arn:aws:secretsmanager:us-east-1:000000000000:secret:{SecretId}")
+        self.state.secrets[SecretId] = SecretString; return {"Name": SecretId}
     def list_secrets(self, **k):
         self._guard("secretsmanager:ListSecrets")
         return {"SecretList": [{"Name": n} for n in self.state.secrets]}

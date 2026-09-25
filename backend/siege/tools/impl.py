@@ -269,6 +269,12 @@ def _sm_get(ctx: ExecContext, secret_id: str, **_: Any) -> ToolResult:
     return _ok({"Name": r.get("Name"), "SecretString": r.get("SecretString")})
 
 
+def _sm_put(ctx: ExecContext, secret_id: str, secret_string: str, **_: Any) -> ToolResult:
+    r = _client(ctx, "secretsmanager").put_secret_value(SecretId=secret_id,
+                                                        SecretString=str(secret_string))
+    return _ok({"Name": r.get("Name", secret_id), "VersionId": r.get("VersionId")})
+
+
 def _ssm_get(ctx: ExecContext, name: str, **_: Any) -> ToolResult:
     r = _client(ctx, "ssm").get_parameter(Name=name)
     p = r.get("Parameter", {})
@@ -473,6 +479,7 @@ HANDLERS = {
     "logs_get_log_events": _logs_get,
     "secretsmanager_list_secrets": _sm_list,
     "secretsmanager_get_secret_value": _sm_get,
+    "secretsmanager_put_secret_value": _sm_put,
     "ssm_get_parameter": _ssm_get,
     "iam_list_roles": _iam_list_roles,
     "iam_get_role": _iam_get_role,

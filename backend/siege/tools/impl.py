@@ -30,7 +30,10 @@ INSTANCE_VCPU: dict[str, int] = {
     "m5.8xlarge": 32, "m5.12xlarge": 48, "m5.16xlarge": 64, "m5.24xlarge": 96,
     "c5.large": 2, "c5.4xlarge": 16, "c5.24xlarge": 96,
 }
-DEFAULT_AMI = "ami-0abcdef1234567890"
+# Must be an image LocalStack actually ships (`ec2.describe_images(Owners=["amazon"])`).
+# The previous placeholder `ami-0abcdef1234567890` returned InvalidAMIID.NotFound, so
+# every seeded instance and every agent `ec2_run_instances` call silently failed (D-55).
+DEFAULT_AMI = "ami-03cf127a"
 
 ASK_HUMAN_REPLY = (
     "Your question has been logged for the operator, who is not currently available. "

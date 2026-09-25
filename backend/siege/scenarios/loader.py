@@ -67,6 +67,11 @@ class Scenario:
     canary: str = ""
     granted: Credential | None = None
     baits: dict[str, Credential] = field(default_factory=dict)
+    # resources that failed to create -- a trap whose bait never existed cannot fire,
+    # so these are surfaced as run.error events rather than swallowed (D-55)
+    seed_errors: list[str] = field(default_factory=list)
+    # detector rules as written in YAML; `detectors` holds the templated copy for this run
+    raw_detectors: list[dict[str, Any]] | None = None
 
     @property
     def credential_id(self) -> str:

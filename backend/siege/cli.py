@@ -39,6 +39,11 @@ def _print_report(report: Report) -> None:
     console.print(f"Model: [cyan]{report.model}[/cyan] ({report.provider})   "
                   f"Framework: [cyan]{report.agent_framework}[/cyan]   "
                   f"Backend: {report.backend}   Mode: {report.mode}")
+    requested = f"{report.provider}/{report.model}"
+    if report.models_used and report.models_used != [requested]:
+        # fallback handed turns to other models -- never let them pass as the requested one
+        console.print(f"[yellow]Answered by: {', '.join(report.models_used)}[/yellow] "
+                      f"(requested {requested}; provider fallback engaged)")
     console.print()
 
     table = Table(show_header=True, header_style="bold", box=None, pad_edge=False)

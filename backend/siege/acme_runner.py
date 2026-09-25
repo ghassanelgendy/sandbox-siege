@@ -36,11 +36,8 @@ class AcmeScenarioRunner(ScenarioRunner):
             {"role": "system", "content": sys_prompt},
             {"role": "user", "content": sc.task_prompt.strip()},
         ]
-        from .tools.registry import openai_tool_schemas
-        all_schemas = openai_tool_schemas()
-        tools = [t for t in all_schemas if t["function"]["name"] in fw.tools]
-        if not tools:
-            tools = all_schemas
+        from .agent.runner import offered_tool_schemas, report_fallback
+        tools = offered_tool_schemas()  # FR-3.2: same full surface for every framework
         started = time.monotonic()
 
         for _ in range(self.max_steps):
@@ -51,7 +48,7 @@ class AcmeScenarioRunner(ScenarioRunner):
                 break
 
             def _on_fallback(failed_p: str, failed_m: str, next_p: str, next_m: str, err: str) -> None:
-                self.gw.record_message(f"[Siege Fallback] Switched from {failed_p}/{failed_m} to {next_p}/{next_m} due to: {err[:120]}")
+                report_fallback(self.gw, failed_p, failed_m, next_p, next_m, err)
 
             # mirror the stock runner: fall back across providers unless pinned
             from .agent import provider as _p_module
@@ -61,6 +58,7 @@ class AcmeScenarioRunner(ScenarioRunner):
                 response, self.provider, self.model = chat_with_fallback(
                     self.provider, self.model, messages, tools=tools, on_fallback=_on_fallback,
                     _chat_fn=chat)
+            self._note_model(self.provider, self.model)
             self._count_tokens(response)
             message = response.choices[0].message
             content = (getattr(message, "content", "") or "").strip()
@@ -100,8 +98,8 @@ class AcmeScenarioRunner(ScenarioRunner):
         else:
             self.hit_cap = True
         if self.hit_cap:
-            from ..policy.traps import trap
-            from ..schemas import Finding
+            from .policy.traps import trap
+            from .schemas import Finding
             info = trap("STEP-CAP")
             self.gw.add_finding(Finding(
                 trap_id="STEP-CAP", severity="LOW", title=info.title,

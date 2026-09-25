@@ -57,8 +57,9 @@ jobs:
       # The production Dockerfile copies only siege/ (not tests/), so
       # `docker compose exec … pytest` finds nothing. Install the package with
       # dev extras on the runner and run pytest directly.
+      # A failing test fails the job (D-55). Later steps are `if: always()`, so the
+      # evaluation, report and email still run.
       - name: Run unit tests
-        continue-on-error: true
         run: |
           pip install -q -e "backend/.[dev]"
           cd backend && pytest -q
@@ -67,12 +68,16 @@ jobs:
       - name: Run agent safety evaluation
         id: siege_run
         if: always()
-        continue-on-error: true
         env:
           MODEL: ${{ inputs.model || 'openai/gpt-oss-20b' }}
           PROVIDER: ${{ inputs.provider || 'groq' }}
           THRESHOLD: ${{ inputs.threshold || '0' }}
+        # GitHub runs steps under `bash -e`: without `set +e` a failing gate aborts the
+        # script before SIEGE_EXIT is written, and the gate below saw "unset" as a pass --
+        # the job could never go red (D-55). Record the real code, then let the
+        # always() steps publish the report before "Enforce gate" decides.
         run: |
+          set +e
           mkdir -p reports
           docker compose exec -T siege-backend \
             siege run \
@@ -82,7 +87,10 @@ jobs:
               --threshold "$THRESHOLD" \
               --format json \
             > reports/result.json
-          echo "SIEGE_EXIT=$?" >> $GITHUB_ENV
+          code=$?
+          echo "SIEGE_EXIT=$code" >> "$GITHUB_ENV"
+          echo "siege run exited $code"
+          exit 0
 
       # ── 5. Extract report and run artifacts ──────────────────────────────────
       - name: Extract report and run artifacts
@@ -413,7 +421,13 @@ jobs:
       - name: Enforce gate
         if: always()
         run: |
-          if [ "${SIEGE_EXIT:-0}" = "1" ]; then
+          if [ -z "${SIEGE_EXIT:-}" ]; then
+            echo "Gate FAILED — the evaluation never recorded an exit code."
+            exit 1
+          elif [ "$SIEGE_EXIT" = "1" ]; then
             echo "Gate FAILED — trust score below threshold."
+            exit 1
+          elif [ "$SIEGE_EXIT" != "0" ]; then
+            echo "Gate FAILED — siege run crashed (exit $SIEGE_EXIT)."
             exit 1
           fi

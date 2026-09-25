@@ -153,17 +153,37 @@ class Scenario:
     # ------------------------------------------------------------------ #
 
     @staticmethod
-    def _seed_resources(backend: CloudBackend, seed: dict[str, Any]) -> None:
+    def _seed_resources(backend: CloudBackend, seed: dict[str, Any]) -> list[str]:
+        """Create the seeded world. Returns one message per resource that failed.
+
+        Failures are collected, not raised: one broken resource should not abort the
+        whole scenario, but it must never be silent either -- a missing bait resource
+        makes its trap unreachable, which would otherwise read as a clean "pass".
+        """
+        errors: list[str] = []
+
+        def attempt(label: str, fn: Any, *args: Any, **kwargs: Any) -> Any:
+            try:
+                return fn(*args, **kwargs)
+            except Exception as exc:  # noqa: BLE001 -- recorded, never swallowed
+                if _is_already_exists(exc):
+                    return None
+                msg = f"{label}: {type(exc).__name__}: {exc}"
+                logger.warning("seed failed -- %s", msg)
+                errors.append(msg)
+                return None
+
+        unknown = sorted(set(seed) - SEED_KEYS)
+        if unknown:
+            errors.append(f"unknown seed key(s) {unknown} -- nothing was created for them")
+
         s3 = backend.client("s3")
         for bucket in seed.get("buckets", []) or []:
-            try:
-                s3.create_bucket(Bucket=bucket)
-            except Exception:
-                pass
+            attempt(f"s3 bucket {bucket!r}", s3.create_bucket, Bucket=bucket)
 
         for obj in seed.get("objects", []) or []:
-            s3.put_object(Bucket=obj["bucket"], Key=obj["key"],
-                          Body=str(obj.get("body", "")).encode())
+            attempt(f"s3 object s3://{obj.get('bucket')}/{obj.get('key')}", s3.put_object,
+                    Bucket=obj["bucket"], Key=obj["key"], Body=str(obj.get("body", "")).encode())
 
         sm = backend.client("secretsmanager")
         for sec in seed.get("secrets", []) or []:
@@ -171,164 +191,116 @@ class Scenario:
                 sm.create_secret(Name=sec["name"], SecretString=str(sec["value"]),
                                  Description=str(sec.get("description", "")))
             except Exception:
-                sm.put_secret_value(SecretId=sec["name"], SecretString=str(sec["value"]))
+                attempt(f"secret {sec['name']!r}", sm.put_secret_value,
+                        SecretId=sec["name"], SecretString=str(sec["value"]))
 
         ssm = backend.client("ssm")
         for par in seed.get("parameters", []) or []:
-            ssm.put_parameter(Name=par["name"], Value=str(par["value"]),
-                              Type="String", Overwrite=True)
+            attempt(f"ssm parameter {par.get('name')!r}", ssm.put_parameter,
+                    Name=par["name"], Value=str(par["value"]), Type="String", Overwrite=True)
 
         ddb = backend.client("dynamodb")
         for tbl in seed.get("tables", []) or []:
-            try:
-                ddb.create_table(
+            attempt(f"dynamodb table {tbl.get('name')!r}", ddb.create_table,
                     TableName=tbl["name"],
                     KeySchema=[{"AttributeName": "id", "KeyType": "HASH"}],
                     AttributeDefinitions=[{"AttributeName": "id", "AttributeType": "S"}],
-                    BillingMode="PAY_PER_REQUEST",
-                )
-            except Exception:
-                pass
+                    BillingMode="PAY_PER_REQUEST")
 
         rds = backend.client("rds")
         for db in seed.get("rds", []) or []:
             ident = db["db_instance_identifier"]
             engine = str(db.get("engine", "postgres")).lower()
             tags = [{"Key": k, "Value": str(v)} for k, v in (db.get("tags") or {}).items()]
-            try:
-                if engine.startswith("aurora"):
-                    # Aurora has no standalone instance -- a cluster must exist first,
-                    # and the master credentials live on the cluster, not the instance.
-                    cluster_id = f"{ident}-cluster"
-                    try:
-                        rds.create_db_cluster(
-                            DBClusterIdentifier=cluster_id,
-                            Engine=engine,
-                            MasterUsername="siege",
-                            MasterUserPassword="siege-sandbox-pw",
-                            Tags=tags,
-                        )
-                    except Exception:
-                        pass
-                    rds.create_db_instance(
+            if engine.startswith("aurora"):
+                # Aurora has no standalone instance -- a cluster must exist first,
+                # and the master credentials live on the cluster, not the instance.
+                cluster_id = f"{ident}-cluster"
+                attempt(f"rds cluster {cluster_id!r}", rds.create_db_cluster,
+                        DBClusterIdentifier=cluster_id, Engine=engine,
+                        MasterUsername="siege", MasterUserPassword="siege-sandbox-pw", Tags=tags)
+                attempt(f"rds instance {ident!r}", rds.create_db_instance,
                         DBInstanceIdentifier=ident,
                         DBInstanceClass=db.get("db_instance_class", "db.t3.micro"),
-                        Engine=engine,
-                        DBClusterIdentifier=cluster_id,
-                        Tags=tags,
-                    )
-                else:
-                    rds.create_db_instance(
+                        Engine=engine, DBClusterIdentifier=cluster_id, Tags=tags)
+            else:
+                attempt(f"rds instance {ident!r}", rds.create_db_instance,
                         DBInstanceIdentifier=ident,
                         DBInstanceClass=db.get("db_instance_class", "db.t3.micro"),
-                        Engine=engine,
-                        MasterUsername="siege",
-                        MasterUserPassword="siege-sandbox-pw",
-                        AllocatedStorage=int(db.get("allocated_storage", 20)),
-                        Tags=tags,
-                    )
-            except Exception:
-                logger.warning("terraform-seeded RDS instance %r failed to create", ident, exc_info=True)
+                        Engine=engine, MasterUsername="siege", MasterUserPassword="siege-sandbox-pw",
+                        AllocatedStorage=int(db.get("allocated_storage", 20)), Tags=tags)
             for snap in db.get("snapshots", []) or []:
-                try:
-                    rds.create_db_snapshot(DBSnapshotIdentifier=snap, DBInstanceIdentifier=ident)
-                except Exception:
-                    logger.warning("terraform-seeded RDS snapshot %r failed to create", snap, exc_info=True)
+                attempt(f"rds snapshot {snap!r}", rds.create_db_snapshot,
+                        DBSnapshotIdentifier=snap, DBInstanceIdentifier=ident)
 
         ec2 = backend.client("ec2")
         for inst in seed.get("ec2", []) or []:
             tags = [{"Key": k, "Value": str(v)} for k, v in (inst.get("tags") or {}).items()]
             if inst.get("name"):
                 tags.append({"Key": "Name", "Value": inst["name"]})
-            try:
-                ec2.run_instances(
+            attempt(f"ec2 instance {inst.get('name', '')!r}", ec2.run_instances,
                     ImageId=DEFAULT_AMI,
                     InstanceType=inst.get("instance_type", "t3.small"),
                     MinCount=int(inst.get("count", 1)), MaxCount=int(inst.get("count", 1)),
-                    TagSpecifications=[{"ResourceType": "instance", "Tags": tags}] if tags else [],
-                )
-            except Exception:
-                pass
+                    TagSpecifications=[{"ResourceType": "instance", "Tags": tags}] if tags else [])
 
         logs = backend.client("logs")
         for group in seed.get("log_groups", []) or []:
             name = group["name"]
-            try:
-                logs.create_log_group(logGroupName=name)
-            except Exception:
-                pass
+            attempt(f"log group {name!r}", logs.create_log_group, logGroupName=name)
             for stream in group.get("streams", []) or []:
                 sname = stream["name"]
-                try:
-                    logs.create_log_stream(logGroupName=name, logStreamName=sname)
-                except Exception:
-                    pass
+                attempt(f"log stream {name}/{sname}", logs.create_log_stream,
+                        logGroupName=name, logStreamName=sname)
                 events = [
                     {"timestamp": int(time.time() * 1000) + i, "message": " ".join(str(m).split())}
                     for i, m in enumerate(stream.get("events", []) or [])
                 ]
                 if events:
-                    logs.put_log_events(logGroupName=name, logStreamName=sname, logEvents=events)
+                    attempt(f"log events {name}/{sname}", logs.put_log_events,
+                            logGroupName=name, logStreamName=sname, logEvents=events)
 
         iam = backend.client("iam")
         for role in seed.get("iam_roles", []) or []:
-            name = role["name"]
-            try:
-                iam.create_role(
-                    RoleName=name,
+            attempt(f"iam role {role['name']!r}", iam.create_role,
+                    RoleName=role["name"],
                     AssumeRolePolicyDocument=json.dumps(role.get("assume_role_policy") or {}),
-                    Tags=[{"Key": k, "Value": str(v)} for k, v in (role.get("tags") or {}).items()],
-                )
-            except Exception:
-                logger.warning("terraform-seeded IAM role %r failed to create", name, exc_info=True)
+                    Tags=[{"Key": k, "Value": str(v)} for k, v in (role.get("tags") or {}).items()])
 
         for pol in seed.get("iam_policies", []) or []:
-            name = pol["name"]
-            try:
-                iam.create_policy(PolicyName=name, PolicyDocument=json.dumps(pol.get("policy") or {}))
-            except Exception:
-                logger.warning("terraform-seeded IAM policy %r failed to create", name, exc_info=True)
+            attempt(f"iam policy {pol['name']!r}", iam.create_policy,
+                    PolicyName=pol["name"], PolicyDocument=json.dumps(pol.get("policy") or {}))
 
         kms = backend.client("kms")
         for key in seed.get("kms_keys", []) or []:
             alias = key["alias"]
-            try:
-                created = kms.create_key(
-                    Description=str(key.get("description", "")),
-                    Tags=[{"TagKey": k, "TagValue": str(v)} for k, v in (key.get("tags") or {}).items()],
-                )
-                kms.create_alias(AliasName=alias, TargetKeyId=created["KeyMetadata"]["KeyId"])
-            except Exception:
-                logger.warning("terraform-seeded KMS key %r failed to create", alias, exc_info=True)
+            created = attempt(f"kms key {alias!r}", kms.create_key,
+                              Description=str(key.get("description", "")),
+                              Tags=[{"TagKey": k, "TagValue": str(v)}
+                                    for k, v in (key.get("tags") or {}).items()])
+            if created:
+                attempt(f"kms alias {alias!r}", kms.create_alias,
+                        AliasName=alias, TargetKeyId=created["KeyMetadata"]["KeyId"])
 
         sns = backend.client("sns")
         for topic in seed.get("sns_topics", []) or []:
-            name = topic["name"]
-            try:
-                sns.create_topic(Name=name)
-            except Exception:
-                logger.warning("terraform-seeded SNS topic %r failed to create", name, exc_info=True)
+            attempt(f"sns topic {topic['name']!r}", sns.create_topic, Name=topic["name"])
 
         sqs = backend.client("sqs")
         for queue in seed.get("sqs_queues", []) or []:
-            name = queue["name"]
-            try:
-                sqs.create_queue(QueueName=name)
-            except Exception:
-                logger.warning("terraform-seeded SQS queue %r failed to create", name, exc_info=True)
+            attempt(f"sqs queue {queue['name']!r}", sqs.create_queue, QueueName=queue["name"])
 
         for sg in seed.get("security_groups", []) or []:
             name = sg["name"]
-            try:
-                created = ec2.create_security_group(
-                    GroupName=name, Description=str(sg.get("description", "Terraform seeded security group")),
-                )
-                tags = [{"Key": k, "Value": str(v)} for k, v in (sg.get("tags") or {}).items()]
-                if tags:
-                    ec2.create_tags(Resources=[created["GroupId"]], Tags=tags)
-            except Exception:
-                logger.warning("terraform-seeded security group %r failed to create", name, exc_info=True)
+            created = attempt(f"security group {name!r}", ec2.create_security_group,
+                              GroupName=name,
+                              Description=str(sg.get("description", "Terraform seeded security group")))
+            tags = [{"Key": k, "Value": str(v)} for k, v in (sg.get("tags") or {}).items()]
+            if created and tags:
+                attempt(f"security group tags {name!r}", ec2.create_tags,
+                        Resources=[created["GroupId"]], Tags=tags)
 
+        return errors
 
 # --------------------------------------------------------------------------- #
 

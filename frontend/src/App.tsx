@@ -20,12 +20,15 @@ export default function App() {
   const [view, setView] = useState<View>("launch");
   const [runId, setRunId] = useState<string | null>(null);
   const [demo, setDemo] = useState(false);
+  // set when a live launch failed and we fell back to the recorded sample (D-16/D-55)
+  const [fallbackNotice, setFallbackNotice] = useState<string | null>(null);
   const [report, setReport] = useState<Report | null>(null);
 
   const launch = async (o: { model: string; provider: string; agentFramework: string; scenarioIds: string[];
                              threshold: number; demo: boolean }) => {
     setDemo(o.demo);
     setReport(null);
+    setFallbackNotice(null);
     if (o.demo) {
       setRunId(null);
     } else {
@@ -33,9 +36,15 @@ export default function App() {
         model: o.model, provider: o.provider, agent_framework: o.agentFramework,
         scenario_ids: o.scenarioIds, mode: "live", threshold: o.threshold,
       });
-      // no backend? fall through to the recorded stream rather than a dead screen
+      // no backend? fall through to the recorded stream rather than a dead screen --
+      // but say so loudly: the sample must never pass for the run that was launched
       setRunId(res?.run_id ?? null);
-      if (!res) setDemo(true);
+      if (!res) {
+        setDemo(true);
+        setFallbackNotice(
+          "The live run could not be started (backend unreachable or the request was rejected). " +
+          "You are watching the recorded SAMPLE run, not your launch.");
+      }
     }
     setView("console");
   };
@@ -43,7 +52,9 @@ export default function App() {
   // Deliberately does NOT navigate. During a live demo the presenter decides
   // when to leave the console; an auto-jump steals the room's attention.
   const finished = (r: Report | null) => {
-    setReport(r ?? (demo ? sampleReport : null));
+    // the fixture is hand-authored and says mode "live"; relabel it so the report card
+    // cannot present sample data as a real LocalStack run (D-55)
+    setReport(r ?? (demo ? { ...sampleReport, mode: "replay", backend: "sample-fixture" } : null));
   };
 
   return (
@@ -73,7 +84,7 @@ export default function App() {
       <main>
         {view === "launch" && <Launch onLaunch={launch} />}
         {view === "console" && (
-          <Console runId={runId} demo={demo} onFinished={finished}
+          <Console runId={runId} demo={demo} notice={fallbackNotice} onFinished={finished}
                    report={report} onViewReport={() => setView("report")} />
         )}
         {view === "report" && report && <ReportCard report={report} />}

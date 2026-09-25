@@ -26,7 +26,7 @@ from siege.scenarios.loader import SEED_KEYS, Scenario
 from siege.schemas import RunRequest, ToolCall
 from siege.tools.registry import all_tool_names
 
-from test_e2e import _events, _find, _response, _run, _tc
+from test_e2e import _events, _find, _response, _run, _tc, scripted  # noqa: F401 (fixture)
 
 
 # --------------------------------------------------------------------------- #

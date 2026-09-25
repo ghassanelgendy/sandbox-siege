@@ -127,6 +127,9 @@ Do not add features that are not in the PRD. If you believe something is missing
 - Type-hint everything. Pydantic models for all data crossing a boundary.
 - Tools return `{ok: bool, ...}` — **never raise into the agent loop**. A tool error is data the model must see and react to.
 - Detectors are pure functions over the action trace: no I/O, no mutation. This keeps them unit-testable without a sandbox.
+- **Never swallow a seeding error** (`except: pass`). A trap whose bait never existed reads as a clean PASS — the audit in D-55 found five scenarios like that. Collect it into `seed_errors` (FR-2.6).
+- **Never trim the tool list per framework.** FR-3.2: every framework gets the full registry; frameworks differ by prompt only (D-55).
+- A test that passes against `FakeBackend` does not prove the scenario works on LocalStack (the fake accepts any AMI). Scenario/seed changes must pass `SIEGE_LOCALSTACK_TESTS=1 pytest -k localstack`.
 
 ### TypeScript (frontend)
 - React 18, Vite, TypeScript, Tailwind, Recharts, `lucide-react`, `framer-motion`
@@ -148,7 +151,8 @@ Do not add features that are not in the PRD. If you believe something is missing
 make up                # LocalStack Pro with ENFORCE_IAM=1
 siege doctor           # every check green, including ENFORCE_IAM: active
 pytest backend/tests   # detectors, scoring, scenario YAML validity
-siege run --model deepseek-v4-pro-free --scenario SIEGE-001
+siege run --model openai/gpt-oss-120b --provider groq --scenario SIEGE-001   # deepseek-v4-pro-free 404s as of 2026-09-24 (D-55)
+SIEGE_LOCALSTACK_TESTS=1 pytest backend/tests -k localstack   # every scenario seeds with zero errors on real LocalStack
 ```
 
 Then confirm in the browser at `localhost:5173` that the run streams, the trap card fires, and the report renders.
@@ -160,6 +164,6 @@ Then confirm in the browser at `localhost:5173` that the run streams, the trap c
 ## 6. Known environment facts (verified — do not re-derive)
 
 - **LocalStack** requires `LOCALSTACK_AUTH_TOKEN` since March 2026. We hold a **student license = Ultimate-tier service access**, so RDS, EC2, CloudWatch Logs, and `ENFORCE_IAM=1` are all available.
-- **Provider health is volatile.** On Bynara, `claude-*` and `gpt-5.5` currently return `payment_required` (insufficient credits) and `qwen-3.8-max-free` returns 502. **Confirmed working with tool-calling:** `deepseek-v4-pro-free`, `mistral-large` (Bynara), `moonshotai/Kimi-K2.6`, `MiniMaxAI/MiniMax-M2.7` (Dahl).
+- **Provider health is volatile.** On Bynara, `claude-*` and `gpt-5.5` currently return `payment_required` (insufficient credits) and `qwen-3.8-max-free` returns 502. **Confirmed working with tool-calling:** `deepseek-v4-pro-free`, `mistral-large` (Bynara), `moonshotai/Kimi-K2.6`, `MiniMaxAI/MiniMax-M2.7` (Dahl). **Re-probed 2026-09-24 (D-55):** `deepseek-v4-pro-free` now returns **404** and `mistral-large` **400** on Bynara; runs silently fell back to `groq/openai/gpt-oss-120b`. Check `Report.models_used` — `model` is only what was *requested*.
 - **Never hardcode the model roster.** Discover it via `/v1/models` and health-check it — see PRD FR-4.7.
 - Both providers are **OpenAI-compatible**; use the `openai` SDK with a `base_url` override. LiteLLM was deliberately dropped (PRD §15, D-2).

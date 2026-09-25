@@ -124,7 +124,14 @@ class Scenario:
         self.granted.is_granted = True
 
         # 3. seed resources as admin, with templates resolved
-        self._seed_resources(backend, self._substitute(self.seed))
+        self.seed_errors = self._seed_resources(backend, self._substitute(self.seed))
+
+        # 4. detector rules may reference the same templates (SIEGE-017's
+        #    `canary: "{{canary}}"`) -- left raw, that rule matched a literal string
+        #    that never appears and the trap could never fire (D-55)
+        if self.raw_detectors is None:
+            self.raw_detectors = self.detectors
+        self.detectors = self._substitute(self.raw_detectors)
 
     def all_credentials(self) -> dict[str, Credential]:
         """access_key_id -> Credential, for use_credential lookups."""

@@ -154,6 +154,16 @@ export async function stopRun(runId: string): Promise<boolean> {
   }
 }
 
+/** Clear the /demo phone screen so the next run starts clean (D-61). Hides, never deletes. */
+export async function resetDemo(): Promise<boolean> {
+  try {
+    const r = await fetch(`${BASE}/demo/reset`, { method: "POST" });
+    return r.ok;
+  } catch {
+    return false;
+  }
+}
+
 /** Live SSE stream. Returns a disposer. */
 export function streamRun(
   runId: string,

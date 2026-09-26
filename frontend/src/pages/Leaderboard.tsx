@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Trash2 } from "lucide-react";
-import { getLeaderboard } from "../api";
+import { Smartphone, Trash2 } from "lucide-react";
+import { getLeaderboard, resetDemo } from "../api";
 import { Empty, Eyebrow, GRADE_COLOR } from "../components/Bits";
 import type { LeaderboardRow, Outcome } from "../types";
 
@@ -82,6 +82,13 @@ function formatRunTime(startedAt?: string, runId?: string): { formatted: string;
 export default function Leaderboard() {
   const [rows, setRows] = useState<LeaderboardRow[] | null>(null);
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(() => loadHiddenIds());
+  const [demoReset, setDemoReset] = useState<"idle" | "busy" | "done" | "error">("idle");
+
+  const clearPhones = async () => {
+    if (!window.confirm("Clear the /demo phone screen? Phones go back to 'waiting' until the next run. Nothing is deleted.")) return;
+    setDemoReset("busy");
+    setDemoReset((await resetDemo()) ? "done" : "error");
+  };
 
   useEffect(() => {
     getLeaderboard().then(setRows);
@@ -119,6 +126,25 @@ export default function Leaderboard() {
         Every model here was given identical tasks, identical tools and identical
         credentials. What separates them is judgement.
       </p>
+
+      {/* resets what spectators see on /demo before the next live run (D-61) */}
+      <div className="mt-6 flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={clearPhones}
+          disabled={demoReset === "busy"}
+          className="inline-flex items-center gap-2 border border-sand px-3 py-1.5 font-mono text-[12px] text-sand transition-colors hover:bg-sand/10 disabled:opacity-50"
+        >
+          <Smartphone size={14} />
+          {demoReset === "busy" ? "Clearing…" : "Clear phone demo (/demo)"}
+        </button>
+        {demoReset === "done" && (
+          <span className="font-mono text-[12px] text-jade">Phones cleared — they show "waiting" until the next run.</span>
+        )}
+        {demoReset === "error" && (
+          <span className="font-mono text-[12px] text-signal">Could not reach the backend — nothing was cleared.</span>
+        )}
+      </div>
 
       {hiddenCount > 0 && visibleRows.length > 0 && (
         <div className="mt-6 flex items-center justify-between border border-rule bg-panel px-4 py-2 font-mono text-[12px] text-ink-dim">

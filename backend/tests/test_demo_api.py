@@ -97,3 +97,31 @@ def test_a_crashed_run_does_not_stay_live_forever(client, monkeypatch):
     assert client.get("/api/runs/current").json()["status"] != "live"
     assert any(e.type == "run.error" and "LocalStack went away" in e.data["message"]
                for e in channel.buffer)
+
+
+def _finished_report(run_id, minutes_ago):
+    from datetime import timedelta
+    from siege.orchestrator import _persist
+    from siege.schemas import Report, utcnow
+
+    report = Report(run_id=run_id, model="test-model", provider="fake",
+                    started_at=utcnow() - timedelta(minutes=minutes_ago), duration_s=30)
+    _persist(report)
+
+
+def test_recently_finished_run_is_shown(client):
+    _finished_report("run_demo_recent", minutes_ago=2)
+    body = client.get("/api/runs/current").json()
+    assert body["status"] == "finished" and body["run_id"] == "run_demo_recent"
+
+
+def test_old_finished_run_expires_back_to_idle(client):
+    """A QR scanned long after the demo must not show the old score (D-60)."""
+    _finished_report("run_demo_old", minutes_ago=60)
+    assert client.get("/api/runs/current").json() == {"status": "idle", "run_id": None, "report": None}
+
+
+def test_result_ttl_is_configurable(client, monkeypatch):
+    monkeypatch.setattr(main, "DEMO_RESULT_TTL_S", 30.0)
+    _finished_report("run_demo_short_ttl", minutes_ago=2)
+    assert client.get("/api/runs/current").json()["status"] == "idle"

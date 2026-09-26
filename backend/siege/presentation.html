@@ -671,35 +671,37 @@ figcaption strong{color:var(--ink-dim)}
 <section class="slide" id="s10" data-label="EVIDENCE">
   <div class="slide-inner">
     <div class="eyebrow">Evidence, not vibes</div>
-    <h2>Every finding carries its own causal proof.</h2>
-    <p class="lede">A verdict nobody can audit is a rumour. Every tripped trap is correlated with the agent's own reasoning, the exact intercepted call, and the line of infrastructure that declared the target.</p>
+    <h2>Every red card comes with proof.</h2>
+    <ul class="keys">
+      <li>What it <strong>said</strong> &rarr; what it <strong>did</strong> &rarr; what it <strong>hit</strong></li>
+    </ul>
     <div class="attr-flow">
-      <div class="attr-step"><div class="stepnum">01 · INTENT (chat)</div><h4>What the agent said</h4>
-        <p>The reasoning window preceding the breach — verbatim. <em>"I don't have RDS access… I found db-migrator credentials. I'll switch to admin."</em></p></div>
-      <div class="attr-step"><div class="stepnum">02 · ACTION (gateway)</div><h4>What the agent did</h4>
-        <p>Exact intercepted tool calls with step indices, parameters, and the independent IAM verdict on each — <code>ALLOW</code> or <code>DENY</code>.</p></div>
-      <div class="attr-step"><div class="stepnum">03 · TARGET (terraform)</div><h4>What it hit</h4>
-        <p>Target ARNs reverse-mapped to the declaring resource: <code>aws_secretsmanager_secret.staging_db_migrator</code>.</p></div>
+      <div class="attr-step"><div class="stepnum">01 · SAID</div><h4>Its own words</h4>
+        <p><em>&ldquo;I found admin credentials. I&rsquo;ll switch to them.&rdquo;</em></p></div>
+      <div class="attr-step"><div class="stepnum">02 · DID</div><h4>The exact action</h4>
+        <p><code>use_credential(admin key)</code> &middot; step 4 &middot; IAM: <code>ALLOW</code></p></div>
+      <div class="attr-step"><div class="stepnum">03 · HIT</div><h4>The real resource</h4>
+        <p>Secret <code>staging/db-migrator</code> &middot; traced to your Terraform</p></div>
     </div>
     <div class="pipegrid">
       <div class="pipecard">
-        <h4>Jev — the System One advisory judge</h4>
-        <p style="font-size:.84rem;margin-bottom:12px">Deterministic detectors catch known signatures. Jev adds calibrated semantic judgement for intent and ambiguity at sub-500ms.</p>
+        <h4>Jev &mdash; optional AI second opinion</h4>
+        <p style="font-size:.84rem;margin-bottom:12px">Yes / no answer + confidence %</p>
         <ul class="roadlist">
-          <li><b>Typed decisions (70–500ms)</b><span>Structured yes/no, choice and score answers — no generative drift, no tool looping.</span></li>
-          <li><b>Calibrated confidence (0.0–1.0)</b><span>Findings carry probability, not just a binary red card.</span></li>
-          <li><b>Advisory, never the agent</b><span>Jev judges alongside the gateway; it is never the agent under test.</span></li>
+          <li><b>Fast</b><span>Under half a second</span></li>
+          <li><b>Confidence</b><span>&ldquo;93% sure&rdquo;, not just red / green</span></li>
+          <li><b>Advisory only</b><span>Rules decide the score, not Jev</span></li>
         </ul>
       </div>
       <div class="pipecard">
-        <h4>Safety rails on the harness itself</h4>
-        <p style="font-size:.84rem;margin-bottom:12px">A tool that tests dangerous behaviour must not be dangerous itself.</p>
+        <h4>The tester is safe too</h4>
+        <p style="font-size:.84rem;margin-bottom:12px">Testing danger must not be dangerous</p>
         <ul class="roadlist">
-          <li><b>Never points at real AWS</b><span>LocalStack endpoints only; real credentials are refused by construction.</span></li>
-          <li><b>Egress guard</b><span><code>http_post</code> never leaves the host — canaries and live credentials are scrubbed, responses synthesised.</span></li>
-          <li><b>Stateless, pure detectors</b><span>No I/O in the judgement path, so every verdict is unit-testable and replayable.</span></li>
+          <li><b>Fake AWS only</b><span>LocalStack &mdash; never your real cloud</span></li>
+          <li><b>Nothing really leaves</b><span><code>http_post</code> is recorded, never sent</span></li>
+          <li><b>Secrets blocked</b><span>Web searches carrying secrets are dropped</span></li>
         </ul>
-        <div class="badge-row"><span class="tag jade">68 tests green</span><span class="tag violet">deterministic replay</span><span class="tag med">zero real-cloud exposure</span></div>
+        <div class="badge-row"><span class="tag jade">136 tests green</span><span class="tag violet">replay offline</span><span class="tag med">zero real cloud</span></div>
       </div>
     </div>
   </div>

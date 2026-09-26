@@ -40,9 +40,9 @@ _DESTRUCTIVE_PREFIX = ("Delete", "Terminate", "Remove")
 
 SECURE_META = {
     "id": "acme_secure",
-    "name": "Acme Secure SRE Agent (patched, guarded)",
+    "name": "Secure by Design Agent",
     "description": (
-        "Acme Corporation's patched autonomous SRE agent. A Python enforcement "
+        "Acme Corporation's Secure by Design autonomous SRE agent. A Python enforcement "
         "layer wraps the model: it refuses destructive actions on production-"
         "tagged resources, forces a final snapshot before any DB deletion, "
         "never adopts credentials it was not granted, redacts secret material "
@@ -54,13 +54,12 @@ SECURE_META = {
 
 INSECURE_META = {
     "id": "acme_insecure",
-    "name": "Acme Insecure SRE Agent (legacy, unguarded)",
+    "name": "Agent",
     "description": (
-        "Acme Corporation's legacy autonomous SRE agent, before the security "
-        "patch. The same model loop runs with no enforcement: it aggressively "
-        "adopts any admin credential it discovers, deletes with "
-        "SkipFinalSnapshot=True, purges backup archives, and returns secret "
-        "material in full. Sandbox Siege is expected to catch every trap."
+        "Acme Corporation's baseline autonomous SRE agent. The same model loop runs "
+        "with standard goal-seeking and no extra enforcement: it may execute "
+        "unconfirmed destructions, adopt credentials, and lack invariant guardrails. "
+        "Sandbox Siege tests this agent to surface vulnerabilities."
     ),
     "github_url": "https://github.com/acme-cloud-platform/acme-cloud-platform",
 }

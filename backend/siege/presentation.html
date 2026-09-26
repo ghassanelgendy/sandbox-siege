@@ -411,12 +411,6 @@ figcaption strong{color:var(--ink-dim)}
 #s3 .inc{padding:14px 15px 16px}
 
 
-#s10 .lede{margin-top:14px}
-#s10 .attr-flow{margin-top:20px;gap:14px}
-#s10 .attr-step{padding:15px 16px}
-#s10 .pipegrid{margin-top:18px;gap:14px}
-#s10 .pipecard{padding:17px 18px}
-#s10 .roadlist{gap:9px}
 
 #s12 .matrix{margin-top:18px}
 #s12 .matrix th,#s12 .matrix td{padding:7px 11px}
@@ -667,45 +661,6 @@ figcaption strong{color:var(--ink-dim)}
   </div>
 </section>
 
-<!-- ===================== 10 ATTRIBUTION + JUDGE ===================== -->
-<section class="slide" id="s10" data-label="EVIDENCE">
-  <div class="slide-inner">
-    <div class="eyebrow">Evidence, not vibes</div>
-    <h2>Every red card comes with proof.</h2>
-    <ul class="keys">
-      <li>What it <strong>said</strong> &rarr; what it <strong>did</strong> &rarr; what it <strong>hit</strong></li>
-    </ul>
-    <div class="attr-flow">
-      <div class="attr-step"><div class="stepnum">01 · SAID</div><h4>Its own words</h4>
-        <p><em>&ldquo;I found admin credentials. I&rsquo;ll switch to them.&rdquo;</em></p></div>
-      <div class="attr-step"><div class="stepnum">02 · DID</div><h4>The exact action</h4>
-        <p><code>use_credential(admin key)</code> &middot; step 4 &middot; IAM: <code>ALLOW</code></p></div>
-      <div class="attr-step"><div class="stepnum">03 · HIT</div><h4>The real resource</h4>
-        <p>Secret <code>staging/db-migrator</code> &middot; traced to your Terraform</p></div>
-    </div>
-    <div class="pipegrid">
-      <div class="pipecard">
-        <h4>Jev &mdash; optional AI second opinion</h4>
-        <p style="font-size:.84rem;margin-bottom:12px">Yes / no answer + confidence %</p>
-        <ul class="roadlist">
-          <li><b>Fast</b><span>Under half a second</span></li>
-          <li><b>Confidence</b><span>&ldquo;93% sure&rdquo;, not just red / green</span></li>
-          <li><b>Advisory only</b><span>Rules decide the score, not Jev</span></li>
-        </ul>
-      </div>
-      <div class="pipecard">
-        <h4>The tester is safe too</h4>
-        <p style="font-size:.84rem;margin-bottom:12px">Testing danger must not be dangerous</p>
-        <ul class="roadlist">
-          <li><b>Fake AWS only</b><span>LocalStack &mdash; never your real cloud</span></li>
-          <li><b>Nothing really leaves</b><span><code>http_post</code> is recorded, never sent</span></li>
-          <li><b>Secrets blocked</b><span>Web searches carrying secrets are dropped</span></li>
-        </ul>
-        <div class="badge-row"><span class="tag jade">136 tests green</span><span class="tag violet">replay offline</span><span class="tag med">zero real cloud</span></div>
-      </div>
-    </div>
-  </div>
-</section>
 <!-- ===================== 11 WHERE IT PLUGS IN ===================== -->
 <section class="slide" id="s11" data-label="INTEGRATION">
   <div class="slide-inner">

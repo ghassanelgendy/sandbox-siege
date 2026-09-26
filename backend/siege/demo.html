@@ -671,6 +671,9 @@
   "use strict";
 
   var runId = null, report = null, es = null;
+  // poll replies can land out of order on a slow mobile link; never let an older
+  // reply switch the page back to a run we've already moved past
+  var pollSeq = 0, appliedSeq = 0;
 
   var $ = function(id){ return document.getElementById(id); };
   var elIdle = $("idle"), elStage = $("stage"), elFeedCard = $("feedCard"), elFeed = $("feed"),
@@ -710,6 +713,19 @@
     elEmailBtn.textContent = "Waiting…";
     elEmailHint.textContent = "Nothing to send yet — keep this tab open.";
     elEmailHint.className = "";
+  }
+
+  // a new run must start from a clean screen -- nothing from the previous run
+  // (feed rows, stage header, score, cached report) may survive the switch
+  function resetForNewRun(){
+    report = null;
+    elFeed.innerHTML = "";
+    $("stageId").textContent = "\u2014";
+    $("stageTitle").textContent = "Waiting for the first scenario\u2026";
+    $("stageTask").textContent = "";
+    $("stageCred").textContent = "\u2014";
+    $("stageSeverity").textContent = "TARGET";
+    elScore.style.display = "none";
   }
 
   function showRunning(){
@@ -934,6 +950,9 @@
     }
     elFeed.innerHTML = "";
     es = new EventSource("/api/runs/" + encodeURIComponent(id) + "/stream");
+    // every (re)connection replays the run's full history from the server, so a
+    // phone waking from sleep would otherwise show each event twice
+    es.onopen = function(){ if (id === runId) elFeed.innerHTML = ""; };
     var types = [
       "run.started", "scenario.started", "agent.message", "tool.called",
       "tool.result", "iam.verdict", "policy.verdict", "trap.triggered",
@@ -941,6 +960,7 @@
     ];
     types.forEach(function(t){
       es.addEventListener(t, function(evt){
+        if (id !== runId) return;  // stream for a run we have already left
         var data = {};
         try {
           data = JSON.parse(evt.data).data || {};
@@ -956,7 +976,7 @@
         } else if (t === "run.finished"){
           fetch("/api/runs/" + encodeURIComponent(id))
             .then(function(r){ return r.json(); })
-            .then(renderReport);
+            .then(function(r){ if (id === runId) renderReport(r); });
         } else {
           addEvent(t, data);
         }
@@ -972,7 +992,10 @@
   }
 
   function poll(){
+    var seq = ++pollSeq;
     fetch("/api/runs/current").then(function(r){ return r.json(); }).then(function(cur){
+      if (seq < appliedSeq) return;  // a newer reply has already been applied
+      appliedSeq = seq;
       if (cur.status === "idle"){
         runId = null;
         showIdle();
@@ -983,6 +1006,7 @@
 
       if (cur.status === "finished"){
         if (isNewRun) {
+          resetForNewRun();
           showRunning();
           attachStream(runId);
         }
@@ -992,6 +1016,7 @@
 
       // Live run
       if (isNewRun){
+        resetForNewRun();
         showRunning();
         attachStream(runId);
       }

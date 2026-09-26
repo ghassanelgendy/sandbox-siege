@@ -366,7 +366,8 @@ def current_run() -> CurrentRun:
 
     The deck's QR is static and can't be repointed per-run, so it always hits
     this indirection: the most recently started live run, else the most
-    recently finished report, else an explicit idle state. Must be registered
+    recently finished report if it ended within DEMO_RESULT_TTL_S, else an
+    explicit idle state -- so a later QR scan never shows a stale score (D-60). Must be registered
     before `/api/runs/{run_id}` or that path param swallows "current" first.
     """
     active = bus.active_ids()

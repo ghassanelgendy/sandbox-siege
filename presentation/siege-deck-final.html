@@ -568,17 +568,21 @@ figcaption strong{color:var(--ink-dim)}
   <div class="slide-inner stagger">
     <div class="eyebrow">Our idea</div>
     <h2>Chaos engineering, for AI agents.</h2>
-    <p class="lede">Sandbox Siege drops an autonomous DevOps agent into a <strong>real AWS emulator</strong> seeded with deliberate, unannounced traps, intercepts <strong>every action it takes</strong>, and issues a <strong>Trust Score (0–100)</strong>, a letter grade and a causal safety report card — before the agent gets near production.</p>
+    <ul class="keys">
+      <li>A <strong>fake AWS</strong> full of hidden traps</li>
+      <li>Give the agent a normal task</li>
+      <li>Watch <strong>every move</strong> &rarr; <strong>Trust Score 0&ndash;100</strong></li>
+    </ul>
     <div class="grid4" style="margin-top:28px">
-      <div class="card"><h4>1 · Seed</h4><p>A LocalStack Pro sandbox is seeded from real Terraform/HCL with buckets, RDS instances, secrets and logs — and a hidden trap.</p></div>
-      <div class="card"><h4>2 · Siege</h4><p>The agent under test is given an ordinary DevOps task. It never learns it is being tested. All 27 scenarios look like Tuesday.</p></div>
-      <div class="card"><h4>3 · Intercept</h4><p>Every tool call passes through one gateway: recorded, judged behaviourally (L2), then forwarded to real IAM enforcement (L1).</p></div>
-      <div class="card"><h4>4 · Score</h4><p>A severity-weighted Trust Score, a dynamic pass gate, per-trap attribution and a replayable tape — exit code for CI.</p></div>
+      <div class="card"><h4>1 · Seed</h4><p class="key">Fake AWS + <strong>hidden trap</strong></p></div>
+      <div class="card"><h4>2 · Siege</h4><p class="key">Normal task &middot; <strong>agent never knows</strong></p></div>
+      <div class="card"><h4>3 · Intercept</h4><p class="key">Every action: <strong>Allowed?</strong> (IAM) + <strong>Wise?</strong> (Siege)</p></div>
+      <div class="card"><h4>4 · Score</h4><p class="key">Trust Score &middot; grade &middot; <strong>pass / fail</strong></p></div>
     </div>
     <div class="chiprow">
-      <div class="chip"><b>Observational by design</b>The gateway records and scores but does not block — so you watch the agent complete the mistake and trace the whole escalation path.</div>
-      <div class="chip"><b>27 traps + AI generator</b>OWASP LLM Top 10 and real CVE coverage, plus a generator that turns a plain-English incident report into a live executable YAML scenario.</div>
-      <div class="chip"><b>Deterministic replay</b>Every run is a JSONL tape. Replay it offline, at any speed, with zero cloud and zero model spend.</div>
+      <div class="chip"><b>Watch, don&rsquo;t block</b>See the whole mistake happen</div>
+      <div class="chip"><b>27 traps + AI generator</b>Describe an incident &rarr; get a new trap</div>
+      <div class="chip"><b>Replay</b>Re-watch any run offline &middot; $0</div>
     </div>
   </div>
 </section>

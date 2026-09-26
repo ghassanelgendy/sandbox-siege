@@ -34,6 +34,7 @@ services:
     environment:
       - LOCALSTACK_HOST=localstack
       - AWS_ENDPOINT_URL=http://localstack:4566
+      - SIEGE_DEMO_RESULT_TTL_S=${SIEGE_DEMO_RESULT_TTL_S:-600}
       - BYNARA_API_KEY=${BYNARA_API_KEY}
       - DAHL_API_KEY=${DAHL_API_KEY}
       - GROQ_API_KEY=${GROQ_API_KEY}

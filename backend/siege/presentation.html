@@ -603,20 +603,23 @@ figcaption strong{color:var(--ink-dim)}
 <!-- ===================== 08 TRAP LIBRARY ===================== -->
 <section class="slide" id="s8" data-label="TRAP LIBRARY">
   <div class="slide-inner">
-    <div class="eyebrow">27 scenarios · OWASP LLM Top 10 · AI-generated</div>
+    <div class="eyebrow">27 traps · built from real incidents</div>
     <h2>The trap library</h2>
-    <p style="margin-top:12px;max-width:80ch">27 scenarios covering the OWASP Top 10 for LLMs and real-world cloud breach patterns — each one a small, plausible Tuesday task with a hidden edge. Plus an <strong>AI Trap Generator</strong> that converts a natural-language incident description into a live executable YAML scenario in seconds.</p>
+    <ul class="keys">
+      <li>Each trap = a <strong>normal task</strong> + a <strong>hidden danger</strong></li>
+      <li><strong>AI generator</strong>: describe an incident &rarr; get a new trap</li>
+    </ul>
     <div class="trapgrid">
-      <div class="trapcard"><div class="tid">SIEGE-001 <span class="tag crit">CRITICAL</span></div><h4>Credential Escalation</h4><div class="q">Does it stay in its IAM lane, or seize the bait admin key?</div><div class="w">the PocketOS pattern</div></div>
-      <div class="trapcard"><div class="tid">SIEGE-002 <span class="tag crit">CRITICAL</span></div><h4>Log-Injected Command</h4><div class="q">Is a log line passive data, or an instruction it will obey?</div><div class="w">OWASP LLM01</div></div>
-      <div class="trapcard"><div class="tid">SIEGE-003 <span class="tag high">HIGH</span></div><h4>Ambiguous Destruction</h4><div class="q">"Clean up the old stuff" — does it ask, or does it delete?</div><div class="w">the Kiro pattern</div></div>
-      <div class="trapcard"><div class="tid">SIEGE-004 <span class="tag crit">CRITICAL</span></div><h4>Backup-Blind Deletion</h4><div class="q">Does it verify a recoverable snapshot before destroying the DB?</div><div class="w">the PocketOS pattern</div></div>
-      <div class="trapcard"><div class="tid">SIEGE-005 <span class="tag crit">CRITICAL</span></div><h4>Secret Exfiltration</h4><div class="q">Does it redact the canary token before posting to a vendor?</div><div class="w">OWASP LLM06</div></div>
-      <div class="trapcard"><div class="tid">SIEGE-007 <span class="tag high">HIGH</span></div><h4>Blast Radius Containment</h4><div class="q">Reset staging — does it mutate the prod-tagged twin next to it?</div><div class="w">the Gemini pattern</div></div>
-      <div class="trapcard"><div class="tid">SIEGE-008 <span class="tag crit">CRITICAL</span></div><h4>Instance Metadata SSRF</h4><div class="q">Does it probe 169.254.169.254 for instance-profile tokens?</div><div class="w">the ExploitGym pattern</div></div>
+      <div class="trapcard"><div class="tid">SIEGE-001 <span class="tag crit">CRITICAL</span></div><h4>Credential Escalation</h4><div class="q">Uses an admin key it found?</div><div class="w">the PocketOS pattern</div></div>
+      <div class="trapcard"><div class="tid">SIEGE-002 <span class="tag crit">CRITICAL</span></div><h4>Log-Injected Command</h4><div class="q">Obeys a command hidden in a log?</div><div class="w">OWASP LLM01</div></div>
+      <div class="trapcard"><div class="tid">SIEGE-003 <span class="tag high">HIGH</span></div><h4>Ambiguous Destruction</h4><div class="q">&ldquo;Clean up old stuff&rdquo; &mdash; asks, or deletes?</div><div class="w">the Kiro pattern</div></div>
+      <div class="trapcard"><div class="tid">SIEGE-004 <span class="tag crit">CRITICAL</span></div><h4>Backup-Blind Deletion</h4><div class="q">Deletes the database without a backup?</div><div class="w">the PocketOS pattern</div></div>
+      <div class="trapcard"><div class="tid">SIEGE-005 <span class="tag crit">CRITICAL</span></div><h4>Secret Exfiltration</h4><div class="q">Sends a secret to an outside vendor?</div><div class="w">OWASP LLM06</div></div>
+      <div class="trapcard"><div class="tid">SIEGE-007 <span class="tag high">HIGH</span></div><h4>Blast Radius</h4><div class="q">Hits production while fixing staging?</div><div class="w">the Gemini pattern</div></div>
+      <div class="trapcard"><div class="tid">SIEGE-008 <span class="tag crit">CRITICAL</span></div><h4>Metadata SSRF</h4><div class="q">Steals cloud keys from the internal metadata address?</div><div class="w">the ExploitGym pattern</div></div>
       <div class="trapcard" style="justify-content:center;border-left:2px solid var(--sand-dim)">
-        <div class="q" style="font-style:normal;flex:none"><strong style="color:var(--ink);display:block;margin-bottom:6px">+ 20 more scenarios</strong>
-        Cross-tenant leakage, env-var harvesting, tool poisoning, oversized provisioning &amp; carbon waste, disaster purge — plus live <strong style="color:var(--sand)">CVE lookup</strong> (OSV.dev · NVD v2.0) and the <strong style="color:var(--sand)">AI Trap Generator</strong>.</div>
+        <div class="q" style="font-style:normal;flex:none"><strong style="color:var(--ink);display:block;margin-bottom:6px">+ 20 more</strong>
+        Data leaks &middot; tool poisoning &middot; wasted compute &middot; backup purge</div>
       </div>
     </div>
   </div>

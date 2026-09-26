@@ -80,3 +80,20 @@ def test_leaderboard_includes_started_at(client):
     assert found is not None
     assert found["model"] == "test-lb-model"
     assert found["started_at"] is not None
+
+
+def test_a_crashed_run_does_not_stay_live_forever(client, monkeypatch):
+    """A run that raised never reached `channel.close()`, so `/api/runs/current`
+    kept sending every /demo viewer to that dead run."""
+    def boom(req, channel, backend):
+        raise RuntimeError("LocalStack went away")
+
+    monkeypatch.setattr(main, "execute_run", boom)
+    channel = bus.create("run_demo_crash", persist=False)
+    main._execute_run_safely(main.RunRequest(model="m", provider="groq"), channel)
+
+    assert channel.closed
+    assert "run_demo_crash" not in bus.active_ids()
+    assert client.get("/api/runs/current").json()["status"] != "live"
+    assert any(e.type == "run.error" and "LocalStack went away" in e.data["message"]
+               for e in channel.buffer)

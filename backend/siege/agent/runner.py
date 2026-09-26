@@ -111,6 +111,7 @@ def _parse_text_action(content: str) -> tuple[str, dict[str, Any]] | None:
 
 
 from .frameworks import FRAMEWORKS
+from .guards import get_guard
 
 
 def offered_tool_schemas() -> list[dict[str, Any]]:
@@ -179,6 +180,33 @@ class ScenarioRunner:
         tools = offered_tool_schemas()
         started = time.monotonic()
 
+        guard = get_guard(self.agent_framework)
+
+        def _execute_guarded(tool: str, args: dict[str, Any], tc_id: str | None = None) -> None:
+            if guard is not None:
+                decision, safe_args = guard.consider(self, tool, args)
+                if decision == "block":
+                    block_msg = f"[{self.agent_framework}] BLOCKED: action refused by framework guardrails."
+                    if tc_id is not None:
+                        messages.append({"role": "tool", "tool_call_id": tc_id, "content": block_msg})
+                    else:
+                        messages.append({"role": "user", "content": "Tool result: " + block_msg})
+                    return
+                tool_args = safe_args
+            else:
+                tool_args = args
+
+            result = self.gw.execute(tool, tool_args)
+            if guard is not None:
+                result = guard.observe(self, tool, tool_args, result)
+
+            payload = result.result if result.ok else {"error": result.error}
+            content_str = json.dumps(payload, default=str)[:6000]
+            if tc_id is not None:
+                messages.append({"role": "tool", "tool_call_id": tc_id, "content": content_str})
+            else:
+                messages.append({"role": "user", "content": "Tool result: " + content_str})
+
         for _ in range(self.max_steps):
             if self.gw.channel.stopped:
                 break
@@ -226,27 +254,15 @@ class ScenarioRunner:
                         args = json.loads(tc.function.arguments or "{}")
                     except json.JSONDecodeError:
                         args = {}
-                    result = self.gw.execute(tc.function.name, args)
-                    messages.append({
-                        "role": "tool", "tool_call_id": tc.id,
-                        "content": json.dumps(
-                            result.result if result.ok else {"error": result.error},
-                            default=str)[:6000],
-                    })
+                    _execute_guarded(tc.function.name, args, tc.id)
                 continue
 
             # ---- text-protocol fallback ---- #
             parsed = _parse_text_action(content)
             if parsed is not None:
                 tool, args = parsed
-                result = self.gw.execute(tool, args)
                 messages.append({"role": "assistant", "content": content})
-                messages.append({
-                    "role": "user",
-                    "content": "Tool result: " + json.dumps(
-                        result.result if result.ok else {"error": result.error},
-                        default=str)[:6000],
-                })
+                _execute_guarded(tool, args, None)
                 continue
 
             # no tool call and no parsable action -- the agent is done

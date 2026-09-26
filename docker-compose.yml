@@ -45,6 +45,15 @@ services:
       # JEV_API_KEY unset in .env to disable; jev.py falls back to None cleanly.
       - JEV_BASE_URL=http://jev-sidecar:8090
       - JEV_API_KEY=${JEV_API_KEY:-}
+    volumes:
+      - "./runs:/app/runs"
+      - "./backend/siege:/app/siege"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:18000/api/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
     restart: unless-stopped
     networks:
       - siege-core
@@ -55,7 +64,7 @@ services:
       searxng:
         condition: service_healthy
       jev-sidecar:
-        condition: service_started
+        condition: service_healthy
 
   siege-frontend:
     container_name: siege-frontend
@@ -64,10 +73,17 @@ services:
       dockerfile: Dockerfile
     ports:
       - "25173:80"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:80/"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
     networks:
       - siege-core
     depends_on:
-      - siege-backend
+      siege-backend:
+        condition: service_healthy
 
   cloudflared:
     container_name: siege-cloudflared
@@ -80,7 +96,8 @@ services:
     networks:
       - siege-core
     depends_on:
-      - siege-frontend
+      siege-frontend:
+        condition: service_healthy
 
   # Jev advisory judge sidecar (PRD §8.2, FR-4.9, D-43/D-44) -- optional.
   # Adapts jev.py's REST contract (POST /v1/judge) onto Vercel AI Gateway's
@@ -97,6 +114,12 @@ services:
       - AI_GATEWAY_API_KEY=${AI_GATEWAY_API_KEY:-}
       - JEV_API_KEY=${JEV_API_KEY:-}
       - PORT=8090
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:8090/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
     restart: unless-stopped
     networks:
       - siege-egress

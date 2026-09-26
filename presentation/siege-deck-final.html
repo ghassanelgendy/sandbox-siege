@@ -344,8 +344,26 @@ figcaption strong{color:var(--ink-dim)}
 .demo-word{font-family:var(--font-display);font-weight:700;font-size:clamp(2.6rem,7vw,5.8rem);
   letter-spacing:-.025em;color:var(--ink);line-height:1}
 .demo-word .live{color:var(--signal)}
-.qr-box--big{padding:22px 30px 22px 22px;gap:28px}
-.qr-box--big img{width:230px;height:230px}
+#demo .qr-box--big{
+  padding: clamp(24px, 3vh, 36px) clamp(28px, 3.5vw, 48px);
+  gap: clamp(32px, 4vw, 56px);
+  max-width: min(1040px, 94vw);
+  box-shadow: 0 20px 60px -8px rgba(0, 0, 0, 0.75);
+  margin-top: 24px;
+}
+#demo .qr-box--big img,
+#demo img.qr-hero-img{
+  width: min(480px, 46vh) !important;
+  height: min(480px, 46vh) !important;
+  min-width: 320px !important;
+  min-height: 320px !important;
+  background: #ffffff !important;
+  padding: 16px !important;
+  border-radius: 8px !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5) !important;
+  display: block !important;
+  flex-shrink: 0 !important;
+}
 
 /* ============ progress / stack / roadmap ============ */
 .progrid{display:grid;grid-template-columns:1.35fr 1fr;gap:48px;margin-top:18px;align-items:start}
@@ -378,7 +396,7 @@ figcaption strong{color:var(--ink-dim)}
   mask-image:linear-gradient(to bottom,#000 76%,transparent 99%)}
 .qr-box{display:inline-flex;align-items:center;gap:20px;margin-top:26px;background:var(--panel);
   border:1px solid var(--rule-lit);padding:16px 22px 16px 16px;border-radius:4px}
-.qr-box img{width:118px;height:118px;display:block;background:#fff;padding:6px;border-radius:2px}
+.qr-box:not(.qr-box--big) img{width:140px;height:140px;display:block;background:#fff;padding:6px;border-radius:2px}
 
 
 /* ============ per-slide density (keep every slide inside one viewport) ============ */
@@ -780,12 +798,26 @@ figcaption strong{color:var(--ink-dim)}
   <div class="slide-inner" style="text-align:center;display:flex;flex-direction:column;align-items:center">
     <div class="eyebrow signal" style="margin:0 auto 24px">Now watch it happen</div>
     <div class="demo-word">— <span class="live">Live</span> Demo —</div>
-    <div class="qr-box qr-box--big" style="margin-top:34px">
-      <img src="https://api.qrserver.com/v1/create-qr-code/?size=340x340&amp;data=https%3A%2F%2Fsandbox.ghassan.online%2Fdemo" alt="QR code linking to the live Sandbox Siege demo companion page">
-      <div style="text-align:left">
-        <div style="font-family:var(--font-display);font-size:1.3rem;font-weight:700;color:var(--ink)">Scan to follow along, live</div>
-        <div class="mono" style="font-size:1rem;color:var(--signal);margin-top:6px">sandbox.ghassan.online/demo</div>
-        <div style="font-size:.92rem;color:var(--ink-mute);margin-top:8px;max-width:320px">Same run, your phone — stage, verdicts, and the report card the moment it lands.</div>
+    <div class="qr-box qr-box--big" style="margin-top:24px;display:flex;align-items:center;gap:40px;">
+      <a href="https://sandbox.ghassan.online/demo" target="_blank" rel="noopener noreferrer" title="Click to open live companion in new tab" style="display:block;cursor:pointer;line-height:0;text-decoration:none;">
+        <img class="qr-hero-img" style="width:min(480px, 46vh) !important;height:min(480px, 46vh) !important;min-width:340px !important;min-height:340px !important;background:#ffffff !important;padding:16px !important;border-radius:10px !important;box-shadow:0 12px 40px rgba(0,0,0,0.6) !important;display:block !important;flex-shrink:0 !important;transition:transform 0.15s ease;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" src="https://api.qrserver.com/v1/create-qr-code/?size=1000x1000&amp;margin=10&amp;data=https%3A%2F%2Fsandbox.ghassan.online%2Fdemo" alt="QR code linking to the live Sandbox Siege demo companion page">
+      </a>
+      <div style="text-align:left;display:flex;flex-direction:column;justify-content:center;gap:14px">
+        <div style="font-family:var(--font-display);font-size:clamp(1.5rem, 2.4vw, 2.2rem);font-weight:700;color:var(--ink);line-height:1.2">Scan to follow along, live</div>
+        <div>
+          <a href="https://sandbox.ghassan.online/demo" target="_blank" rel="noopener noreferrer" class="mono" style="font-size:clamp(1.2rem, 1.8vw, 1.65rem);color:var(--signal);font-weight:600;letter-spacing:0.02em;text-decoration:none;border-bottom:2px solid var(--signal);display:inline-flex;align-items:center;gap:6px;cursor:pointer;padding-bottom:2px;transition:opacity 0.15s ease;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'" title="Open Companion (/demo)">
+            sandbox.ghassan.online/demo
+          </a>
+        </div>
+        <div style="font-size:clamp(1rem, 1.3vw, 1.25rem);color:var(--ink-dim);max-width:400px;line-height:1.55">Same run on your phone — stage, verdicts, and the report card the moment it lands.</div>
+        <div style="display:flex;gap:12px;margin-top:6px;flex-wrap:wrap;">
+          <a href="https://sandbox.ghassan.online" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;padding:9px 18px;background:var(--signal);color:#0a0d14;font-family:var(--font-mono);font-size:0.85rem;font-weight:700;border-radius:6px;text-decoration:none;letter-spacing:0.02em;cursor:pointer;box-shadow:0 4px 14px rgba(229,72,77,0.3);transition:all 0.15s ease;" onmouseover="this.style.opacity='0.9';this.style.transform='translateY(-1px)'" onmouseout="this.style.opacity='1';this.style.transform='translateY(0)'">
+            Open Live Console
+          </a>
+          <a href="https://sandbox.ghassan.online/demo" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;padding:9px 18px;background:var(--panel);color:var(--sand);font-family:var(--font-mono);font-size:0.85rem;font-weight:600;border:1px solid var(--rule-lit);border-radius:6px;text-decoration:none;letter-spacing:0.02em;cursor:pointer;transition:all 0.15s ease;" onmouseover="this.style.borderColor='var(--sand)';this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--rule-lit)';this.style.transform='translateY(0)'">
+            Open Companion (/demo)
+          </a>
+        </div>
       </div>
     </div>
   </div>

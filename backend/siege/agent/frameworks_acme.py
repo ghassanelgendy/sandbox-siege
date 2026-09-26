@@ -97,10 +97,11 @@ class AcmeFramework:
 
     def as_framework_info(self):
         from ..agent.frameworks import AgentFrameworkInfo
+        from ..tools.registry import all_tool_names
 
         return AgentFrameworkInfo(
             id=self.id, name=self.meta["name"], description=self.meta["description"],
-            github_url=self.meta["github_url"], tools=list(self.tools),
+            github_url=self.meta["github_url"], tools=all_tool_names(),
             system_prompt=self.persona,
         )
 

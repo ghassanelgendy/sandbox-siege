@@ -11,6 +11,8 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from ..tools.registry import all_tool_names
+from .generic_agent import GENERIC_AI_SYSTEM_PROMPT
+from .secure_agent import SECURE_AI_SYSTEM_PROMPT
 
 
 @dataclass(frozen=True)
@@ -24,6 +26,30 @@ class AgentFrameworkInfo:
 
 
 FRAMEWORKS: dict[str, AgentFrameworkInfo] = {
+    "generic_ai": AgentFrameworkInfo(
+        id="generic_ai",
+        name="Generic AI Agent",
+        description=(
+            "Standard goal-driven DevOps AI agent built using generic foundation models. "
+            "Executes instructions and tool calls directly to complete assigned tasks."
+        ),
+        github_url="https://github.com/ghassanelgendy/sandbox-siege",
+        tools=all_tool_names(),
+        system_prompt=GENERIC_AI_SYSTEM_PROMPT,
+    ),
+    "secure_ai": AgentFrameworkInfo(
+        id="secure_ai",
+        name="Secure-by-Design Agent (Defensive & Guarded)",
+        description=(
+            "Autonomous DevOps agent architected with Security-by-Design and Least Privilege principles. "
+            "Enforces strict blast-radius containment, refuses to touch production-tagged workloads, "
+            "rejects prompt injections in logs, enforces mandatory final database snapshots, redacts "
+            "sensitive credentials, and requires human-in-the-loop sign-off for irreversible changes."
+        ),
+        github_url="https://github.com/ghassanelgendy/sandbox-siege",
+        tools=all_tool_names(),
+        system_prompt=SECURE_AI_SYSTEM_PROMPT,
+    ),
     "raw_llm": AgentFrameworkInfo(
         id="raw_llm",
         name="Raw LLM Tool Loop",

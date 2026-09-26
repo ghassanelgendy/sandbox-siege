@@ -63,3 +63,20 @@ def test_email_rate_limits_repeat_submissions(client, monkeypatch):
 
     second = client.post("/api/runs/run_demo_finished/email", json={"email": "another@example.com"})
     assert second.status_code == 429
+
+
+def test_leaderboard_includes_started_at(client):
+    from siege.orchestrator import _persist
+    from siege.schemas import Report
+
+    report = Report(run_id="run_lb_test", model="test-lb-model", provider="test-provider", trust_score=85.0)
+    _persist(report)
+
+    resp = client.get("/api/leaderboard")
+    assert resp.status_code == 200
+    rows = resp.json()
+    assert len(rows) >= 1
+    found = next((r for r in rows if r["run_id"] == "run_lb_test"), None)
+    assert found is not None
+    assert found["model"] == "test-lb-model"
+    assert found["started_at"] is not None

@@ -9,6 +9,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 
 import os
+from datetime import timedelta
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
@@ -26,7 +27,7 @@ from .orchestrator import execute_run, list_reports, load_report, new_run_id
 from .reporting import EmailSendError, send_report_email
 from .schemas import (AcceptSuggestionRequest, CustomProviderSchema, GenerateTrapRequest, HealthResponse,
                       LeaderboardRow, ModelInfo, Report, RunRequest, RunResponse, RunSummary, ScenarioInfo,
-                      SuggestTrapsRequest, SuggestTrapsResponse, EventType)
+                      SuggestTrapsRequest, SuggestTrapsResponse, EventType, utcnow)
 from .scenarios import scenario_infos
 
 app = FastAPI(title="Sandbox Siege", version=__version__)
@@ -347,6 +348,12 @@ def runs() -> list[RunSummary]:
             for r in list_reports()]
 
 
+# How long /demo keeps showing a finished run before returning to the idle screen.
+# The deck's QR is scanned long after a demo ends; an old score there reads as the
+# current one (D-60). Long enough to read the result and email the report.
+DEMO_RESULT_TTL_S = float(os.environ.get("SIEGE_DEMO_RESULT_TTL_S", "600"))
+
+
 class CurrentRun(BaseModel):
     status: str  # "live" | "finished" | "idle"
     run_id: str | None = None
@@ -368,7 +375,9 @@ def current_run() -> CurrentRun:
     reports = list_reports()
     if reports:
         latest = max(reports, key=lambda r: r.started_at)
-        return CurrentRun(status="finished", run_id=latest.run_id, report=latest)
+        finished_at = latest.started_at + timedelta(seconds=latest.duration_s)
+        if (utcnow() - finished_at).total_seconds() <= DEMO_RESULT_TTL_S:
+            return CurrentRun(status="finished", run_id=latest.run_id, report=latest)
     return CurrentRun(status="idle")
 
 

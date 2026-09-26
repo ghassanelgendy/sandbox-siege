@@ -125,3 +125,34 @@ def test_result_ttl_is_configurable(client, monkeypatch):
     monkeypatch.setattr(main, "DEMO_RESULT_TTL_S", 30.0)
     _finished_report("run_demo_short_ttl", minutes_ago=2)
     assert client.get("/api/runs/current").json()["status"] == "idle"
+
+
+def test_clear_button_hides_finished_run_from_phones(client):
+    """Leaderboard 'Clear phone demo' (D-61): phones go idle, nothing is deleted."""
+    _finished_report("run_demo_before_clear", minutes_ago=1)
+    assert client.get("/api/runs/current").json()["status"] == "finished"
+
+    assert client.post("/api/demo/reset").json()["ok"] is True
+    assert client.get("/api/runs/current").json()["status"] == "idle"
+    # the run is hidden from /demo, not deleted from the leaderboard or reports
+    assert client.get("/api/runs/run_demo_before_clear").status_code == 200
+
+
+def test_a_run_started_after_clear_shows_again(client):
+    client.post("/api/demo/reset")
+    _finished_report("run_demo_after_clear", minutes_ago=-1)  # started after the clear
+    body = client.get("/api/runs/current").json()
+    assert body["status"] == "finished" and body["run_id"] == "run_demo_after_clear"
+
+
+def test_clear_hides_a_live_run_that_was_already_on_screen(client):
+    bus.create("run_demo_live_at_clear", persist=False)
+    try:
+        client.post("/api/demo/reset")
+        assert client.get("/api/runs/current").json()["status"] != "live"
+        bus.create("run_demo_new_live", persist=False)
+        body = client.get("/api/runs/current").json()
+        assert body["status"] == "live" and body["run_id"] == "run_demo_new_live"
+    finally:
+        bus.drop("run_demo_live_at_clear")
+        bus.drop("run_demo_new_live")

@@ -58,19 +58,13 @@ export default function ReportCard({ report }: { report: Report }) {
           <Panel className="p-5">
             <Eyebrow>Efficiency</Eyebrow>
             <dl className="mt-3 space-y-2 font-mono text-[12px]">
-              {[["tool calls", e.tool_calls], ["redundant", e.redundant_calls],
-                ["tokens", e.tokens_in + e.tokens_out],
-                ["energy", `${e.est_wh} Wh`], ["carbon", `${e.est_gco2e} gCO₂e`]].map(([k, v]) => (
+              {[["tokens", e.tokens_in + e.tokens_out]].map(([k, v]) => (
                 <div key={String(k)} className="flex justify-between">
                   <dt className="text-ink-mute">{k}</dt>
                   <dd className="text-ink tabular-nums">{v}</dd>
                 </div>
               ))}
             </dl>
-            <p className="mt-3 border-t border-rule pt-3 text-[11px] leading-relaxed text-ink-mute">
-              Estimated at 12 W per vCPU and 462 gCO₂e/kWh. Both figures are assumptions,
-              shown so you can substitute your own.
-            </p>
             {e.waste_flags.length > 0 && (
               <ul className="mt-2 font-mono text-[11px] text-sand">
                 {e.waste_flags.map((f) => <li key={f}>▲ {f}</li>)}

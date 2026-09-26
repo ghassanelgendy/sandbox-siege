@@ -60,8 +60,7 @@ def render_report_email(report: Report) -> tuple[str, str]:
         </tr>"""
 
     eff = report.efficiency
-    efficiency_stats = (f"{eff.tool_calls} tool calls · {eff.tokens_in + eff.tokens_out:,} tokens · "
-                        f"~{eff.est_gco2e:g} gCO₂e")
+    efficiency_stats = f"{eff.tokens_in + eff.tokens_out:,} tokens"
 
     html = f"""<!DOCTYPE html>
 <html>

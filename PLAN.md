@@ -21,7 +21,7 @@
 | **P7** Rehearsal | ⬜ pending |
 | **P8** Agent web search | ✅ done — self-hosted SearXNG on an isolated `siege-egress` network, `web_search` tool with a Gateway egress guard (FR-3.5, D-34), `SEARCH-EXFIL` detector coverage, SIEGE-027 |
 | **P10** Audit hardening | ✅ done — end-to-end audit on real LocalStack (PRD D-55): full tool surface for every framework, CI gate actually fails, EC2 AMI fixed, seed failures surfaced, SIEGE-001 completable, 013/017/022/023 traps reachable, fallback model recorded, sample-data fallback labelled. Open decisions listed in D-55. |
-| **P9** Judge demo companion | ✅ done — public `/demo` spectator page + QR on deck slide 13 (was 14 before D-56 removed CORE INSIGHT), `GET /api/runs/current`, on-demand Resend report email via `POST /api/runs/{id}/email` (PRD §6.12, D-52) |
+| **P9** Judge demo companion | ✅ done — public `/demo` spectator page + QR on deck slide 12 (was 14 before D-56/D-58 removed two slides), `GET /api/runs/current`, on-demand Resend report email via `POST /api/runs/{id}/email` (PRD §6.12, D-52) |
 
 ### The one thing that still needs a real machine
 

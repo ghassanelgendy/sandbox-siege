@@ -3,7 +3,7 @@
 > **Event:** DevOpsDays Cairo 2026 Hackathon — Track 1: Automate Deployment & Operations  
 > **Team:** Fo2 El-Sa7ab (Ghassan Elgendy & Ahmed Wagdy)  
 > **Format:** 15-Minute Championship Pitch + Live Chaos Demo  
-> **Interactive Deck (finals):** [`presentation/siege-deck-final.html`](../presentation/siege-deck-final.html) — 16 slides, self-contained, covers overview, business impact, differentiation, architecture, progress and roadmap  
+> **Interactive Deck (finals):** [`presentation/siege-deck-final.html`](../presentation/siege-deck-final.html) — 15 slides, self-contained, covers overview, business impact, differentiation, architecture, progress and roadmap  
 > **Earlier decks:** [`presentation/siege-deck.html`](../presentation/siege-deck.html) / [`frontend/public/deck.html`](../frontend/public/deck.html)  
 > **Architecture diagram (Slide 06 — ARCHITECTURE):** [`presentation/siege-architecture.html`](../presentation/siege-architecture.html) — every layer and tool in one frame. Embedded full-screen in the deck slide itself (not linked out): the deck script restyles the Archify chrome to the deck's own dark palette, hides all Archify UI controls, and gates the authored signal-flow trace behind a click (`Archify.motionGovernor`) instead of autoplaying. Also served standalone at `/architecture` (proxied through the frontend, so it is reachable on the public Cloudflare hostname) with its full Archify UI intact.  
 > **L1 vs L2 sequence (removed from the finals deck 2026-09-26, PRD D-56 — still served standalone):** [`presentation/siege-l1-l2-sequence.html`](../presentation/siege-l1-l2-sequence.html) — the DENY → escalate → ALLOW beat. Same full-screen, click-to-trace, deck-themed embed treatment as Slide 07. Also served standalone at `/sequence`.  

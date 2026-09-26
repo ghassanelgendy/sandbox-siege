@@ -39,8 +39,7 @@
         "label": "Jev advisory judge",
         "focus": [
           "detectors",
-          "jev_sidecar",
-          "ai_gateway"
+          "jev_sidecar"
         ],
         "note": "A typed, calibrated second opinion that never changes the deterministic gate."
       },
@@ -92,21 +91,6 @@
       "pos": [
         40,
         178
-      ],
-      "size": [
-        150,
-        78
-      ]
-    },
-    {
-      "id": "tunnel",
-      "type": "security",
-      "label": "Cloudflare Tunnel",
-      "sublabel": "zero-trust ingress",
-      "tag": "no open ports",
-      "pos": [
-        40,
-        318
       ],
       "size": [
         150,
@@ -322,21 +306,6 @@
         150,
         78
       ]
-    },
-    {
-      "id": "ai_gateway",
-      "type": "external",
-      "label": "Vercel AI Gateway",
-      "sublabel": "typesafe-ai/jev",
-      "tag": "calibrated",
-      "pos": [
-        1165,
-        600
-      ],
-      "size": [
-        150,
-        78
-      ]
     }
   ],
   "boundaries": [
@@ -353,8 +322,7 @@
       "label": "egress-guarded — no LocalStack",
       "wraps": [
         "searxng",
-        "jev_sidecar",
-        "ai_gateway"
+        "jev_sidecar"
       ],
       "pad": 20
     }
@@ -368,12 +336,6 @@
         115,
         153
       ]
-    },
-    {
-      "from": "tunnel",
-      "to": "dashboard",
-      "label": "HTTPS",
-      "variant": "security"
     },
     {
       "from": "cli",
@@ -485,16 +447,6 @@
       "labelAt": [
         1240,
         429
-      ]
-    },
-    {
-      "from": "jev_sidecar",
-      "to": "ai_gateway",
-      "label": "evaluate",
-      "variant": "dashed",
-      "labelAt": [
-        1240,
-        570
       ]
     },
     {

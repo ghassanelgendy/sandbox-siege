@@ -394,7 +394,7 @@ def current_run() -> CurrentRun:
         latest = max(reports, key=lambda r: r.started_at)
         finished_at = latest.started_at + timedelta(seconds=latest.duration_s)
         fresh = (utcnow() - finished_at).total_seconds() <= DEMO_RESULT_TTL_S
-        after_reset = cleared_at is None or finished_at > cleared_at
+        after_reset = cleared_at is None or latest.started_at > cleared_at  # a run cleared mid-flight stays hidden
         if fresh and after_reset:
             return CurrentRun(status="finished", run_id=latest.run_id, report=latest)
     return CurrentRun(status="idle")

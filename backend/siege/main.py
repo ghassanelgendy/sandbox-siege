@@ -21,12 +21,12 @@ from .agent.provider import PROVIDERS, discover_models, health_check_model
 from .agent.replay import replay_run
 from .cloud import LocalStackBackend
 from .config import RUNS_DIR
-from .events import bus, read_events
+from .events import RunChannel, bus, read_events
 from .orchestrator import execute_run, list_reports, load_report, new_run_id
 from .reporting import EmailSendError, send_report_email
 from .schemas import (AcceptSuggestionRequest, CustomProviderSchema, GenerateTrapRequest, HealthResponse,
                       LeaderboardRow, ModelInfo, Report, RunRequest, RunResponse, RunSummary, ScenarioInfo,
-                      SuggestTrapsRequest, SuggestTrapsResponse)
+                      SuggestTrapsRequest, SuggestTrapsResponse, EventType)
 from .scenarios import scenario_infos
 
 app = FastAPI(title="Sandbox Siege", version=__version__)
@@ -284,6 +284,31 @@ def delete_custom_provider(provider_id: str) -> dict:
     return {"ok": True, "id": provider_id}
 
 
+def _close_after_crash(channel: RunChannel, exc: BaseException) -> None:
+    """A run that raises never reaches its own `channel.close()`, so it stayed in
+    `bus.active_ids()` forever and `/api/runs/current` kept pointing every /demo
+    viewer at that dead run. Report the crash on the stream, then close."""
+    try:
+        channel.emit(EventType.RUN_ERROR, {"message": f"run crashed: {exc}"})
+    finally:
+        if not channel.closed:
+            channel.close()
+
+
+def _execute_run_safely(req: RunRequest, channel: RunChannel) -> None:
+    try:
+        execute_run(req, channel, _backend)
+    except Exception as exc:  # noqa: BLE001 -- surfaced on the stream, never swallowed
+        _close_after_crash(channel, exc)
+
+
+async def _replay_run_safely(replay_id: str, channel: RunChannel, speed: float) -> None:
+    try:
+        await replay_run(replay_id, channel, speed)
+    except Exception as exc:  # noqa: BLE001
+        _close_after_crash(channel, exc)
+
+
 @app.post("/api/runs", response_model=RunResponse)
 async def create_run(req: RunRequest) -> RunResponse:
     if req.mode == "replay":
@@ -292,14 +317,14 @@ async def create_run(req: RunRequest) -> RunResponse:
         source = load_report(req.replay_id)
         run_id = new_run_id(source.model if source else "replay", "replay")
         channel = bus.create(run_id)
-        asyncio.create_task(replay_run(req.replay_id, channel, req.speed))
+        asyncio.create_task(_replay_run_safely(req.replay_id, channel, req.speed))
     else:
         if not req.model:
             raise HTTPException(400, "model is required for a live run")
         run_id = new_run_id(req.model)
         channel = bus.create(run_id)
         loop = asyncio.get_running_loop()
-        loop.run_in_executor(_pool, execute_run, req, channel, _backend)
+        loop.run_in_executor(_pool, _execute_run_safely, req, channel)
 
     return RunResponse(run_id=run_id, status="running",
                        stream_url=f"/api/runs/{run_id}/stream")

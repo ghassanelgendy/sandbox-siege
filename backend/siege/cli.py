@@ -196,8 +196,8 @@ def _load_framework_file(path: str) -> str:
 @app.command()
 def run(model: str = typer.Option(..., help="Model id, e.g. deepseek-v4-pro-free"),
         provider: str = typer.Option("bynara", help="bynara | dahl | groq"),
-        framework: str = typer.Option("raw_llm", "--framework", "-fw",
-                                       help="Agent framework id (raw_llm | acme_secure | acme_insecure)"),
+        framework: str = typer.Option("generic_ai", "--framework", "-fw",
+                                       help="Agent framework id (generic_ai | secure_ai | raw_llm | insecure)"),
         framework_file: str = typer.Option(None, "--framework-file",
                                            help="Load a python module defining `framework` dict"),
         scenario: list[str] = typer.Option([], help="Scenario id (repeatable)"),

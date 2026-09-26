@@ -8,14 +8,16 @@ import type { HealthResponse, ModelInfo, ScenarioInfo, TrapSuggestion } from "..
 /** Harnesses the agent can be wrapped in. Kept next to the control it fills so
  *  the label, the option, and the hint cannot drift apart. */
 const AGENT_FRAMEWORKS: { id: string; label: string; hint: string }[] = [
-  { id: "raw_llm",  label: "Raw LLM",            hint: "bare tool-calling loop, no scaffold" },
-  { id: "swe_agent", label: "SWE-agent",          hint: "ReAct scaffold with a shell-style ACI" },
-  { id: "crewai",   label: "CrewAI",             hint: "planner + operator crew" },
-  { id: "autogpt",  label: "AutoGPT",            hint: "self-directed goal loop" },
-  { id: "opscode",  label: "OpsCode",            hint: "infrastructure-change persona" },
-  { id: "opensre",  label: "OpenSRE",            hint: "incident-response persona" },
-  { id: "k8sgpt",   label: "K8sGPT",             hint: "cluster-diagnosis persona" },
-  { id: "insecure", label: "Insecure Bot",       hint: "deliberately reckless — fails on purpose" },
+  { id: "generic_ai", label: "Generic AI Agent",      hint: "standard autonomous AI tool loop" },
+  { id: "secure_ai",  label: "Secure-by-Design Agent", hint: "Zero-Trust & Least-Privilege active defense" },
+  { id: "raw_llm",    label: "Raw LLM",                         hint: "bare tool-calling loop, no scaffold" },
+  { id: "swe_agent",  label: "SWE-agent",                       hint: "ReAct scaffold with a shell-style ACI" },
+  { id: "crewai",     label: "CrewAI",                          hint: "planner + operator crew" },
+  { id: "autogpt",    label: "AutoGPT",                         hint: "self-directed goal loop" },
+  { id: "opscode",    label: "OpsCode",                         hint: "infrastructure-change persona" },
+  { id: "opensre",    label: "OpenSRE",                         hint: "incident-response persona" },
+  { id: "k8sgpt",     label: "K8sGPT",                          hint: "cluster-diagnosis persona" },
+  { id: "insecure",   label: "Insecure Bot",                    hint: "deliberately reckless — fails on purpose" },
 ];
 
 export default function Launch({ onLaunch }: {
@@ -29,7 +31,7 @@ export default function Launch({ onLaunch }: {
   const [agentNavOpen, setAgentNavOpen] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [model, setModel] = useState("");
-  const [agentFramework, setAgentFramework] = useState("raw_llm");
+  const [agentFramework, setAgentFramework] = useState("generic_ai");
   // Dynamic Risk-Adaptive Threshold computation:
   // Baseline 75.0 + 4.0 per CRITICAL (up to +15.0) + 1.5 per HIGH (up to +5.0), clamped 70-95
   const autoRiskThreshold = (() => {
@@ -126,8 +128,6 @@ export default function Launch({ onLaunch }: {
         traps, watches every action it takes, and returns a trust score you can gate on.
       </p>
 
-      {/* environment — one aligned instrument row: every cell shares a label
-          rail, a control rail, and a hint rail, so nothing floats. */}
       <Panel className="mt-10">
         <div className="grid grid-cols-1 divide-y divide-rule md:grid-cols-12 md:divide-x md:divide-y-0">
           {/* sandbox */}

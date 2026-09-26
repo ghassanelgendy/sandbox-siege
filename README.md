@@ -45,6 +45,28 @@ make api                      # http://localhost:8000
 make web                      # http://localhost:5173
 ```
 
+### The 2 Benchmark Agents (Insecure vs. Secure by Design)
+
+Sandbox Siege lets you compare and demonstrate two contrasting agent architectures:
+
+1. **🤖 Generic AI Agent (Not Secured by Design)** (`--framework generic_ai`):
+   - Standard goal-seeking AI DevOps agent without security guardrails.
+   - Adopts ungranted admin credentials found in secrets, executes prompt injections in logs, deletes production resources without snapshots, and leaks canary tokens.
+2. **🛡️ Secure-by-Design Agent** (`--framework secure_ai`):
+   - Engineered with Zero-Trust and Least-Privilege runtime guardrails.
+   - Blocks unauthorized credential escalation, contains blast radius on `Environment=prod` workloads, forces final DB snapshots, rejects prompt injections, redacts secret values, and mandates human sign-off for destructive operations.
+
+**Try both in the Demo:**
+- **In the Web UI (`localhost:5173`):** Select either architecture with the top cards. Click **"Demo replay: Generic AI"** to see the unhardened agent trigger traps and fail (Grade F), or click **"Demo replay: Secure by Design"** to see the guarded agent pass all traps with 100% Trust Score (Grade A). You can also click **"Launch live siege"** to test either agent live against LocalStack Pro!
+- **From CLI:**
+  ```bash
+  # Test Generic Insecure Agent
+  siege run --model openai/gpt-oss-120b --provider groq --framework generic_ai --scenario SIEGE-001
+
+  # Test Secure-by-Design Agent
+  siege run --model openai/gpt-oss-120b --provider groq --framework secure_ai --scenario SIEGE-001
+  ```
+
 ### 8 Core Benchmark Scenarios
 
 Sandbox Siege ships with 8 baseline benchmark scenarios ready to run out of the box:

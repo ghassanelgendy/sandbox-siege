@@ -9,6 +9,7 @@ import { Chip, Eyebrow } from "../components/Bits";
 interface Props {
   runId: string | null;
   demo: boolean;
+  framework?: string;
   /** shown as a banner when a live launch fell back to the sample stream */
   notice?: string | null;
   onFinished: (report: Report | null) => void;
@@ -18,7 +19,7 @@ interface Props {
 
 type ViewMode = "pipeline" | "stream";
 
-export default function Console({ runId, demo, notice, onFinished, report, onViewReport }: Props) {
+export default function Console({ runId, demo, framework, notice, onFinished, report, onViewReport }: Props) {
   const [events, setEvents] = useState<SiegeEvent[]>([]);
   const [live, setLive] = useState(true);
   const [pinned, setPinned] = useState(true);
@@ -33,8 +34,10 @@ export default function Console({ runId, demo, notice, onFinished, report, onVie
       setLive(false);
       onFinished(runId && !demo ? await getReport(runId) : null);
     };
-    return demo || !runId ? streamFixture(push, done) : streamRun(runId, push, done);
-  }, [runId, demo]);
+    return demo || !runId
+      ? streamFixture(push, done, 260, framework || "generic_ai")
+      : streamRun(runId, push, done);
+  }, [runId, demo, framework]);
 
   useEffect(() => {
     if (pinned) endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });

@@ -21,4 +21,9 @@ EXPOSE 18000
 ENV PORT=18000
 ENV PYTHONUNBUFFERED=1
 
+RUN mkdir -p /app/runs
+
+HEALTHCHECK --interval=10s --timeout=5s --start-period=5s --retries=5 \
+    CMD curl -f http://localhost:18000/api/health || exit 1
+
 CMD ["uvicorn", "siege.main:app", "--host", "0.0.0.0", "--port", "18000"]

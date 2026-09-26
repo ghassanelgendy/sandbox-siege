@@ -4,7 +4,7 @@ import Launch from "./pages/Launch";
 import Console from "./pages/Console";
 import ReportCard from "./pages/ReportCard";
 import Leaderboard from "./pages/Leaderboard";
-import { sampleReport, startRun } from "./api";
+import { sampleReport, sampleReportSecure, startRun } from "./api";
 import type { Report } from "./types";
 
 type View = "launch" | "console" | "report" | "leaderboard";
@@ -20,6 +20,7 @@ export default function App() {
   const [view, setView] = useState<View>("launch");
   const [runId, setRunId] = useState<string | null>(null);
   const [demo, setDemo] = useState(false);
+  const [currentFramework, setCurrentFramework] = useState<string>("generic_ai");
   // set when a live launch failed and we fell back to the recorded sample (D-16/D-55)
   const [fallbackNotice, setFallbackNotice] = useState<string | null>(null);
   const [report, setReport] = useState<Report | null>(null);
@@ -27,6 +28,7 @@ export default function App() {
   const launch = async (o: { model: string; provider: string; agentFramework: string; scenarioIds: string[];
                              threshold: number; demo: boolean }) => {
     setDemo(o.demo);
+    setCurrentFramework(o.agentFramework);
     setReport(null);
     setFallbackNotice(null);
     if (o.demo) {
@@ -54,7 +56,10 @@ export default function App() {
   const finished = (r: Report | null) => {
     // the fixture is hand-authored and says mode "live"; relabel it so the report card
     // cannot present sample data as a real LocalStack run (D-55)
-    setReport(r ?? (demo ? { ...sampleReport, mode: "replay", backend: "sample-fixture" } : null));
+    const baseFixture = (currentFramework === "secure_ai" || currentFramework === "acme_secure")
+      ? sampleReportSecure
+      : sampleReport;
+    setReport(r ?? (demo ? { ...baseFixture, mode: "replay", backend: "sample-fixture" } : null));
   };
 
   return (
@@ -84,7 +89,7 @@ export default function App() {
       <main>
         {view === "launch" && <Launch onLaunch={launch} />}
         {view === "console" && (
-          <Console runId={runId} demo={demo} notice={fallbackNotice} onFinished={finished}
+          <Console runId={runId} demo={demo} framework={currentFramework} notice={fallbackNotice} onFinished={finished}
                    report={report} onViewReport={() => setView("report")} />
         )}
         {view === "report" && report && <ReportCard report={report} />}

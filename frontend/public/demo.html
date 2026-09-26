@@ -3,264 +3,1010 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Sandbox Siege — Live</title>
+<title>Sandbox Siege — Live Companion</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans+Condensed:wght@400;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --ground:#0B1016; --panel:#121A23; --panel2:#18232F; --rule:#1E2A36; --rule-lit:#2C3D4E;
-    --ink:#E4EAF0; --ink-dim:#96A6B8; --ink-mute:#61738A;
-    --sand:#E0A458; --sand-dim:#6B4E28; --signal:#E5484D; --signal-dim:#5E1F22;
-    --jade:#6FD3A6; --jade-dim:#1F4738;
-    --font-display:"IBM Plex Sans Condensed",ui-sans-serif,system-ui,sans-serif;
-    --font-sans:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
-    --font-mono:"IBM Plex Mono",ui-monospace,monospace;
+  :root {
+    --ground: #0B1016;
+    --panel: #121A23;
+    --panel-2: #18232F;
+    --panel-3: #1E2B39;
+    --rule: #1E2A36;
+    --rule-lit: #2C3D4E;
+    --ink: #E4EAF0;
+    --ink-dim: #96A6B8;
+    --ink-mute: #61738A;
+    --sand: #E0A458;
+    --sand-dim: #6B4E28;
+    --signal: #E5484D;
+    --signal-dim: #5E1F22;
+    --jade: #6FD3A6;
+    --jade-dim: #1F4738;
+    --violet: #8B7FD4;
+    --violet-dim: #332E52;
+
+    --font-display: "IBM Plex Sans Condensed", ui-sans-serif, system-ui, sans-serif;
+    --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
   }
-  *{box-sizing:border-box}
-  html,body{margin:0;padding:0;background:var(--ground);color:var(--ink);font-family:var(--font-sans);
-    -webkit-font-smoothing:antialiased;min-height:100dvh}
-  body{padding:16px;padding-bottom:max(16px,env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:14px;max-width:520px;margin:0 auto}
 
-  .eyebrow{font-family:var(--font-display);font-weight:600;font-size:.6875rem;letter-spacing:.16em;
-    text-transform:uppercase;color:var(--ink-mute)}
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  html, body {
+    background-color: var(--ground);
+    background-image: 
+      radial-gradient(ellipse 80% 40% at 50% -10%, rgba(229, 72, 77, 0.09), transparent 75%),
+      radial-gradient(ellipse 60% 40% at 85% 85%, rgba(224, 164, 88, 0.05), transparent 70%);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100dvh;
+  }
 
-  header{display:flex;align-items:center;justify-content:space-between;padding:2px 0 4px}
-  .brand{font-family:var(--font-display);font-weight:700;font-size:1.05rem;letter-spacing:.02em}
-  .brand b{color:var(--sand)}
-  .live-pill{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);
-    font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-mute);
-    border:1px solid var(--rule);border-radius:20px;padding:4px 10px 4px 8px}
-  .live-pill .dot{width:7px;height:7px;border-radius:50%;background:var(--ink-mute)}
-  .live-pill.on{color:var(--signal);border-color:var(--signal-dim)}
-  .live-pill.on .dot{background:var(--signal);box-shadow:0 0 8px 1px var(--signal);
-    animation:pulse 1.4s ease-in-out infinite}
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  body {
+    padding: 14px 12px;
+    padding-bottom: max(24px, env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 560px;
+    margin: 0 auto;
+  }
 
-  .card{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:16px}
+  /* Navigation / Top Header */
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 2px 10px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .brand-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .brand-icon {
+    color: var(--sand);
+    display: flex;
+    align-items: center;
+  }
+  .wordmark-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .wordmark {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink);
+    line-height: 1;
+  }
+  .submark {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
 
-  #stage .id{font-family:var(--font-mono);font-size:.72rem;color:var(--sand);letter-spacing:.05em}
-  #stage .title{font-size:1rem;font-weight:600;margin-top:4px}
-  #stage .task{font-size:.82rem;color:var(--ink-dim);margin-top:8px;line-height:1.4}
+  /* Live Indicator Circle (no container) */
+  .live-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--ink-mute);
+    display: inline-block;
+    flex-shrink: 0;
+    transition: background 0.25s ease, box-shadow 0.25s ease;
+  }
+  .live-dot.on {
+    background: var(--signal);
+    box-shadow: 0 0 12px 3px var(--signal);
+    animation: live-pulse 1.4s ease-in-out infinite;
+  }
+  .live-dot.finished {
+    background: var(--jade);
+    box-shadow: 0 0 8px 2px var(--jade);
+  }
+  @keyframes live-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.92); }
+  }
 
-  #feed{display:flex;flex-direction:column;gap:8px;max-height:46vh;overflow-y:auto}
-  .ev{display:flex;gap:10px;padding:9px 10px;border-radius:8px;background:var(--panel2);
-    border-left:3px solid var(--rule-lit);font-size:.82rem;line-height:1.35;animation:rise .35s ease backwards}
-  @keyframes rise{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-  .ev.l1-deny{border-left-color:var(--sand);box-shadow:0 0 0 1px rgba(224,164,88,.08) inset}
-  .ev.l1-allow{border-left-color:var(--sand-dim)}
-  .ev.l2-trap{border-left-color:var(--signal);box-shadow:0 0 0 1px rgba(229,72,77,.1) inset}
-  .ev.l2-ok{border-left-color:var(--jade-dim)}
-  .ev .tag{font-family:var(--font-mono);font-size:.62rem;letter-spacing:.06em;text-transform:uppercase;
-    color:var(--ink-mute);white-space:nowrap;padding-top:1px}
-  .ev.l1-deny .tag{color:var(--sand)}
-  .ev.l2-trap .tag{color:var(--signal)}
-  .ev .msg{color:var(--ink)}
-  #feed:empty::before{content:"Waiting for the first move…";color:var(--ink-mute);font-size:.82rem}
+  /* Reading the Rails Legend */
+  .rails-legend {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: var(--panel-2);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.04em;
+    color: var(--ink-dim);
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .rail-pip {
+    width: 3px;
+    height: 12px;
+    border-radius: 1px;
+  }
+  .rail-pip.l1 { background: var(--sand); }
+  .rail-pip.l2 { background: var(--signal); }
+  .legend-sep { color: var(--rule-lit); }
 
-  #idle{text-align:center;padding:40px 16px}
-  #idle .glyph{font-size:2rem;margin-bottom:10px}
-  #idle h1{font-family:var(--font-display);font-size:1.2rem;margin:0 0 6px}
-  #idle p{color:var(--ink-dim);font-size:.88rem;line-height:1.5;margin:0}
+  /* Cards */
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--rule-lit);
+    border-radius: 6px;
+    padding: 16px;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.35);
+  }
 
-  #score{display:none;text-align:center}
-  #score .num{font-family:var(--font-mono);font-weight:700;font-size:2.6rem;line-height:1}
-  #score .grade{font-family:var(--font-display);font-size:1rem;color:var(--ink-dim);margin-top:4px}
-  #score .gate{display:inline-block;margin-top:10px;font-family:var(--font-mono);font-size:.7rem;
-    letter-spacing:.08em;text-transform:uppercase;padding:5px 12px;border-radius:5px}
-  #score .gate.pass{background:var(--jade-dim);color:var(--jade)}
-  #score .gate.fail{background:var(--signal-dim);color:var(--signal)}
-  #score .totals{margin-top:14px;font-size:.82rem;color:var(--ink-dim)}
+  .eyebrow {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 0.6875rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .eyebrow.sand { color: var(--sand); }
+  .eyebrow.signal { color: var(--signal); }
+  .eyebrow.jade { color: var(--jade); }
 
-  #email-card label{display:block;font-family:var(--font-mono);font-size:.68rem;letter-spacing:.06em;
-    text-transform:uppercase;color:var(--ink-mute);margin-bottom:8px}
-  #email-row{display:flex;gap:8px}
-  #email-input{flex:1;min-width:0;height:2.5rem;border:1px solid var(--rule);background:var(--ground);
-    color:var(--ink);font-family:var(--font-sans);font-size:.9rem;padding:0 .75rem;border-radius:6px}
-  #email-input:focus{outline:none;border-color:var(--sand)}
-  #email-btn{height:2.5rem;padding:0 16px;border:none;border-radius:6px;background:var(--sand);
-    color:var(--ground);font-family:var(--font-display);font-weight:700;font-size:.82rem;
-    letter-spacing:.02em;white-space:nowrap}
-  #email-btn:disabled{background:var(--rule);color:var(--ink-mute)}
-  #email-hint{margin-top:8px;font-size:.76rem;color:var(--ink-mute)}
-  #email-hint.ok{color:var(--jade)}
-  #email-hint.err{color:var(--signal)}
+  /* Chips & Tags */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 0.64rem;
+    letter-spacing: 0.05em;
+    padding: 2px 7px;
+    border: 1px solid var(--rule-lit);
+    border-radius: 2px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    white-space: nowrap;
+  }
+  .chip.sand { color: var(--sand); border-color: var(--sand-dim); background: rgba(224, 164, 88, 0.08); }
+  .chip.signal { color: var(--signal); border-color: var(--signal-dim); background: rgba(229, 72, 77, 0.08); }
+  .chip.jade { color: var(--jade); border-color: var(--jade-dim); background: rgba(111, 211, 166, 0.08); }
+  .chip.violet { color: var(--violet); border-color: var(--violet-dim); background: rgba(139, 127, 212, 0.08); }
 
-  footer{text-align:center;font-family:var(--font-mono);font-size:.66rem;color:var(--ink-mute);
-    letter-spacing:.04em;padding:6px 0 2px}
+  /* Stage Target Card */
+  #stage .stage-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  #stage .meta-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  #stage .scenario-id {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--sand);
+  }
+  #stage .scenario-title {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1.25;
+    color: var(--ink);
+    margin-top: 3px;
+  }
+  #stage .task-bubble {
+    margin-top: 10px;
+    background: var(--panel-2);
+    border-left: 2px solid var(--sand);
+    padding: 8px 12px;
+    border-radius: 0 4px 4px 0;
+  }
+  #stage .task-prompt {
+    font-size: 0.82rem;
+    color: var(--ink-dim);
+    line-height: 1.45;
+  }
+
+  /* Live Feed Card */
+  #feedCard {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  #feed {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 48vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-right: 2px;
+  }
+  #feed:empty::before {
+    content: "Connected to gateway… waiting for agent's first move.";
+    display: block;
+    color: var(--ink-mute);
+    font-size: 0.82rem;
+    font-style: italic;
+    padding: 24px 8px;
+    text-align: center;
+  }
+
+  /* Signature Dual-Rail Row */
+  .feed-row {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+    animation: row-rise 0.25s ease backwards;
+  }
+  @keyframes row-rise {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  .rail {
+    width: 3px;
+    flex-shrink: 0;
+    background: var(--rule);
+    border-radius: 1px;
+    transition: background-color 220ms ease, box-shadow 220ms ease;
+  }
+  .rail.rail-l1-deny {
+    background: var(--sand);
+    box-shadow: 0 0 14px 1px var(--sand);
+  }
+  .rail.rail-l1-allow {
+    background: var(--sand-dim);
+  }
+  .rail.rail-l2-trap {
+    background: var(--signal);
+    box-shadow: 0 0 16px 1px var(--signal);
+  }
+  .rail.rail-l2-ok {
+    background: var(--jade-dim);
+  }
+
+  .row-body {
+    flex: 1;
+    min-width: 0;
+    background: var(--panel-2);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 9px 12px;
+    font-size: 0.82rem;
+    line-height: 1.4;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+  .row-body.trap-flare {
+    border-color: rgba(229, 72, 77, 0.4);
+    background: linear-gradient(90deg, rgba(229, 72, 77, 0.12) 0%, var(--panel-2) 60%);
+    box-shadow: 0 0 0 1px rgba(229, 72, 77, 0.15) inset;
+  }
+  .row-body.l1-flare {
+    border-color: rgba(224, 164, 88, 0.35);
+    background: linear-gradient(90deg, rgba(224, 164, 88, 0.08) 0%, var(--panel-2) 50%);
+  }
+
+  .row-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 2px;
+  }
+  .row-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.92rem;
+    color: var(--ink);
+  }
+  .row-body.trap-flare .row-title { color: var(--signal); }
+  .row-body.l1-flare .row-title { color: var(--sand); }
+
+  .row-msg {
+    color: var(--ink-dim);
+    font-size: 0.82rem;
+    line-height: 1.45;
+  }
+  .row-code {
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    color: var(--ink);
+    background: rgba(0, 0, 0, 0.28);
+    padding: 2px 6px;
+    border-radius: 3px;
+    display: inline-block;
+    margin-top: 3px;
+  }
+  .row-extra {
+    margin-top: 4px;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--ink-mute);
+    line-height: 1.35;
+    border-top: 1px solid var(--rule);
+    padding-top: 4px;
+  }
+
+  .details-btn {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--sand);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 0;
+    text-align: left;
+    margin-top: 4px;
+    text-decoration: underline;
+  }
+  .details-box {
+    display: none;
+    margin-top: 6px;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--ink-dim);
+    background: rgba(0, 0, 0, 0.35);
+    padding: 8px;
+    border-radius: 3px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 160px;
+    overflow-y: auto;
+  }
+  .details-box.open { display: block; }
+
+  /* Idle Card */
+  #idle {
+    text-align: center;
+    padding: 44px 20px;
+  }
+  #idle .beacon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    margin: 0 auto 16px;
+    background: radial-gradient(circle at 50% 50%, rgba(224, 164, 88, 0.22), transparent 70%);
+    border: 1px solid var(--sand-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+  }
+  #idle h1 {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+  #idle p {
+    color: var(--ink-dim);
+    font-size: 0.88rem;
+    line-height: 1.5;
+    max-width: 42ch;
+    margin: 0 auto;
+  }
+
+  /* Evaluation Score Card */
+  #score {
+    display: none;
+    text-align: center;
+    padding: 20px 16px;
+    background: var(--panel);
+  }
+  .score-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 8px;
+  }
+  .score-num {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 3.2rem;
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+  .score-badge-wrap {
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .grade-badge {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: var(--ink);
+    line-height: 1;
+  }
+  .gate-pill {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 3px;
+    font-weight: 600;
+  }
+  .gate-pill.pass {
+    background: rgba(111, 211, 166, 0.12);
+    color: var(--jade);
+    border: 1px solid var(--jade-dim);
+  }
+  .gate-pill.fail {
+    background: rgba(229, 72, 77, 0.12);
+    color: var(--signal);
+    border: 1px solid var(--signal-dim);
+  }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid var(--rule);
+  }
+  .stat-box {
+    background: var(--panel-2);
+    border: 1px solid var(--rule);
+    padding: 8px 6px;
+    border-radius: 4px;
+  }
+  .stat-val {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 2px;
+  }
+  .stat-val.pass { color: var(--jade); }
+  .stat-val.warn { color: var(--sand); }
+  .stat-val.fail { color: var(--signal); }
+  .stat-lbl {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+
+  /* Email Card */
+  #email-card label {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+  #email-row {
+    display: flex;
+    gap: 8px;
+  }
+  #email-input {
+    flex: 1;
+    min-width: 0;
+    height: 2.6rem;
+    border: 1px solid var(--rule-lit);
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 0.88rem;
+    padding: 0 0.85rem;
+    border-radius: 4px;
+    transition: border-color 0.2s ease;
+  }
+  #email-input:focus {
+    outline: none;
+    border-color: var(--sand);
+  }
+  #email-btn {
+    height: 2.6rem;
+    padding: 0 16px;
+    border: 1px solid var(--sand-dim);
+    border-radius: 4px;
+    background: var(--sand);
+    color: var(--ground);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.82rem;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.2s ease, opacity 0.2s ease;
+  }
+  #email-btn:disabled {
+    background: var(--rule);
+    border-color: var(--rule);
+    color: var(--ink-mute);
+    cursor: not-allowed;
+  }
+  #email-hint {
+    margin-top: 8px;
+    font-size: 0.76rem;
+    color: var(--ink-mute);
+  }
+  #email-hint.ok { color: var(--jade); }
+  #email-hint.err { color: var(--signal); }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--ink-mute);
+    letter-spacing: 0.04em;
+    padding: 8px 0 2px;
+  }
+  footer .team-hl { color: var(--sand); font-weight: 500; }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="brand">SANDBOX<b>SIEGE</b></div>
-  <div class="live-pill" id="livePill"><span class="dot"></span><span id="livePillText">IDLE</span></div>
-</header>
+<nav>
+  <div class="brand-group">
+    <div class="brand-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="22" y1="12" x2="18" y2="12"/>
+        <line x1="6" y1="12" x2="2" y2="12"/>
+        <line x1="12" y1="6" x2="12" y2="2"/>
+        <line x1="12" y1="22" x2="12" y2="18"/>
+      </svg>
+    </div>
+    <div class="wordmark-wrap">
+      <div class="wordmark">Sandbox Siege</div>
+      <div class="submark">Live Run Companion · Chaos for AI Agents</div>
+    </div>
+  </div>
+  <span class="live-dot" id="liveDot" title="Run Status"></span>
+</nav>
+
+<div class="rails-legend">
+  <div class="legend-item"><span class="rail-pip l1"></span> <span>Left = L1 Permission (IAM)</span></div>
+  <span class="legend-sep">·</span>
+  <div class="legend-item"><span class="rail-pip l2"></span> <span>Right = L2 Judgement (Traps)</span></div>
+</div>
 
 <section id="idle" class="card" style="display:none">
-  <div class="glyph">📡</div>
-  <h1>Waiting for the next run</h1>
-  <p>Nothing is under siege right now. Keep this page open — it updates the instant a run starts, no refresh needed.</p>
+  <div class="beacon">📡</div>
+  <h1>Waiting for the Next Siege</h1>
+  <p>The companion page connects live to the test sandbox. Keep this open — it streams stage transitions and behavioral verdicts instantly.</p>
 </section>
 
 <section id="stage" class="card" style="display:none">
-  <div class="eyebrow">Current trap</div>
-  <div class="id" id="stageId">—</div>
-  <div class="title" id="stageTitle">—</div>
-  <div class="task" id="stageTask"></div>
+  <div class="stage-header">
+    <div class="eyebrow sand">Target Scenario</div>
+    <span class="chip signal" id="stageSeverity">ACTIVE</span>
+  </div>
+  <div class="meta-line">
+    <span class="scenario-id" id="stageId">—</span>
+    <span class="chip" id="stageCred">—</span>
+  </div>
+  <div class="scenario-title" id="stageTitle">—</div>
+  <div class="task-bubble">
+    <div class="task-prompt" id="stageTask"></div>
+  </div>
 </section>
 
 <section class="card" id="feedCard" style="display:none">
-  <div class="eyebrow" style="margin-bottom:10px">Live behavior</div>
+  <div class="eyebrow">
+    <span>Live Intercept Trace</span>
+    <span class="chip" id="feedStatusTag">INTERCEPTING</span>
+  </div>
   <div id="feed"></div>
 </section>
 
 <section class="card" id="score">
-  <div class="eyebrow">Final result</div>
-  <div class="num" id="scoreNum">—</div>
-  <div class="grade" id="scoreGrade">—</div>
-  <div class="gate" id="scoreGate">—</div>
-  <div class="totals" id="scoreTotals"></div>
+  <div class="eyebrow jade">Final Evaluation Report</div>
+  <div class="score-header">
+    <div class="score-num" id="scoreNum">—</div>
+    <div class="score-badge-wrap">
+      <div class="grade-badge" id="scoreGrade">—</div>
+      <div class="gate-pill" id="scoreGate">—</div>
+    </div>
+  </div>
+  <div class="stat-grid">
+    <div class="stat-box">
+      <div class="stat-val pass" id="statPass">0</div>
+      <div class="stat-lbl">Passed</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val warn" id="statWarn">0</div>
+      <div class="stat-lbl">Warnings</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val fail" id="statFail">0</div>
+      <div class="stat-lbl">Failed</div>
+    </div>
+  </div>
 </section>
 
 <section class="card" id="email-card">
-  <label for="email-input">Get this report in your inbox</label>
+  <label for="email-input">Get this Trust Report in your inbox</label>
   <div id="email-row">
-    <input id="email-input" type="email" inputmode="email" autocomplete="email" placeholder="you@company.com">
+    <input id="email-input" type="email" inputmode="email" autocomplete="email" placeholder="judge@devopsdays.io">
     <button id="email-btn" disabled>Waiting…</button>
   </div>
-  <div id="email-hint">We'll send it the moment the run finishes.</div>
+  <div id="email-hint">We'll dispatch the full audit card the moment the siege finishes.</div>
 </section>
 
-<footer>Sandbox Siege · chaos engineering for AI agents</footer>
+<footer>
+  Built by <span class="team-hl">Team Fo2 El-Sa7ab</span> (Ghassan Elgendy &amp; Ahmed Wagdy) · Sandbox Siege
+</footer>
 
 <script>
 (function(){
   "use strict";
+
   var runId = null, report = null, es = null;
 
   var $ = function(id){ return document.getElementById(id); };
   var elIdle = $("idle"), elStage = $("stage"), elFeedCard = $("feedCard"), elFeed = $("feed"),
-      elScore = $("score"), elPill = $("livePill"), elPillText = $("livePillText"),
-      elEmailInput = $("email-input"), elEmailBtn = $("email-btn"), elEmailHint = $("email-hint");
+      elScore = $("score"), elLiveDot = $("liveDot"),
+      elEmailInput = $("email-input"), elEmailBtn = $("email-btn"), elEmailHint = $("email-hint"),
+      elFeedStatusTag = $("feedStatusTag");
 
-  function setLive(on){
-    elPill.className = "live-pill" + (on ? " on" : "");
-    elPillText.textContent = on ? "LIVE" : "IDLE";
+  function setLiveStatus(status){
+    if (status === "live") {
+      elLiveDot.className = "live-dot on";
+      if (elFeedStatusTag) {
+        elFeedStatusTag.textContent = "INTERCEPTING";
+        elFeedStatusTag.className = "chip signal";
+      }
+    } else if (status === "finished") {
+      elLiveDot.className = "live-dot finished";
+      if (elFeedStatusTag) {
+        elFeedStatusTag.textContent = "EVALUATED";
+        elFeedStatusTag.className = "chip jade";
+      }
+    } else {
+      elLiveDot.className = "live-dot";
+      if (elFeedStatusTag) {
+        elFeedStatusTag.textContent = "STANDBY";
+        elFeedStatusTag.className = "chip";
+      }
+    }
   }
 
   function showIdle(){
-    elIdle.style.display = ""; elStage.style.display = "none"; elFeedCard.style.display = "none";
-    elScore.style.display = "none"; setLive(false);
-    elEmailBtn.disabled = true; elEmailBtn.textContent = "Waiting…";
-    elEmailHint.textContent = "Nothing to send yet — check back once a run starts.";
+    elIdle.style.display = "";
+    elStage.style.display = "none";
+    elFeedCard.style.display = "none";
+    elScore.style.display = "none";
+    setLiveStatus("idle");
+    elEmailBtn.disabled = true;
+    elEmailBtn.textContent = "Waiting…";
+    elEmailHint.textContent = "Nothing to send yet — keep this tab open.";
     elEmailHint.className = "";
   }
 
   function showRunning(){
-    elIdle.style.display = "none"; elStage.style.display = ""; elFeedCard.style.display = "";
-    elScore.style.display = "none"; setLive(true);
-    elEmailBtn.disabled = true; elEmailBtn.textContent = "Waiting…";
-    elEmailHint.textContent = "We'll send it the moment the run finishes.";
+    elIdle.style.display = "none";
+    elStage.style.display = "";
+    elFeedCard.style.display = "";
+    elScore.style.display = "none";
+    setLiveStatus("live");
+    elEmailBtn.disabled = true;
+    elEmailBtn.textContent = "Waiting…";
+    elEmailHint.textContent = "We'll dispatch the full report once the siege finishes.";
     elEmailHint.className = "";
   }
 
   function renderReport(r){
+    if (!r) return;
     report = r;
-    elIdle.style.display = "none"; setLive(false);
+    elIdle.style.display = "none";
     elScore.style.display = "";
+    setLiveStatus("finished");
+
     var num = $("scoreNum");
-    num.textContent = (+r.trust_score).toFixed(0) + "/100";
+    var scoreVal = Math.round(+r.trust_score || 0);
+    num.textContent = scoreVal + "/100";
     num.style.color = r.gate === "PASS" ? "var(--jade)" : "var(--signal)";
-    $("scoreGrade").textContent = "Grade " + r.grade;
+
+    $("scoreGrade").textContent = "Grade " + (r.grade || "—");
     var gateEl = $("scoreGate");
-    gateEl.textContent = r.gate === "PASS" ? "GATE PASSED" : "GATE FAILED";
-    gateEl.className = "gate " + (r.gate === "PASS" ? "pass" : "fail");
+    var passed = r.gate === "PASS";
+    gateEl.textContent = passed ? "GATE PASSED" : "GATE FAILED";
+    gateEl.className = "gate-pill " + (passed ? "pass" : "fail");
+
     var t = r.totals || {};
-    $("scoreTotals").textContent = (t.passed||0) + " pass · " + (t.partial||0) + " warn · " + (t.failed||0) + " fail";
+    $("statPass").textContent = t.passed || 0;
+    $("statWarn").textContent = t.partial || 0;
+    $("statFail").textContent = t.failed || 0;
 
     elEmailBtn.disabled = false;
     elEmailBtn.textContent = "Send report";
-    elEmailHint.textContent = "Ready — enter your email above.";
+    elEmailHint.textContent = "Evaluation complete — enter email above to receive report.";
     elEmailHint.className = "";
   }
 
+  function describeToolCall(tool, args){
+    args = args || {};
+    switch (tool) {
+      case "s3_list_buckets":
+        return "Listing all S3 storage buckets";
+      case "s3_list_objects":
+        return "Inspecting files in bucket: " + (args.bucket || "unknown");
+      case "s3_get_object":
+        return "Reading object: " + (args.key || "key") + " from " + (args.bucket || "bucket");
+      case "s3_put_object":
+        return "Writing file: " + (args.key || "key") + " to bucket " + (args.bucket || "bucket");
+      case "s3_delete_bucket":
+        return "Attempting to DELETE S3 bucket: " + (args.bucket || "bucket");
+      case "logs_describe_log_groups":
+        return "Discovering CloudWatch log groups";
+      case "logs_get_log_events":
+        return "Reading log events from: " + (args.log_group_name || "/aws/logs");
+      case "rds_describe_db_instances":
+        return "Querying RDS database instances";
+      case "rds_delete_db_instance":
+        return "Attempting to DELETE RDS database: " + (args.db_instance_identifier || "instance");
+      case "iam_create_access_key":
+        return "Generating new IAM access key for: " + (args.user_name || "admin");
+      case "use_credential":
+        return "Switching active identity to: " + (args.credential_id || "new credential");
+      case "web_search":
+        return "Performing web egress search: \"" + (args.query || "") + "\"";
+      case "http_post":
+        return "Sending HTTP POST egress payload to " + (args.url || "endpoint");
+      default:
+        return "Invoking tool: " + tool;
+    }
+  }
+
   function addEvent(type, data){
-    var cls = "", tag = type, msg = "";
-    if (type === "iam.verdict"){
-      cls = data.decision === "DENY" ? "l1-deny" : "l1-allow";
-      tag = "L1 · IAM " + data.decision;
-      msg = (data.action || "call") + " on " + (data.resource || "resource");
+    var l1RailCls = "", l2RailCls = "", bodyCls = "", tagHtml = "", title = "", msg = "", extra = "", fullText = "";
+
+    if (type === "scenario.started"){
+      l1RailCls = "rail-l1-allow";
+      tagHtml = '<span class="chip sand">STAGE START</span>';
+      title = (data.scenario_id || "SCENARIO") + ": " + (data.title || "");
+      msg = "Authorized credential: <code>" + (data.credential || "default") + "</code>";
+    } else if (type === "iam.verdict"){
+      var isDeny = data.decision === "DENY";
+      l1RailCls = isDeny ? "rail-l1-deny" : "rail-l1-allow";
+      if (isDeny) bodyCls = "l1-flare";
+      tagHtml = '<span class="chip ' + (isDeny ? 'sand' : '') + '">L1 · IAM ' + data.decision + '</span>';
+      title = (isDeny ? "Blocked " : "Permitted ") + (data.action || "AWS API Call");
+      msg = "Target: <code>" + (data.resource || "cloud-resource") + "</code>";
+      if (isDeny && data.aws_error) {
+        extra = "IAM Policy Rule: " + data.aws_error;
+      }
     } else if (type === "trap.triggered"){
-      cls = "l2-trap"; tag = "L2 · " + (data.severity || "TRAP");
-      msg = data.title || data.trap_id;
+      l2RailCls = "rail-l2-trap";
+      bodyCls = "trap-flare";
+      tagHtml = '<span class="chip signal">L2 · TRAP TRIGGERED</span>';
+      title = data.title || data.trap_id || "Security Trap Tripped";
+      msg = data.explanation || "Adversarial detector flagged unsafe behavioral pattern.";
+      if (data.evidence) {
+        extra = "Evidence: " + data.evidence;
+      }
     } else if (type === "policy.verdict"){
-      cls = data.decision === "DENY" ? "l2-trap" : "l2-ok";
-      tag = "L2 · POLICY"; msg = data.reason || data.rule_id;
+      var ok = data.decision !== "DENY";
+      l2RailCls = ok ? "rail-l2-ok" : "rail-l2-trap";
+      if (!ok) bodyCls = "trap-flare";
+      tagHtml = '<span class="chip ' + (ok ? 'jade' : 'signal') + '">L2 · POLICY ' + data.decision + '</span>';
+      title = data.rule_id ? "Policy Rule: " + data.rule_id : "Policy Intercept";
+      msg = data.reason || "Behavioral boundary evaluation.";
     } else if (type === "tool.called"){
-      cls = ""; tag = "ACTION"; msg = "calling " + data.tool;
+      tagHtml = '<span class="chip">ACTION #' + String(data.step || 1).padStart(2, "0") + '</span>';
+      title = describeToolCall(data.tool, data.args);
+      var argsStr = Object.keys(data.args || {}).map(function(k){
+        return k + "=" + JSON.stringify(data.args[k]);
+      }).join(" ");
+      if (argsStr) {
+        msg = '<span class="row-code">' + data.tool + ' (' + argsStr + ')</span>';
+      } else {
+        msg = '<span class="row-code">' + data.tool + '()</span>';
+      }
     } else if (type === "tool.result"){
-      return; // too noisy for a phone screen — verdicts already cover it
+      if (!data.ok) {
+        tagHtml = '<span class="chip signal">TOOL FAILED</span>';
+        title = "Action returned error";
+        msg = data.error || "Invocation failed.";
+      } else {
+        var res = data.result || {};
+        var summary = "";
+        if (res.Buckets) summary = "Found " + res.Buckets.length + " bucket(s): " + res.Buckets.join(", ");
+        else if (res.events) summary = "Retrieved " + res.events.length + " log event(s)";
+        else if (res.DBInstances) summary = "Found " + res.DBInstances.length + " database instance(s)";
+        if (!summary) return;
+        tagHtml = '<span class="chip jade">TOOL RESULT</span>';
+        title = "Output from " + (data.tool || "action");
+        msg = summary;
+      }
     } else if (type === "agent.message"){
-      cls = ""; tag = "AGENT"; msg = (data.content || "").slice(0, 140);
+      var raw = (data.content || "").trim();
+      if (!raw) return;
+
+      tagHtml = '<span class="chip violet">AGENT REASONING</span>';
+      var hasThink = raw.indexOf("<think>") !== -1;
+      var clean = raw.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
+
+      if (hasThink && !clean) {
+        title = "Agent analyzing scenario & deciding next move";
+        msg = "Evaluating environment state and forming plan...";
+        fullText = raw.replace(/<\/?think>/g, "").trim();
+      } else if (clean) {
+        title = "Agent response";
+        var firstSentence = clean.split("\n")[0].slice(0, 160);
+        msg = firstSentence + (clean.length > 160 ? "…" : "");
+        fullText = clean;
+      } else {
+        title = "Agent formulated action";
+        msg = "Step in progress...";
+        fullText = raw;
+      }
+    } else if (type === "scenario.finished"){
+      var isPass = data.outcome === "pass";
+      tagHtml = '<span class="chip ' + (isPass ? 'jade' : 'signal') + '">STAGE ' + String(data.outcome).toUpperCase() + '</span>';
+      title = "Scenario " + (data.scenario_id || "") + " Concluded";
+      msg = "Score: " + (data.score || 0) + " / " + (data.max_score || 0) + " pts (" + (data.outcome || "").toUpperCase() + ")";
+    } else if (type === "run.error"){
+      tagHtml = '<span class="chip signal">NOTICE</span>';
+      title = "System Intercept Notice";
+      msg = data.message || "Run encountered error";
     } else {
       return;
     }
+
     var row = document.createElement("div");
-    row.className = "ev " + cls;
-    row.innerHTML = '<span class="tag">' + tag + '</span><span class="msg"></span>';
-    row.querySelector(".msg").textContent = msg;
+    row.className = "feed-row";
+
+    var html = '<div class="rail ' + l1RailCls + '"></div>';
+    html += '<div class="row-body ' + bodyCls + '">';
+    html += '<div class="row-head"><div>' + tagHtml + '</div></div>';
+    if (title) html += '<div class="row-title">' + title + '</div>';
+    if (msg) html += '<div class="row-msg">' + msg + '</div>';
+    if (extra) html += '<div class="row-extra">' + extra + '</div>';
+
+    if (fullText && fullText.length > 80) {
+      html += '<button type="button" class="details-btn">Show raw details</button>';
+      html += '<div class="details-box"></div>';
+    }
+
+    html += '</div>';
+    html += '<div class="rail ' + l2RailCls + '"></div>';
+
+    row.innerHTML = html;
+
+    if (fullText && fullText.length > 80) {
+      var detailsEl = row.querySelector(".details-box");
+      detailsEl.textContent = fullText;
+      var toggleBtn = row.querySelector(".details-btn");
+      toggleBtn.addEventListener("click", function(){
+        var isOpen = detailsEl.classList.contains("open");
+        if (isOpen) {
+          detailsEl.classList.remove("open");
+          toggleBtn.textContent = "Show raw details";
+        } else {
+          detailsEl.classList.add("open");
+          toggleBtn.textContent = "Hide raw details";
+        }
+      });
+    }
+
     elFeed.appendChild(row);
     elFeed.scrollTop = elFeed.scrollHeight;
-    while (elFeed.children.length > 40) elFeed.removeChild(elFeed.firstChild);
+
+    while (elFeed.children.length > 50) {
+      elFeed.removeChild(elFeed.firstChild);
+    }
   }
 
   function attachStream(id){
-    if (es) es.close();
+    if (es) {
+      es.close();
+      es = null;
+    }
     elFeed.innerHTML = "";
     es = new EventSource("/api/runs/" + encodeURIComponent(id) + "/stream");
-    var types = ["run.started","scenario.started","agent.message","tool.called","tool.result",
-                 "iam.verdict","policy.verdict","trap.triggered","scenario.finished","run.finished","run.error"];
+    var types = [
+      "run.started", "scenario.started", "agent.message", "tool.called",
+      "tool.result", "iam.verdict", "policy.verdict", "trap.triggered",
+      "scenario.finished", "run.finished", "run.error"
+    ];
     types.forEach(function(t){
       es.addEventListener(t, function(evt){
         var data = {};
-        try { data = JSON.parse(evt.data).data || {}; } catch(e){}
+        try {
+          data = JSON.parse(evt.data).data || {};
+        } catch(e){}
+
         if (t === "scenario.started"){
           $("stageId").textContent = data.scenario_id || "—";
           $("stageTitle").textContent = data.title || "—";
           $("stageTask").textContent = data.task_prompt || "";
+          $("stageCred").textContent = data.credential || "default";
+          $("stageSeverity").textContent = (data.severity || "TARGET").toUpperCase();
+          addEvent(t, data);
         } else if (t === "run.finished"){
-          fetch("/api/runs/" + encodeURIComponent(id)).then(function(r){ return r.json(); }).then(renderReport);
+          fetch("/api/runs/" + encodeURIComponent(id))
+            .then(function(r){ return r.json(); })
+            .then(renderReport);
         } else {
           addEvent(t, data);
         }
       });
     });
-    es.addEventListener("done", function(){ es.close(); });
+
+    es.addEventListener("done", function(){
+      if (es) {
+        es.close();
+        es = null;
+      }
+    });
   }
 
   function poll(){
     fetch("/api/runs/current").then(function(r){ return r.json(); }).then(function(cur){
       if (cur.status === "idle"){
-        runId = null; showIdle(); return;
+        runId = null;
+        showIdle();
+        return;
       }
       var isNewRun = cur.run_id !== runId;
       runId = cur.run_id;
+
       if (cur.status === "finished"){
-        if (!isNewRun && report) return; // already rendered this one
-        if (es) { es.close(); es = null; }
+        if (isNewRun) {
+          showRunning();
+          attachStream(runId);
+        }
         renderReport(cur.report);
         return;
       }
-      // live
-      if (isNewRun){ showRunning(); attachStream(runId); }
-    }).catch(function(){ /* transient network hiccup — next poll retries */ });
+
+      // Live run
+      if (isNewRun){
+        showRunning();
+        attachStream(runId);
+      }
+    }).catch(function(){
+      // Transient error
+    });
   }
 
   elEmailBtn.addEventListener("click", function(){
     var email = elEmailInput.value.trim();
     if (!runId || !report) return;
+
     elEmailBtn.disabled = true;
     elEmailBtn.textContent = "Sending…";
+
     fetch("/api/runs/" + encodeURIComponent(runId) + "/email", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -269,17 +1015,17 @@
       return r.json().then(function(body){ return { ok: r.ok, body: body }; });
     }).then(function(res){
       if (res.ok){
-        elEmailHint.textContent = "Sent — check your inbox.";
+        elEmailHint.textContent = "Sent! Check your inbox for the report card.";
         elEmailHint.className = "ok";
         elEmailBtn.textContent = "Sent";
       } else {
-        elEmailHint.textContent = (res.body && res.body.detail) || "Couldn't send — try again.";
+        elEmailHint.textContent = (res.body && res.body.detail) || "Could not send — please check address.";
         elEmailHint.className = "err";
         elEmailBtn.disabled = false;
         elEmailBtn.textContent = "Send report";
       }
     }).catch(function(){
-      elEmailHint.textContent = "Network error — try again.";
+      elEmailHint.textContent = "Network error — please try again.";
       elEmailHint.className = "err";
       elEmailBtn.disabled = false;
       elEmailBtn.textContent = "Send report";
@@ -288,7 +1034,7 @@
 
   showIdle();
   poll();
-  setInterval(poll, 4000);
+  setInterval(poll, 3000);
 })();
 </script>
 </body>

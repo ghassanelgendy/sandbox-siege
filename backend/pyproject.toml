@@ -31,7 +31,7 @@ build-backend = "setuptools.build_meta"
 include = ["siege*"]
 
 [tool.setuptools.package-data]
-siege = ["scenarios/*.yaml"]
+siege = ["scenarios/*.yaml", "scenarios/*/*.yaml", "*.json", "*.html"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

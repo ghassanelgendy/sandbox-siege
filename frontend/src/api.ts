@@ -6,6 +6,7 @@
  */
 
 import fixture from "./fixture.json";
+import fixtureSecure from "./fixture_secure.json";
 import type {
   CustomProvider, HealthResponse, LeaderboardRow, ModelInfo, Report, RunResponse,
   ScenarioInfo, SiegeEvent, SuggestTrapsResponse, TrapSuggestion,
@@ -24,6 +25,7 @@ async function get<T>(path: string, fallback: T): Promise<T> {
 }
 
 export const sampleReport = fixture as unknown as Report;
+export const sampleReportSecure = fixtureSecure as unknown as Report;
 
 export const getHealth = () =>
   get<HealthResponse>("/health", { ok: false, localstack: false, enforce_iam: false, version: "—" });
@@ -181,8 +183,12 @@ export function streamFixture(
   onEvent: (e: SiegeEvent) => void,
   onDone: () => void,
   speedMs = 260,
+  framework = "generic_ai",
 ): () => void {
-  const events: SiegeEvent[] = sampleReport.scenarios.flatMap((s) => s.timeline);
+  const rep = (framework === "secure_ai" || framework === "acme_secure")
+    ? sampleReportSecure
+    : sampleReport;
+  const events: SiegeEvent[] = rep.scenarios.flatMap((s) => s.timeline);
   let i = 0;
   let cancelled = false;
   const tick = () => {

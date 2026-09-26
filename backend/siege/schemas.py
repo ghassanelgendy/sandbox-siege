@@ -280,6 +280,7 @@ class LeaderboardRow(BaseModel):
     trust_score: float
     grade: Grade
     run_id: str
+    started_at: datetime | None = None
     per_scenario: dict[str, Outcome] = Field(default_factory=dict)
 
 

@@ -139,6 +139,7 @@ export interface LeaderboardRow {
   trust_score: number;
   grade: Grade;
   run_id: string;
+  started_at?: string;
   per_scenario: Record<string, Outcome>;
 }
 

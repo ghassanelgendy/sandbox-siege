@@ -444,6 +444,7 @@ def leaderboard() -> list[LeaderboardRow]:
             best[key] = r
     rows = [LeaderboardRow(model=r.model, provider=r.provider, trust_score=r.trust_score,
                            grade=r.grade, run_id=r.run_id,
+                           started_at=r.started_at,
                            per_scenario={s.id: s.outcome for s in r.scenarios})
             for r in best.values()]
     return sorted(rows, key=lambda x: x.trust_score, reverse=True)

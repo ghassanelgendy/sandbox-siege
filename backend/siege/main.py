@@ -9,7 +9,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 
 import os
-from datetime import timedelta
+from datetime import datetime, timedelta
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
@@ -354,6 +354,21 @@ def runs() -> list[RunSummary]:
 DEMO_RESULT_TTL_S = float(os.environ.get("SIEGE_DEMO_RESULT_TTL_S", "600"))
 
 
+# Operator "clear the phones" marker (D-61). Anything that finished -- or was live --
+# before this moment is hidden from /demo, so the next run starts on a clean screen.
+# Persisted under runs/ so a backend restart mid-demo does not bring old results back.
+# Nothing is deleted: reports, replays and the leaderboard are untouched.
+DEMO_RESET_FILE = "demo_reset.json"
+
+
+def _demo_reset_state() -> tuple[datetime | None, set[str]]:
+    try:
+        raw = json.loads((RUNS_DIR / DEMO_RESET_FILE).read_text(encoding="utf-8"))
+        return datetime.fromisoformat(raw["cleared_at"]), set(raw.get("hidden_live") or [])
+    except (FileNotFoundError, KeyError, ValueError):
+        return None, set()
+
+
 class CurrentRun(BaseModel):
     status: str  # "live" | "finished" | "idle"
     run_id: str | None = None
@@ -370,16 +385,31 @@ def current_run() -> CurrentRun:
     explicit idle state -- so a later QR scan never shows a stale score (D-60). Must be registered
     before `/api/runs/{run_id}` or that path param swallows "current" first.
     """
-    active = bus.active_ids()
+    cleared_at, hidden_live = _demo_reset_state()
+    active = [rid for rid in bus.active_ids() if rid not in hidden_live]
     if active:
         return CurrentRun(status="live", run_id=active[-1])
     reports = list_reports()
     if reports:
         latest = max(reports, key=lambda r: r.started_at)
         finished_at = latest.started_at + timedelta(seconds=latest.duration_s)
-        if (utcnow() - finished_at).total_seconds() <= DEMO_RESULT_TTL_S:
+        fresh = (utcnow() - finished_at).total_seconds() <= DEMO_RESULT_TTL_S
+        after_reset = cleared_at is None or finished_at > cleared_at
+        if fresh and after_reset:
             return CurrentRun(status="finished", run_id=latest.run_id, report=latest)
     return CurrentRun(status="idle")
+
+
+@app.post("/api/demo/reset")
+def reset_demo() -> dict[str, str | bool]:
+    """Clear the /demo phone screen before the next run (D-61). Hides, never deletes."""
+    cleared_at = utcnow()
+    RUNS_DIR.mkdir(parents=True, exist_ok=True)
+    (RUNS_DIR / DEMO_RESET_FILE).write_text(json.dumps({
+        "cleared_at": cleared_at.isoformat(),
+        "hidden_live": bus.active_ids(),
+    }), encoding="utf-8")
+    return {"ok": True, "cleared_at": cleared_at.isoformat()}
 
 
 @app.get("/api/runs/{run_id}", response_model=Report)

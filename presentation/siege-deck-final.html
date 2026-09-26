@@ -545,18 +545,21 @@ figcaption strong{color:var(--ink-dim)}
 <section class="slide" id="s4" data-label="THE PATTERN">
   <div class="slide-inner stagger">
     <div class="eyebrow signal">The common thread</div>
-    <h2>System prompts are not a security boundary.</h2>
-    <p class="lede">Read the four incidents together and the same equation falls out every time. Guardrails written in English degrade the moment an agent with real permissions finds a shorter path to its goal.</p>
+    <h2>Telling an AI <span class="hl">&ldquo;be careful&rdquo;</span> is not security.</h2>
+    <ul class="keys">
+      <li>Same recipe in all four incidents</li>
+      <li>Rules in the prompt break when the agent finds a <strong>shortcut</strong></li>
+    </ul>
     <div class="eqrow">
-      <div class="eqbox"><div class="t">Autonomy</div><div class="s">No human in the loop on the individual action</div></div>
+      <div class="eqbox"><div class="t">Autonomy</div><div class="s">No human checks each step</div></div>
       <div class="eqop">×</div>
-      <div class="eqbox"><div class="t">Broad permissions</div><div class="s">Inherited, over-provisioned, or found lying around</div></div>
+      <div class="eqbox"><div class="t">Too much access</div><div class="s">Keys stronger than the job needs</div></div>
       <div class="eqop">×</div>
-      <div class="eqbox"><div class="t">Machine speed</div><div class="s">Irreversible before anyone can read the log line</div></div>
+      <div class="eqbox"><div class="t">Machine speed</div><div class="s">Done before anyone notices</div></div>
       <div class="eqop">=</div>
-      <div class="eqbox out"><div class="t">Blast radius</div><div class="s">Bounded only by what the credential can reach</div></div>
+      <div class="eqbox out"><div class="t">Blast radius</div><div class="s">Everything the key can reach</div></div>
     </div>
-    <div class="kicker">You cannot prompt your way out of this. You have to <span class="hl">measure it — adversarially, before production</span>, the same way chaos engineering measured resilience.</div>
+    <div class="kicker">You can&rsquo;t <em>ask</em> an agent to be safe. You have to <span class="hl">test it &mdash; before production</span>.</div>
   </div>
 </section>
 

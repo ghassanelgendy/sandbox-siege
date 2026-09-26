@@ -665,24 +665,27 @@ figcaption strong{color:var(--ink-dim)}
 <section class="slide" id="s11" data-label="INTEGRATION">
   <div class="slide-inner">
     <div class="eyebrow signal">Real infrastructure · real pipelines</div>
-    <h2>It runs against your Terraform, and it blocks your merge.</h2>
-    <p class="lede">Sandbox Siege is not a synthetic toy benchmark. It replicates real production topologies into the sandbox, and it enforces the gate inside an external company repository — demonstrated end to end.</p>
+    <h2>Your Terraform in. Pass / fail out.</h2>
+    <ul class="keys">
+      <li>Test the agent on <strong>your own</strong> infrastructure</li>
+      <li>Plug it into CI like <strong>any other test</strong></li>
+    </ul>
     <div class="pipegrid">
       <div class="pipecard">
-        <h4>Terraform / OpenTofu sandbox seeding</h4>
-        <p style="font-size:.85rem;line-height:1.55">Our HCL parser (<code>siege/terraform.py</code>) reads your real declarations — <code>aws_s3_bucket</code>, <code>aws_db_instance</code>, <code>aws_instance</code>, <code>aws_secretsmanager_secret</code> — and replicates them into a LocalStack Pro sandbox. The agent is tested against <em>your</em> naming, <em>your</em> tags, <em>your</em> confusingly-similar staging and prod twins.</p>
-        <div class="badge-row"><span class="tag jade">HCL / OpenTofu</span><span class="tag crit">real topologies</span><span class="tag high">no mock theatre</span></div>
+        <h4>Your Terraform &rarr; the sandbox</h4>
+        <p class="key">Buckets &middot; databases &middot; servers &middot; secrets &rarr; rebuilt as fake AWS</p><p class="key">Same names &middot; same tags &middot; <strong>real traps</strong></p>
+        <div class="badge-row"><span class="tag jade">HCL / OpenTofu</span><span class="tag crit">real topologies</span><span class="tag high">your names &amp; tags</span></div>
       </div>
       <div class="pipecard">
-        <h4>The CI chaos gate</h4>
-        <p style="font-size:.85rem;line-height:1.55">Demonstrated live on <strong>github.com/ghassanelgendy/acme-cloud-platform</strong>. The <code>agent-chaos-gate.yml</code> workflow fetches the engine, seeds that repo's Terraform, runs the suite against the agent that opened the PR, and fails the check when the Trust Score falls under the dynamic threshold.</p>
-        <div style="margin-top:12px;font-family:var(--font-mono);font-size:.8rem;color:var(--sand)">➔ unsafe agent behaviour blocks the merge, automatically</div>
+        <h4>The CI gate</h4>
+        <p class="key">Every pull request &rarr; run the traps</p><p class="key">Score below the bar &rarr; <strong>check fails</strong></p>
+        <div style="margin-top:12px;font-family:var(--font-mono);font-size:.8rem;color:var(--sand)">➔ Live on our repo: score 69.6 &middot; bar 95 &middot; CI red</div>
       </div>
     </div>
     <div class="chiprow">
-      <div class="chip"><b>Interfaces</b>CLI (<code>siege run</code>) · REST + SSE API · React dashboard · GitHub Actions · JSONL tape</div>
-      <div class="chip"><b>Deployment</b>Docker Compose microservices, publicly reachable through a Cloudflare Zero-Trust tunnel with no open ingress ports.</div>
-      <div class="chip"><b>Cost of a run</b>No real cloud spend — the sandbox is local. Replays cost zero tokens and zero infrastructure.</div>
+      <div class="chip"><b>Use it from</b>CLI &middot; dashboard &middot; API &middot; GitHub Actions</div>
+      <div class="chip"><b>Runs anywhere</b>Docker Compose &middot; one command</div>
+      <div class="chip"><b>Cost</b>$0 cloud &middot; replays are free</div>
     </div>
   </div>
 </section>

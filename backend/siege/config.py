@@ -41,7 +41,7 @@ class Settings(BaseSettings):
 
     # Resend report email (D-32 CI dispatch; D-52 on-demand judge/spectator dispatch)
     resend_api_key: str = ""
-    report_email_from: str = "sandbox@ghassan.online"
+    report_email_from: str = "sandbox@example.com"
 
     # Jev by TypeSafe AI — System One advisory judge (PRD §8.2, FR-4.9, D-43)
     # Leave blank to disable Jev evaluation (advisory only; never gates a run).

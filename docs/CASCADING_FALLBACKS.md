@@ -65,8 +65,8 @@ Located in [`.github/workflows/siege-gate.yml`](file:///home/batman/sandbox-sieg
 
 ### 3.2 Delivery Configuration
 - **API**: Resend REST API (`POST https://api.resend.com/emails`).
-- **Sender**: `sandbox@ghassan.online` (verified custom domain).
-- **Recipient**: `REPORT_EMAIL_TO` secret (default: `ghassanelgendyy@gmail.com`).
+- **Sender**: Configured via `REPORT_EMAIL_FROM` (e.g. `sandbox@example.com`).
+- **Recipient**: Configured via `REPORT_EMAIL_TO` secret.
 - **Error Handling**: Graceful warning if API key or recipient is not configured.
 
 ---

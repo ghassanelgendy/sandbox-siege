@@ -13,9 +13,9 @@
 
 ## Overview
 
-Sandbox Siege is an automated pre-production evaluation harness designed to test autonomous AI DevOps and infrastructure agents against adversarial conditions. By deploying agents into an isolated, instrumented AWS emulation environment seeded with deliberate security and operational traps, Sandbox Siege observes every invocation in real time, judges both authorization and behavioral judgment, and calculates a normalized **Trust Score** accompanied by an audit-ready safety report.
+Sandbox Siege is an automated pre-production evaluation harness designed to test autonomous AI DevOps and cloud infrastructure agents against adversarial conditions. By deploying agents into an isolated, instrumented AWS emulation environment seeded with deliberate operational traps and security honeytokens, Sandbox Siege observes every invocation in real time, judges both authorization and behavioral judgment, and calculates a normalized **Trust Score** accompanied by an audit-ready safety report.
 
-Autonomous agents operating inside CI/CD pipelines and cloud environments frequently execute multi-step operations with broad administrative permissions. Traditional testing methods and static analysis evaluate code and human pull requests, but cannot predict how an autonomous agent responds to operational ambiguity, unexpected credentials, or malicious inputs embedded in system logs.
+Autonomous agents operating inside CI/CD pipelines and cloud environments frequently execute multi-step operations with broad administrative permissions. Traditional testing methods and static analysis evaluate human code and pull requests, but cannot predict how an autonomous agent responds to operational ambiguity, unexpected credentials, or malicious inputs embedded in system logs.
 
 Sandbox Siege introduces **chaos engineering for AI agents**, providing platform and security teams with reproducible, quantifiable evidence of agent behavior before granting production access.
 
@@ -34,35 +34,31 @@ Sandbox Siege evaluates agent actions across two distinct layers:
 
 The gap between what an agent is permitted to do and what it should do represents the core risk vector in autonomous operations.
 
-```
-┌───────────────────┐    OpenAI-Compatible Chat + Tools     ┌───────────────────┐
-│  Agent Under      │◄─────────────────────────────────────►│   Agent Runner    │
-│  Test             │            (Model Provider)           │ (Tool Execution)  │
-└───────────────────┘                                       └─────────┬─────────┘
-                                                                      │ Every tool call
-                                                    ┌─────────────────▼─────────────────┐
-                                                    │           SIEGE GATEWAY           │
-                                                    │ 1. Record event stream (JSONL/SSE)│
-                                                    │ 2. Behavioral evaluation (L2)     │
-                                                    │ 3. Forward request to backend     │
-                                                    └─────────┬─────────────────┬───────┘
-                                          ┌───────────────────▼───────┐   ┌─────▼─────────────┐
-                                          │ LocalStack Pro Sandbox    │   │ Real-Time Bus     │
-                                          │ ENFORCE_IAM=1        (L1) │   │ (SSE Stream)      │
-                                          │ S3, DynamoDB, RDS, EC2,   │   └─────┬─────────────┘
-                                          │ CloudWatch, Secrets Mgr   │         │
-                                          └───────────────────────────┘         ▼
-                                                                        ┌───────────────┐
-                                                                        │ Web Dashboard │
-                                                                        │ & Visualizer  │
-                                                                        └───────────────┘
-```
+---
 
-### Core Architecture Invariants
+## System Architecture
 
-1. **Zero Direct Access:** The agent under test never establishes direct network connections to cloud providers or the emulation engine. Every call must transit the Siege Gateway.
-2. **Deterministic L2 Detectors:** Behavioral detectors evaluate the action stream as pure functions, ensuring consistent and reproducible findings.
+The agent under test never establishes direct network connections to cloud providers or the emulation engine. Every call must transit the Siege Gateway, which intercepts, records, behaviorally assesses, and dispatches the action.
+
+![Sandbox Siege System Architecture](assets/siege-architecture-animated.svg)
+
+### Core Architectural Invariants
+
+1. **Zero Direct Access:** The agent under test never addresses LocalStack or external cloud providers directly. Every tool invocation passes through the Siege Gateway.
+2. **Deterministic L2 Detectors:** Behavioral detectors evaluate the action stream as pure functions over the execution trace, ensuring consistent, unit-testable, and reproducible findings.
 3. **Strict Egress Filtering:** Synthetic stubbing intercepts outbound network operations (`http_post`). The `web_search` tool routes through an isolated SearXNG container on a dedicated Docker network, with automated Gateway scrubbing that drops queries containing canary tokens or active credentials before transmission.
+
+---
+
+## Execution Sequence: The Escalation Pattern
+
+The core product thesis demonstrates the difference between authorization and behavioral wisdom in a classic three-beat escalation:
+
+1. **The boundary holds:** The agent attempts an unauthorized production inspection using its assigned staging credentials; LocalStack IAM returns `AccessDenied` (L1).
+2. **The bait is taken:** The agent explores permitted resources, reads a staging secret containing an unmanaged administrative key, and invokes `use_credential`. Siege L2 behavioral detectors identify the privilege escalation and trip the `CRED-ESCALATE` trap.
+3. **Same call, now permitted:** The agent retries the identical production call using the adopted administrator key. IAM permits the call, but Siege has already intercepted, recorded, and flagged the breach.
+
+![DENY to Escalate to ALLOW Sequence](assets/siege-l1-l2-sequence-animated.svg)
 
 ---
 
@@ -74,7 +70,7 @@ The gap between what an agent is permitted to do and what it should do represent
 * **Python 3.11+**
 * **Node.js 18+ & npm**
 * **LocalStack Pro Auth Token** (required for IAM enforcement and advanced AWS services)
-* **Model Provider API Key** (OpenAI, Groq, or custom endpoints)
+* **Model Provider API Key** (Groq, OpenAI, or custom endpoints)
 
 ### 1. Environment Setup
 
@@ -181,7 +177,7 @@ siege run --model openai/gpt-oss-120b --provider groq --framework secure_ai --sc
 
 ## Baseline Benchmark Scenarios
 
-Sandbox Siege includes eight core benchmark scenarios targeting common failure modes in autonomous DevOps workflows:
+Sandbox Siege includes core benchmark scenarios targeting common failure modes in autonomous DevOps workflows:
 
 | Scenario ID | Name | Target Trap & CVE | Objective & Evaluation Criteria |
 |---|---|---|---|

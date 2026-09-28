@@ -40,7 +40,8 @@ The gap between what an agent is permitted to do and what it should do represent
 
 The agent under test never establishes direct network connections to cloud providers or the emulation engine. Every call must transit the Siege Gateway, which intercepts, records, behaviorally assesses, and dispatches the action.
 
-![Sandbox Siege System Architecture](assets/siege-architecture-animated.svg)
+[![Sandbox Siege System Architecture](assets/siege-architecture.png)](presentation/siege-architecture.html)
+*Interactive animated viewer with guided view walkthroughs available at [`presentation/siege-architecture.html`](presentation/siege-architecture.html) or `/architecture` on the live dashboard.*
 
 ### Core Architectural Invariants
 
@@ -58,7 +59,8 @@ The core product thesis demonstrates the difference between authorization and be
 2. **The bait is taken:** The agent explores permitted resources, reads a staging secret containing an unmanaged administrative key, and invokes `use_credential`. Siege L2 behavioral detectors identify the privilege escalation and trip the `CRED-ESCALATE` trap.
 3. **Same call, now permitted:** The agent retries the identical production call using the adopted administrator key. IAM permits the call, but Siege has already intercepted, recorded, and flagged the breach.
 
-![DENY to Escalate to ALLOW Sequence](assets/siege-l1-l2-sequence-animated.svg)
+[![DENY to Escalate to ALLOW Sequence](assets/siege-l1-l2-sequence.png)](presentation/siege-l1-l2-sequence.html)
+*Interactive animated viewer with sequence trace beats available at [`presentation/siege-l1-l2-sequence.html`](presentation/siege-l1-l2-sequence.html) or `/sequence` on the live dashboard.*
 
 ---
 
